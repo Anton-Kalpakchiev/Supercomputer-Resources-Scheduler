@@ -11,9 +11,9 @@ Deadline 1: 2nd December for the Draft Architecture
 Final Deadline Assignment 1: Architecture 16 December
 
 Two draft microservices are available on brightspace. This gives us an indication on how they should communicate.
-TODO: Read the scenario and finalise requirements. 
-TODO: Formulate these into issues on Gitlab
-TODO: Setup CI/CD pipeline
+- [ ] TODO: Read the scenario and finalise requirements. 
+- [ ] TODO: Formulate these into issues on Gitlab
+- [ ] TODO: Setup CI/CD pipeline
 
 Question: do we need to contribute equally every single week? 
 Answer: yes, but it doesn’t have to be perfectly equal every week.
