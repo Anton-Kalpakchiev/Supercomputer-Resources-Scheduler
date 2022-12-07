@@ -3,9 +3,12 @@ package nl.tudelft.sem.template.schedule.domain;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.persistence.*;
-
 import lombok.NoArgsConstructor;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.Table;
+import javax.persistence.Column;
 
 /**
  * A DDD entity representing an application user in our domain.
@@ -33,8 +36,8 @@ public class DailySchedule {
     /**
      * Create a new DailySchedule per Resource Pool.
      *
-     * @param day
-     * @param resourcePoolId
+     * @param day, the day that the requests are scheduled on
+     * @param resourcePoolId, the id of the resource pool the requests are scheduled in
      */
     public DailySchedule(Date day, long resourcePoolId) {
         this.day = day;
@@ -63,8 +66,12 @@ public class DailySchedule {
      */
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         DailySchedule that = (DailySchedule) o;
         DailyScheduleId thatId = new DailyScheduleId(that.getDay(), that.getResourcePoolId());
         DailyScheduleId current = new DailyScheduleId(this.day, this.resourcePoolId);
