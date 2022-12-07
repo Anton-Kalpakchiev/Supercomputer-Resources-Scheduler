@@ -7,10 +7,10 @@ import org.springframework.stereotype.Service;
  * A DDD service for registering a new user.
  */
 @Service
-public class RegistrationService {
+public class NodeCreationService {
     private final transient NodeRepository nodeRepository;
 
-    public RegistrationService(NodeRepository nodeRepository) {
+    public NodeCreationService(NodeRepository nodeRepository) {
         this.nodeRepository = nodeRepository;
     }
 

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
  * A DDD repository for quering and persisting node aggregate roots.
  */
 @Repository
-public interface NodeRepository extends JpaRepository<Node, String> {
+public interface NodeRepository extends JpaRepository<Node, Integer> {
 
     Optional<Node> findByName(Name name);
 

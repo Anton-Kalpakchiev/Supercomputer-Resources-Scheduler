@@ -133,17 +133,7 @@ public class Node {
      */
     @Override
     public String toString() {
-        return "Node{"
-                + "id="
-                + id
-                + ", name="
-                + name
-                + ", url="
-                + url
-                + ", token="
-                + token
-                + ", resource="
-                + resource
-                + '}';
+        return "Node{" + "id=" + id + ", name=" + name + ", url="
+                + url + ", token=" + token + ", resource=" + resource + '}';
     }
 }
