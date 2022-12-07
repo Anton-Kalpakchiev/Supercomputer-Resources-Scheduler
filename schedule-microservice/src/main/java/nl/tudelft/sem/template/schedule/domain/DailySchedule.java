@@ -1,11 +1,10 @@
 package nl.tudelft.sem.template.schedule.domain;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+
 import lombok.NoArgsConstructor;
 
 /**
@@ -13,6 +12,7 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "schedules")
+@IdClass(DailyScheduleId.class)
 @NoArgsConstructor
 public class DailySchedule {
     
@@ -20,12 +20,10 @@ public class DailySchedule {
      * Identifier for the daily schedule.
      */
     @Id
-    @Column(name = "id", nullable = false, unique = true)
-    private long id;
-
     @Column(name = "day", nullable = false)
     private Date day;
 
+    @Id
     @Column(name = "resource_pool_id", nullable = false)
     private long resourcePoolId;
 
@@ -37,13 +35,11 @@ public class DailySchedule {
      *
      * @param day
      * @param resourcePoolId
-     * @param list
      */
-    public DailySchedule(Date day, long resourcePoolId, List<Long> list) {
-        this.id = day.getTime() + resourcePoolId;
+    public DailySchedule(Date day, long resourcePoolId) {
         this.day = day;
         this.resourcePoolId = resourcePoolId;
-        this.list = list;
+        this.list = new ArrayList<>();
     }
 
     public Date getDay() {
@@ -70,7 +66,9 @@ public class DailySchedule {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DailySchedule that = (DailySchedule) o;
-        return id == that.id;
+        DailyScheduleId thatId = new DailyScheduleId(that.getDay(), that.getResourcePoolId());
+        DailyScheduleId current = new DailyScheduleId(this.day, this.resourcePoolId);
+        return current.equals(thatId);
     }
 
 }
