@@ -32,10 +32,9 @@ public class DefaultController {
      *
      * @return the nodes found in the database with the given id
      */
-    @GetMapping("/hello")
+    @GetMapping("/")
     public ResponseEntity<String> helloWorld() {
         return ResponseEntity.ok("Hello " + authManager.getNetId());
-
     }
 
 }
