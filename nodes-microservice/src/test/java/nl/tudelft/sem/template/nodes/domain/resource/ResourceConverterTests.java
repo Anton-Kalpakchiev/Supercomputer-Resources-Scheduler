@@ -1,9 +1,7 @@
-package nl.tudelft.sem.template.nodes.domain;
+package nl.tudelft.sem.template.nodes.domain.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import nl.tudelft.sem.template.nodes.domain.resource.Resource;
-import nl.tudelft.sem.template.nodes.domain.resource.ResourceAttributeConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

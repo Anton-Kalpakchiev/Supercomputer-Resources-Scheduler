@@ -1,11 +1,10 @@
 package nl.tudelft.sem.template.nodes.domain.node;
 
-import lombok.EqualsAndHashCode;
+import java.util.Objects;
 
 /**
  * A DDD value object representing a token of a node in our domain.
  */
-@EqualsAndHashCode
 public class Token {
     private final transient String nodeToken;
 
@@ -17,5 +16,22 @@ public class Token {
     @Override
     public String toString() {
         return nodeToken;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Token token = (Token) o;
+        return nodeToken.equals(token.nodeToken);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nodeToken);
     }
 }

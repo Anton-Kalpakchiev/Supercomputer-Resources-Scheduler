@@ -63,7 +63,7 @@ public class Node {
      *
      * @return the name
      */
-    public Name getName() {
+    public Name getNodeName() {
         return name;
     }
 
@@ -94,6 +94,10 @@ public class Node {
         return resource;
     }
 
+    public void updateResource(Resource newResource) {
+        this.resource = newResource;
+    }
+
     /**
      * Equals method implementation for Node.
      *
@@ -110,10 +114,10 @@ public class Node {
         }
         Node node = (Node) o;
         return id == node.id
-                && Objects.equals(name, node.name)
-                && Objects.equals(url, node.url)
-                && Objects.equals(token, node.token)
-                && Objects.equals(resource, node.resource);
+                && name.equals(node.name)
+                && url.equals(node.url)
+                && token.equals(node.token)
+                && resource.equals(node.resource);
     }
 
     /**
@@ -123,7 +127,7 @@ public class Node {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, url, token, resource);
+        return Objects.hash(this.getNodeName(), this.getUrl(), this.getToken(), this.getResource());
     }
 
     /**
@@ -133,7 +137,7 @@ public class Node {
      */
     @Override
     public String toString() {
-        return "Node{" + "id=" + id + ", name=" + name + ", url="
-                + url + ", token=" + token + ", resource=" + resource + '}';
+        return "Node " + name + " {url:"
+                + url + ", token:" + token + ", resource:[" + resource + "]}";
     }
 }

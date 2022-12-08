@@ -1,20 +1,13 @@
-package nl.tudelft.sem.template.nodes.domain;
+package nl.tudelft.sem.template.nodes.domain.node;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import nl.tudelft.sem.template.nodes.domain.node.Name;
-import nl.tudelft.sem.template.nodes.domain.node.NameAlreadyInUseException;
-import nl.tudelft.sem.template.nodes.domain.node.Node;
-import nl.tudelft.sem.template.nodes.domain.node.NodeCreationService;
-import nl.tudelft.sem.template.nodes.domain.node.NodeRepository;
-import nl.tudelft.sem.template.nodes.domain.node.NodeUrl;
-import nl.tudelft.sem.template.nodes.domain.node.ResourcesInvalidException;
-import nl.tudelft.sem.template.nodes.domain.node.Token;
-import nl.tudelft.sem.template.nodes.domain.node.TokenAlreadyInUseException;
-import nl.tudelft.sem.template.nodes.domain.node.UrlAlreadyInUseException;
 import nl.tudelft.sem.template.nodes.domain.resource.Resource;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,31 +27,37 @@ public class NodeCreationServiceTests {
     @Autowired
     private transient NodeRepository nodeRepository;
 
+    @BeforeEach
+    void setUp() {
+        nodeRepository = mock(NodeRepository.class);
+        nodeCreationService = new NodeCreationService(nodeRepository);
+    }
+
     @Test
     public void createNode_withValidData_worksCorrectly() throws Exception {
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
         final Token token = new Token("Token");
         final Resource resource = new Resource(420, 400, 400);
-        nodeCreationService.registerNode(name, url, token, resource);
-        // Assert
-        Node savedNode = nodeRepository.findByName(name).orElseThrow();
+        Node node = new Node(name, url, token, resource);
+        when(nodeRepository.save(node)).thenReturn(node);
+        Node createdNode = nodeCreationService.registerNode(name, url, token, resource);
 
-        assertThat(savedNode.getName()).isEqualTo(name);
-        assertThat(savedNode.getResource()).isEqualTo(resource);
-        assertThat(savedNode.getUrl()).isEqualTo(url);
-        assertThat(savedNode.getToken()).isEqualTo(token);
+        assertThat(createdNode.getNodeName()).isEqualTo(name);
+        assertThat(createdNode.getResource()).isEqualTo(resource);
+        assertThat(createdNode.getUrl()).isEqualTo(url);
+        assertThat(createdNode.getToken()).isEqualTo(token);
     }
 
     @Test
-    public void createNodeResourceException() throws Exception {
+    public void createNodeResourceException() {
         // Arrange
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
         final Token token = new Token("Token");
         final Resource resource = new Resource(420, 500, 400);
-        nodeCreationService = mock(NodeCreationService.class);
-        doThrow(new ResourcesInvalidException(resource)).when(nodeCreationService).registerNode(name, url, token, resource);
+
+        assertThrows(ResourcesInvalidException.class, () -> nodeCreationService.registerNode(name, url, token, resource));
     }
 
     @Test
@@ -68,11 +67,11 @@ public class NodeCreationServiceTests {
         final NodeUrl url = new NodeUrl("url");
         final Token token = new Token("Token");
         final Resource resource = new Resource(420, 400, 400);
-        nodeCreationService = mock(NodeCreationService.class);
         nodeCreationService.registerNode(name, url, token, resource);
+        when(nodeRepository.existsByName(name)).thenReturn(true);
 
-        doThrow(new NameAlreadyInUseException(name)).when(nodeCreationService)
-                .registerNode(name, new NodeUrl("url2"), new Token("token2"), resource);
+        assertThrows(NameAlreadyInUseException.class, () ->
+                nodeCreationService.registerNode(name, new NodeUrl("url2"), new Token("token2"), resource));
     }
 
     @Test
@@ -80,13 +79,13 @@ public class NodeCreationServiceTests {
         // Arrange
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
-        final Token token = new Token("Token");
+        final Token token = new Token("token");
         final Resource resource = new Resource(420, 400, 400);
-        nodeCreationService = mock(NodeCreationService.class);
         nodeCreationService.registerNode(name, url, token, resource);
+        when(nodeRepository.existsByUrl(url)).thenReturn(true);
 
-        doThrow(new UrlAlreadyInUseException(url)).when(nodeCreationService)
-                .registerNode(new Name("Ivo"), url, new Token("token2"), resource);
+        assertThrows(UrlAlreadyInUseException.class, () ->
+                nodeCreationService.registerNode(new Name("Ivo"), url, new Token("token2"), resource));
     }
 
     @Test
@@ -96,10 +95,10 @@ public class NodeCreationServiceTests {
         final NodeUrl url = new NodeUrl("url");
         final Token token = new Token("Token");
         final Resource resource = new Resource(420, 400, 400);
-        nodeCreationService = mock(NodeCreationService.class);
         nodeCreationService.registerNode(name, url, token, resource);
+        when(nodeRepository.existsByToken(token)).thenReturn(true);
 
-        doThrow(new TokenAlreadyInUseException(token)).when(nodeCreationService)
-                .registerNode(new Name("Ivo"), new NodeUrl("url2"), token, resource);
+        assertThrows(TokenAlreadyInUseException.class, () ->
+                nodeCreationService.registerNode(new Name("Ivo"), new NodeUrl("url2"), token, resource));
     }
 }

@@ -50,7 +50,7 @@ public class NodeCreationService {
      * @return the boolean
      */
     public boolean checkResourceRequirements(Resource resource) {
-        return resource.getCpu() >= resource.getCpu() && resource.getCpu() >= resource.getMemory();
+        return resource.getCpu() >= resource.getGpu() && resource.getCpu() >= resource.getMemory();
     }
 
     public boolean checkNameIsUnique(Name name) {
