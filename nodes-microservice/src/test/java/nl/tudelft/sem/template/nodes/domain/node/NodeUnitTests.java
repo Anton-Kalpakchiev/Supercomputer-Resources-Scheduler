@@ -3,7 +3,7 @@ package nl.tudelft.sem.template.nodes.domain.node;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Objects;
-import nl.tudelft.sem.template.nodes.domain.resource.Resource;
+import nl.tudelft.sem.template.nodes.domain.resources.Resources;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +11,7 @@ public class NodeUnitTests {
     private Name name;
     private NodeUrl url;
     private Token token;
-    private Resource resource;
+    private Resources resource;
 
     private Node node;
 
@@ -20,7 +20,7 @@ public class NodeUnitTests {
         name = new Name("Mayte");
         url = new NodeUrl("url");
         token = new Token("token");
-        resource = new Resource(500, 400, 400);
+        resource = new Resources(500, 400, 400);
         node = new Node(name, url, token, resource);
     }
 
@@ -52,7 +52,7 @@ public class NodeUnitTests {
 
     @Test
     public void updateResourceTest() {
-        Resource resource2 = new Resource(100, 100, 100);
+        Resources resource2 = new Resources(100, 100, 100);
         node.updateResource(resource2);
         assertThat(node.getResource()).isEqualTo(resource2);
     }
@@ -65,31 +65,31 @@ public class NodeUnitTests {
 
     @Test
     public void testNodeEqualsTrue() {
-        Node node2 = new Node(new Name("Mayte"), new NodeUrl("url"), new Token("token"), new Resource(500, 400, 400));
+        Node node2 = new Node(new Name("Mayte"), new NodeUrl("url"), new Token("token"), new Resources(500, 400, 400));
         assertThat(node).isEqualTo(node2);
     }
 
     @Test
     public void testNodeEqualsFalseToken() {
-        Node node2 = new Node(new Name("Mayte"), new NodeUrl("url"), new Token("tokenwrong"), new Resource(500, 400, 400));
+        Node node2 = new Node(new Name("Mayte"), new NodeUrl("url"), new Token("tokenwrong"), new Resources(500, 400, 400));
         assertThat(node).isNotEqualTo(node2);
     }
 
     @Test
     public void testNodeNameEqualsFalse() {
-        Node node2 = new Node(new Name("Ivo"), new NodeUrl("url"), new Token("token"), new Resource(500, 400, 400));
+        Node node2 = new Node(new Name("Ivo"), new NodeUrl("url"), new Token("token"), new Resources(500, 400, 400));
         assertThat(node).isNotEqualTo(node2);
     }
 
     @Test
     public void testNodeEqualsFalseUrl() {
-        Node node2 = new Node(new Name("Mayte"), new NodeUrl("urlwrong"), new Token("token"), new Resource(500, 400, 400));
+        Node node2 = new Node(new Name("Mayte"), new NodeUrl("urlwrong"), new Token("token"), new Resources(500, 400, 400));
         assertThat(node).isNotEqualTo(node2);
     }
 
     @Test
     public void testNodeEqualsFalseResource() {
-        Node node2 = new Node(new Name("Mayte"), new NodeUrl("url"), new Token("token"), new Resource(400, 400, 400));
+        Node node2 = new Node(new Name("Mayte"), new NodeUrl("url"), new Token("token"), new Resources(400, 400, 400));
         assertThat(node).isNotEqualTo(node2);
     }
 

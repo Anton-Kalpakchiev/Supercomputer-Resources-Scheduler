@@ -7,8 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.NoArgsConstructor;
-import nl.tudelft.sem.template.nodes.domain.resource.Resource;
-import nl.tudelft.sem.template.nodes.domain.resource.ResourceAttributeConverter;
+import nl.tudelft.sem.template.nodes.domain.resources.Resources;
+import nl.tudelft.sem.template.nodes.domain.resources.ResourcesAttributeConverter;
 
 /**
  * A DDD entity representing an application node in our domain.
@@ -20,7 +20,7 @@ public class Node {
 
     @Id
     @Column(name = "id", nullable = false)
-    private int id;
+    private long id;
     @Column(name = "name", nullable = false, unique = true)
     @Convert(converter = NameAttributeConverter.class)
     private Name name;
@@ -31,8 +31,8 @@ public class Node {
     @Convert(converter = TokenAttributeConverter.class)
     private Token token;
     @Column(name = "resource", nullable = false, unique = false)
-    @Convert(converter = ResourceAttributeConverter.class)
-    private Resource resource;
+    @Convert(converter = ResourcesAttributeConverter.class)
+    private Resources resource;
 
     /**
      * Instantiates a new Node.
@@ -42,7 +42,7 @@ public class Node {
      * @param nodeToken    the token
      * @param nodeResource the resource
      */
-    public Node(Name nodeName, NodeUrl nodeUrl, Token nodeToken, Resource nodeResource) {
+    public Node(Name nodeName, NodeUrl nodeUrl, Token nodeToken, Resources nodeResource) {
         this.name = nodeName;
         this.url = nodeUrl;
         this.token = nodeToken;
@@ -54,7 +54,7 @@ public class Node {
      *
      * @return the id
      */
-    public int getId() {
+    public long getId() {
         return id;
     }
 
@@ -90,11 +90,11 @@ public class Node {
      *
      * @return the resource
      */
-    public Resource getResource() {
+    public Resources getResource() {
         return resource;
     }
 
-    public void updateResource(Resource newResource) {
+    public void updateResource(Resources newResource) {
         this.resource = newResource;
     }
 

@@ -1,11 +1,11 @@
-package nl.tudelft.sem.template.nodes.domain.resource;
+package nl.tudelft.sem.template.nodes.domain.resources;
 
 import java.util.Objects;
 
 /**
  * A DDD value object representing a Resource in our domain.
  */
-public class Resource {
+public class Resources {
     private final transient int cpu;
     private final transient int gpu;
     private final transient int memory;
@@ -17,7 +17,7 @@ public class Resource {
      * @param gpu    the gpu
      * @param memory the memory
      */
-    public Resource(int cpu, int gpu, int memory) {
+    public Resources(int cpu, int gpu, int memory) {
         this.cpu = cpu;
         this.gpu = gpu;
         this.memory = memory;
@@ -48,7 +48,7 @@ public class Resource {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Resource resource = (Resource) o;
+        Resources resource = (Resources) o;
         return cpu == resource.cpu && gpu == resource.gpu && memory == resource.memory;
     }
 

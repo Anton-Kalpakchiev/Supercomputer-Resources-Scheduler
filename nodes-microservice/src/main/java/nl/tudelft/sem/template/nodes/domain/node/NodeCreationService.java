@@ -1,6 +1,6 @@
 package nl.tudelft.sem.template.nodes.domain.node;
 
-import nl.tudelft.sem.template.nodes.domain.resource.Resource;
+import nl.tudelft.sem.template.nodes.domain.resources.Resources;
 import org.springframework.stereotype.Service;
 
 /**
@@ -25,7 +25,7 @@ public class NodeCreationService {
      * @return the node that has been registered
      * @throws Exception an exception
      */
-    public Node registerNode(Name name, NodeUrl url, Token token, Resource resource) throws Exception {
+    public Node registerNode(Name name, NodeUrl url, Token token, Resources resource) throws Exception {
         if (!checkNameIsUnique(name)) {
             throw new NameAlreadyInUseException(name);
         }
@@ -49,7 +49,7 @@ public class NodeCreationService {
      * @param resource the resource
      * @return the boolean
      */
-    public boolean checkResourceRequirements(Resource resource) {
+    public boolean checkResourceRequirements(Resources resource) {
         return resource.getCpu() >= resource.getGpu() && resource.getCpu() >= resource.getMemory();
     }
 

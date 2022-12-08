@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import nl.tudelft.sem.template.nodes.domain.resource.Resource;
+import nl.tudelft.sem.template.nodes.domain.resources.Resources;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +38,7 @@ public class NodeCreationServiceTests {
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
         final Token token = new Token("Token");
-        final Resource resource = new Resource(420, 400, 400);
+        final Resources resource = new Resources(420, 400, 400);
         Node node = new Node(name, url, token, resource);
         when(nodeRepository.save(node)).thenReturn(node);
         Node createdNode = nodeCreationService.registerNode(name, url, token, resource);
@@ -55,7 +55,7 @@ public class NodeCreationServiceTests {
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
         final Token token = new Token("Token");
-        final Resource resource = new Resource(420, 500, 400);
+        final Resources resource = new Resources(420, 500, 400);
 
         assertThrows(ResourcesInvalidException.class, () -> nodeCreationService.registerNode(name, url, token, resource));
     }
@@ -66,7 +66,7 @@ public class NodeCreationServiceTests {
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
         final Token token = new Token("Token");
-        final Resource resource = new Resource(420, 400, 400);
+        final Resources resource = new Resources(420, 400, 400);
         nodeCreationService.registerNode(name, url, token, resource);
         when(nodeRepository.existsByName(name)).thenReturn(true);
 
@@ -80,7 +80,7 @@ public class NodeCreationServiceTests {
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
         final Token token = new Token("token");
-        final Resource resource = new Resource(420, 400, 400);
+        final Resources resource = new Resources(420, 400, 400);
         nodeCreationService.registerNode(name, url, token, resource);
         when(nodeRepository.existsByUrl(url)).thenReturn(true);
 
@@ -94,7 +94,7 @@ public class NodeCreationServiceTests {
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
         final Token token = new Token("Token");
-        final Resource resource = new Resource(420, 400, 400);
+        final Resources resource = new Resources(420, 400, 400);
         nodeCreationService.registerNode(name, url, token, resource);
         when(nodeRepository.existsByToken(token)).thenReturn(true);
 

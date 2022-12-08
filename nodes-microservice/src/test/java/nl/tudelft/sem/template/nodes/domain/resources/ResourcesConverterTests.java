@@ -1,29 +1,29 @@
-package nl.tudelft.sem.template.nodes.domain.resource;
+package nl.tudelft.sem.template.nodes.domain.resources;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class ResourceConverterTests {
+public class ResourcesConverterTests {
 
-    private transient ResourceAttributeConverter converter;
+    private transient ResourcesAttributeConverter converter;
 
     @BeforeEach
     public void setup() {
-        converter = new ResourceAttributeConverter();
+        converter = new ResourcesAttributeConverter();
     }
 
     @Test
     public void testConvertToDatabaseColumn() {
-        Resource resource = new Resource(400, 300, 300);
+        Resources resource = new Resources(400, 300, 300);
         assertThat(resource.toString()).isEqualTo(converter.convertToDatabaseColumn(resource));
     }
 
     @Test
     public void testConvertToEntityAttribute() {
         String resourceString = "400, 300, 300";
-        Resource resource = new Resource(400, 300, 300);
+        Resources resource = new Resources(400, 300, 300);
         assertThat(converter.convertToEntityAttribute(resourceString)).isEqualTo(resource);
     }
 }
