@@ -5,8 +5,9 @@ import java.util.Date;
 import java.util.Objects;
 
 public class DailyScheduleId implements Serializable {
-    private Date day;
-    private long resourcePoolId;
+    static final long serialVersionUID = 512472699;
+    private transient Date day;
+    private transient long resourcePoolId;
 
     public DailyScheduleId(Date day, long resourcePoolId) {
         this.day = day;

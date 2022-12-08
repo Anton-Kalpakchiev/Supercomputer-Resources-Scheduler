@@ -3,11 +3,12 @@ package nl.tudelft.sem.template.schedule.domain;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
-import javax.persistence.Column;
 import lombok.NoArgsConstructor;
 
 /**
@@ -78,4 +79,8 @@ public class DailySchedule {
         return current.equals(thatId);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(day, resourcePoolId, list);
+    }
 }
