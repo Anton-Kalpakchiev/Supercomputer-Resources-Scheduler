@@ -27,3 +27,6 @@ gradle-app.setting
 *.rar
 
 *.db
+.idea
+.DS_store
+
