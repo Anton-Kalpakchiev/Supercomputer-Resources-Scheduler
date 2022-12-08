@@ -1,11 +1,10 @@
 package nl.tudelft.sem.template.nodes.domain.resource;
 
-import lombok.EqualsAndHashCode;
+import java.util.Objects;
 
 /**
  * A DDD value object representing a Resource in our domain.
  */
-@EqualsAndHashCode
 public class Resource {
     private final transient int cpu;
     private final transient int gpu;
@@ -39,5 +38,22 @@ public class Resource {
     @Override
     public String toString() {
         return getCpu() + ", " + getGpu() + ", " + getMemory();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Resource resource = (Resource) o;
+        return cpu == resource.cpu && gpu == resource.gpu && memory == resource.memory;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(cpu, gpu, memory);
     }
 }

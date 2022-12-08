@@ -36,7 +36,6 @@ public class NodeCreationServiceTests {
 
     @Test
     public void createNode_withValidData_worksCorrectly() throws Exception {
-        // Arrange
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
         final Token token = new Token("Token");
