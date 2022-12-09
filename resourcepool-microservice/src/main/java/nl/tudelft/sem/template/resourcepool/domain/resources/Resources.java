@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.nodes.domain.resources;
+package nl.tudelft.sem.template.resourcepool.domain.resources;
 
 import java.util.Objects;
 
