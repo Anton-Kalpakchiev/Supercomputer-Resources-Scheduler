@@ -45,7 +45,7 @@ public class Faculty extends ResourcePool {
                 + ", baseResources=" + super.getBaseResources()
                 + ", nodeResources=" + super.getNodeResources()
                 + ", availableResources=" + super.getAvailableResources()
-                + ", managerID=" + managerId
+                + ", managerId=" + managerId
                 + '}';
     }
 }

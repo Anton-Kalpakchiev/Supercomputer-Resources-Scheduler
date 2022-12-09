@@ -107,6 +107,4 @@ public class ResourcePool {
                 + ", availableResources=" + availableResources
                 + '}';
     }
-
-
 }

@@ -14,6 +14,22 @@ public class DailyScheduleId implements Serializable {
         this.resourcePoolId = resourcePoolId;
     }
 
+    public Date getDay() {
+        return day;
+    }
+
+    public void setDay(Date day) {
+        this.day = day;
+    }
+
+    public long getResourcePoolId() {
+        return resourcePoolId;
+    }
+
+    public void setResourcePoolId(long resourcePoolId) {
+        this.resourcePoolId = resourcePoolId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -31,19 +47,11 @@ public class DailyScheduleId implements Serializable {
         return Objects.hash(day, resourcePoolId);
     }
 
-    public Date getDay() {
-        return day;
-    }
-
-    public void setDay(Date day) {
-        this.day = day;
-    }
-
-    public long getResourcePoolId() {
-        return resourcePoolId;
-    }
-
-    public void setResourcePoolId(long resourcePoolId) {
-        this.resourcePoolId = resourcePoolId;
+    @Override
+    public String toString() {
+        return "DailyScheduleId{"
+                + "day=" + day
+                + ", resourcePoolId=" + resourcePoolId
+                + '}';
     }
 }

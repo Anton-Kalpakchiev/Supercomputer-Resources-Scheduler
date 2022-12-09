@@ -83,4 +83,13 @@ public class DailySchedule {
     public int hashCode() {
         return Objects.hash(day, resourcePoolId, list);
     }
+
+    @Override
+    public String toString() {
+        return "DailySchedule{"
+                + "day=" + day
+                + ", resourcePoolId=" + resourcePoolId
+                + ", list=" + list
+                + '}';
+    }
 }
