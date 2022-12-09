@@ -12,5 +12,5 @@ public interface RequestRepository extends JpaRepository<AppRequest, String> {
     /**
      * Find request by id.
      */
-    Optional<AppRequest> findById(int id);
+    Optional<AppRequest> findById(long id);
 }
