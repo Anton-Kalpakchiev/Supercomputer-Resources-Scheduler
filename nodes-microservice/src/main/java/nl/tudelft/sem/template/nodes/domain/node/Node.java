@@ -13,11 +13,6 @@ import nl.tudelft.sem.template.nodes.domain.resources.Resources;
 import nl.tudelft.sem.template.nodes.domain.resources.ResourcesAttributeConverter;
 
 
-
-
-
-
-
 /**
  * A DDD entity representing an application node in our domain.
  */

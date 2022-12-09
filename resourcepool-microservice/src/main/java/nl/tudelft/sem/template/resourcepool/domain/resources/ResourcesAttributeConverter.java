@@ -1,8 +1,8 @@
 package nl.tudelft.sem.template.resourcepool.domain.resources;
 
+import java.util.List;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
-import java.util.List;
 
 /**
  * JPA Converter for the resource value object.

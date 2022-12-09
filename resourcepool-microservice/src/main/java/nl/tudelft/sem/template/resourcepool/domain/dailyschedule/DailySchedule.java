@@ -1,12 +1,15 @@
 package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 
-import lombok.NoArgsConstructor;
-
-import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.Table;
+import lombok.NoArgsConstructor;
 
 /**
  * A DDD entity representing an application user in our domain.

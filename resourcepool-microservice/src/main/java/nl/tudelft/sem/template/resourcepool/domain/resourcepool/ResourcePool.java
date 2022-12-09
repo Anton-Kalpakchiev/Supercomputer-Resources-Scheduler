@@ -1,14 +1,19 @@
 package nl.tudelft.sem.template.resourcepool.domain.resourcepool;
 
+import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import lombok.NoArgsConstructor;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.domain.resources.ResourcesAttributeConverter;
 
-import javax.persistence.*;
-import java.util.Objects;
-
 @Entity
-@Table(name = "RPFaculty")//contains both ResourcePools(which we should have only 1, the free resource pool) and Faculties
+@Table(name = "RpFaculty")//contains both ResourcePools(which we should have only 1, the free resource pool) and Faculties
 @NoArgsConstructor
 public class ResourcePool {
 
@@ -29,13 +34,18 @@ public class ResourcePool {
     @Convert(converter = ResourcesAttributeConverter.class)
     private Resources availableResources;
 
-
-    public ResourcePool(long id, String name, Resources baseResources, Resources nodeResources, Resources availableResources) {
+    /**
+     * Constructs a new ResourcePool with the specified id and name.
+     *
+     * @param id the id of the resource pool
+     * @param name the name of the resource pool
+     */
+    public ResourcePool(long id, String name) {
         this.id = id;
         this.name = name;
-        this.baseResources = baseResources;
-        this.nodeResources = nodeResources;
-        this.availableResources = availableResources;
+        this.baseResources = new Resources(0, 0, 0);
+        this.nodeResources = new Resources(0, 0, 0);
+        this.availableResources = new Resources(0, 0, 0);
     }
 
     public long getId() {
@@ -72,10 +82,14 @@ public class ResourcePool {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ResourcePool that = (ResourcePool) o;
-        return id == that.id && Objects.equals(name, that.name) && Objects.equals(baseResources, that.baseResources) && Objects.equals(nodeResources, that.nodeResources) && Objects.equals(availableResources, that.availableResources);
+        return id == that.id;
     }
 
     @Override
@@ -85,13 +99,13 @@ public class ResourcePool {
 
     @Override
     public String toString() {
-        return "ResourcePool{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", baseResources=" + baseResources +
-                ", nodeResources=" + nodeResources +
-                ", availableResources=" + availableResources +
-                '}';
+        return "ResourcePool{"
+                + "id=" + id
+                + ", name='" + name + '\''
+                + ", baseResources=" + baseResources
+                + ", nodeResources=" + nodeResources
+                + ", availableResources=" + availableResources
+                + '}';
     }
 
 
