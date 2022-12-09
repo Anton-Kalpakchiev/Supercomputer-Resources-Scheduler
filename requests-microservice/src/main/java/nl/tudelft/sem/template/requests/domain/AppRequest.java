@@ -4,6 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
@@ -17,18 +18,22 @@ public class AppRequest extends HasEvents {
      * Identifier for the application request.
      */
     @Id
+    @Getter
     @Column(name = "id", nullable = false)
-    private int id;
-
+    private long id;
+    @Getter
     @Column(name = "description", nullable = false)
     private String description;
 
+    @Getter
     @Column(name = "memory", nullable = false)
     private int mem;
 
+    @Getter
     @Column(name = "cpu", nullable = false)
     private int cpu;
 
+    @Getter
     @Column(name = "gpu", nullable = false)
     private int gpu;
 

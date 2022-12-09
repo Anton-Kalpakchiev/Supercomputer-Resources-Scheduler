@@ -24,10 +24,18 @@ public class Resources {
      *
      * @param gpu The number of GPU resources.
      */
-    public Resources(int mem, int cpu, int gpu) {
+    public Resources(int mem, int cpu, int gpu) throws InvalidResourcesException {
         this.mem = mem;
         this.cpu = cpu;
         this.gpu = gpu;
+
+        if (mem < 0 || cpu < 0 || gpu < 0) {
+            throw new InvalidResourcesException(this);
+        }
+
+        if (cpu < gpu) {
+            throw new InvalidResourcesException(this);
+        }
     }
 
     @Override
