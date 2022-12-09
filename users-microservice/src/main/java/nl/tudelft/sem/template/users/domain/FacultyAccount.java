@@ -7,23 +7,24 @@ import javax.persistence.Table;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "facultyAccounts")
-@NoArgsConstructor
+@Table(name = "FACULTY_ACCOUNTS")
 public class FacultyAccount extends User {
     @Column(name = "faculty", nullable = false, unique = true)
-    @Convert(converter = FacultyConverter.class)
-    private Faculty assignedFaculty;
+    private int assignedFacultyId;
 
     /**
      * Constructor for the faculty account.
      *
      * @param netId the netId of the faculty account
-     * @param hashedPassword the hashed password of the faculty account
-     * @param assignedFaculty the corresponding faculty.
+     * @param assignedFacultyId the corresponding faculty.
      */
-    public FacultyAccount(NetId netId, HashedPassword hashedPassword, Faculty assignedFaculty) {
-        super(netId, hashedPassword);
-        this.assignedFaculty = assignedFaculty;
+    public FacultyAccount(NetId netId, int assignedFacultyId) {
+        super(netId);
+        this.assignedFacultyId = assignedFacultyId;
+    }
+
+    public FacultyAccount() {
+        super(new NetId(""));
     }
 
     /**
@@ -31,7 +32,16 @@ public class FacultyAccount extends User {
      *
      * @return the corresponding faculty.
      */
-    public Faculty getAssignedFaculty() {
-        return assignedFaculty;
+    public int getAssignedFacultyId() {
+        return assignedFacultyId;
+    }
+
+    /**
+     * Setter for the corresponding faculty.
+     *
+     * @param assignedFacultyId the new faculty.
+     */
+    public void setAssignedFacultyId(int assignedFacultyId) {
+        this.assignedFacultyId = assignedFacultyId;
     }
 }

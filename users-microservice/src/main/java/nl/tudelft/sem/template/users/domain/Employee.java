@@ -9,11 +9,10 @@ public class Employee extends User {
      * Constructor for the regular employee.
      *
      * @param netId the netId of the employee
-     * @param hashedPassword the hashed password of the employee.
      * @param parentFaculties the parent faculties this employee works in.
      */
-    public Employee(NetId netId, HashedPassword hashedPassword, List<FacultyAccount> parentFaculties) {
-        super(netId, hashedPassword);
+    public Employee(NetId netId, List<FacultyAccount> parentFaculties) {
+        super(netId);
         this.parentFaculties = parentFaculties;
     }
 

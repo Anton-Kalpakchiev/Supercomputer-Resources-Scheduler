@@ -10,31 +10,24 @@ import javax.persistence.MappedSuperclass;
 import lombok.NoArgsConstructor;
 
 
-@Entity
-@NoArgsConstructor
+
+
 @MappedSuperclass
 abstract class User {
+
     @Id
-    @Column(name = "id", nullable = false)
-    private int id;
-
-    @Column(name = "net_id", nullable = false, unique = true)
+    @Column(name = "net_id")
     @Convert(converter = NetIdAttributeConverter.class)
-    private NetId netId;
+    protected NetId netId;
 
-    @Column(name = "password_hash", nullable = false)
-    @Convert(converter = HashedPasswordAttributeConverter.class)
-    private HashedPassword hashedPassword;
 
     /**
      * Constructor for the abstract parent User.
      *
      * @param netId netID of the user
-     * @param hashedPassword hashed password of the user
      */
-    public User(NetId netId, HashedPassword hashedPassword) {
+    public User(NetId netId) {
         this.netId = netId;
-        this.hashedPassword = hashedPassword;
     }
 
     /**
@@ -47,21 +40,12 @@ abstract class User {
     }
 
     /**
-     * Getter for the hashed password.
+     * Setter for the netId.
      *
-     * @return the hashed password
+     * @param netId the new netId.
      */
-    public HashedPassword getHashedPassword() {
-        return hashedPassword;
-    }
-
-    /**
-     * Setter for the hashed password.
-     *
-     * @param hashedPassword the new hashed password
-     */
-    public void setHashedPassword(HashedPassword hashedPassword) {
-        this.hashedPassword = hashedPassword;
+    public void setNetId(NetId netId) {
+        this.netId = netId;
     }
 
     /**
@@ -79,17 +63,17 @@ abstract class User {
             return false;
         }
         User user = (User) o;
-        return id == user.id && Objects.equals(netId, user.netId) && Objects.equals(hashedPassword, user.hashedPassword);
+        return Objects.equals(netId, user.netId);
     }
 
     /**
-     * Hash implementation of the User.
+     * Computes the hash code for the object.
      *
-     * @return the hash of the user
+     * @return the object's hash.
      */
     @Override
     public int hashCode() {
-        return Objects.hash(id, netId, hashedPassword);
+        return Objects.hash(netId);
     }
 
     /**
@@ -100,9 +84,7 @@ abstract class User {
     @Override
     public String toString() {
         return "User{"
-                + "id=" + id
-                + ", netId=" + netId
-                + ", hashedPassword=" + hashedPassword
+                + "netId=" + netId
                 + '}';
     }
 }

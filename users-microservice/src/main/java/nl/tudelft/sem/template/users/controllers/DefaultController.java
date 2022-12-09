@@ -38,4 +38,9 @@ public class DefaultController {
 
     }
 
+    @GetMapping("/newUser")
+    public ResponseEntity<String> newUserCreated() {
+        return ResponseEntity.ok("User " + authManager.getNetId() + " was added as an Employee.");
+    }
+
 }
