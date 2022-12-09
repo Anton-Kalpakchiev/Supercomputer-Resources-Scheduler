@@ -1,11 +1,22 @@
 package nl.tudelft.sem.template.nodes.domain.node;
 
 import java.util.Objects;
-import javax.persistence.*;
-
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import lombok.NoArgsConstructor;
 import nl.tudelft.sem.template.nodes.domain.resources.Resources;
 import nl.tudelft.sem.template.nodes.domain.resources.ResourcesAttributeConverter;
+
+
+
+
+
+
 
 /**
  * A DDD entity representing an application node in our domain.
