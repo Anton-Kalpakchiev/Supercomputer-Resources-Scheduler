@@ -30,4 +30,20 @@ public class DailyScheduleId implements Serializable {
     public int hashCode() {
         return Objects.hash(day, resourcePoolId);
     }
+
+    public Date getDay() {
+        return day;
+    }
+
+    public void setDay(Date day) {
+        this.day = day;
+    }
+
+    public long getResourcePoolId() {
+        return resourcePoolId;
+    }
+
+    public void setResourcePoolId(long resourcePoolId) {
+        this.resourcePoolId = resourcePoolId;
+    }
 }
