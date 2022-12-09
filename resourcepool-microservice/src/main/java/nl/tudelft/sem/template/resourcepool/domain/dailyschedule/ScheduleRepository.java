@@ -1,9 +1,10 @@
-package nl.tudelft.sem.template.schedule.domain;
+package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 
 @Repository

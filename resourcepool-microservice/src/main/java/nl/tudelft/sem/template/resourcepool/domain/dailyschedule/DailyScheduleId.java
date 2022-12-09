@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.schedule.domain;
+package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 
 import java.io.Serializable;
 import java.util.Date;
