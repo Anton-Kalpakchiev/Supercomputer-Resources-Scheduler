@@ -1,6 +1,5 @@
 package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 
-import javax.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
@@ -8,7 +7,6 @@ import java.util.Objects;
 /**
  * The composite key for a DailySchedule.
  */
-@Embeddable
 public class DailyScheduleId implements Serializable {
 
     static final long serialVersionUID = 512472699;
