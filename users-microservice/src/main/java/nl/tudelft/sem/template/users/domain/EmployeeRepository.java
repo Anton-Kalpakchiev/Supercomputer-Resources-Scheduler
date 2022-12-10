@@ -2,15 +2,17 @@ package nl.tudelft.sem.template.users.domain;
 
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface UserRepository extends JpaRepository<User, String> {
+@Repository
+public interface EmployeeRepository extends JpaRepository<Employee, String> {
     /**
      * Find user by NetID.
      */
-    Optional<User> findByNetId(NetId netId);
+    Optional<User> findByNetId(String netId);
 
     /**
      * Check if an existing user already uses a NetID.
      */
-    boolean existsByNetId(NetId netId);
+    boolean existsByNetId(String netId);
 }

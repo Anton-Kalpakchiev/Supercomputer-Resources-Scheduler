@@ -13,11 +13,24 @@ public class Sysadmin extends User {
      *
      * @param netId of the sysadmin
      */
-    public Sysadmin(NetId netId) {
+    public Sysadmin(String netId) {
         super(netId);
     }
 
+    /**
+     * An empty constructor as per the annotation requirement.
+     */
     public Sysadmin() {
-        super(new NetId(""));
+        super("");
+    }
+
+    /**
+     * String representation of the object.
+     *
+     * @return the string representation.
+     */
+    @Override
+    public String toString() {
+        return "Sysadmin with netId: " + netId;
     }
 }

@@ -7,29 +7,42 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class RegistrationService {
-    private final transient UserRepository userRepository;
+    private final transient SysadminRepository sysadminRepository;
+    private final transient EmployeeRepository employeeRepository;
+    private final transient FacultyAccountRepository facultyAccountRepository;
 
     /**
-     * Instantiates a new UserService.
+     * Instanciates a new Registration service.
      *
-     * @param userRepository  the user repository
+     * @param sysadminRepository the system admin repository
+     * @param employeeRepository the employee repository
+     * @param facultyAccountRepository the faculty repository
      */
-    public RegistrationService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public RegistrationService(SysadminRepository sysadminRepository,
+                               EmployeeRepository employeeRepository,
+                               FacultyAccountRepository facultyAccountRepository) {
+        this.sysadminRepository = sysadminRepository;
+        this.employeeRepository = employeeRepository;
+        this.facultyAccountRepository = facultyAccountRepository;
     }
 
     /**
-     * Register a new user.
+     * Register a new user. If the user has a netId of admin he is added a sysadmin.
      *
-     * @param netId    The NetID of the user
-     * @throws Exception if the user already exists
+     * @param netId The NetID of the user
      */
-    public User registerUser(NetId netId) throws Exception {
-
-        return new Sysadmin(netId);
+    public User registerUser(String netId) {
+        if (netId.equals("admin")) {
+            Sysadmin admin = new Sysadmin(netId);
+            sysadminRepository.save(admin);
+            System.out.println(netId + " was added as an admin.");
+            return admin;
+        } else {
+            Employee employee = new Employee(netId);
+            employeeRepository.save(employee);
+            System.out.println(netId + " was added as an employee.");
+            return employee;
+        }
     }
 
-    public boolean checkNetIdIsUnique(NetId netId) {
-        return true;
-    }
 }

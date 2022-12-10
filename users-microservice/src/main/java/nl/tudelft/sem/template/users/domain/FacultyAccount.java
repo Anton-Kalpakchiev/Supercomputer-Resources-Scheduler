@@ -18,13 +18,13 @@ public class FacultyAccount extends User {
      * @param netId the netId of the faculty account
      * @param assignedFacultyId the corresponding faculty.
      */
-    public FacultyAccount(NetId netId, int assignedFacultyId) {
+    public FacultyAccount(String netId, int assignedFacultyId) {
         super(netId);
         this.assignedFacultyId = assignedFacultyId;
     }
 
     public FacultyAccount() {
-        super(new NetId(""));
+        super("");
     }
 
     /**

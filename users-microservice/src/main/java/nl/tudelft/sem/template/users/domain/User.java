@@ -13,12 +13,11 @@ import lombok.NoArgsConstructor;
 
 
 @MappedSuperclass
-abstract class User {
+public abstract class User {
 
     @Id
     @Column(name = "net_id")
-    @Convert(converter = NetIdAttributeConverter.class)
-    protected NetId netId;
+    protected String netId;
 
 
     /**
@@ -26,7 +25,7 @@ abstract class User {
      *
      * @param netId netID of the user
      */
-    public User(NetId netId) {
+    public User(String netId) {
         this.netId = netId;
     }
 
@@ -35,7 +34,7 @@ abstract class User {
      *
      * @return the netId
      */
-    public NetId getNetId() {
+    public String getNetId() {
         return netId;
     }
 
@@ -44,7 +43,7 @@ abstract class User {
      *
      * @param netId the new netId.
      */
-    public void setNetId(NetId netId) {
+    public void setNetId(String netId) {
         this.netId = netId;
     }
 
@@ -74,17 +73,5 @@ abstract class User {
     @Override
     public int hashCode() {
         return Objects.hash(netId);
-    }
-
-    /**
-     * String converter for a User.
-     *
-     * @return the string of the user.
-     */
-    @Override
-    public String toString() {
-        return "User{"
-                + "netId=" + netId
-                + '}';
     }
 }
