@@ -1,12 +1,19 @@
 package nl.tudelft.sem.template.requests.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.NoSuchElementException;
 import nl.tudelft.sem.template.requests.authentication.JwtTokenVerifier;
 import nl.tudelft.sem.template.requests.domain.AppRequest;
 import nl.tudelft.sem.template.requests.domain.RequestRepository;
 import nl.tudelft.sem.template.requests.domain.Resources;
 import nl.tudelft.sem.template.requests.integration.utils.JsonUtil;
 import nl.tudelft.sem.template.requests.models.RegistrationRequestModel;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +26,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-
-import java.util.NoSuchElementException;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
@@ -53,7 +53,7 @@ public class RequestsTests {
         final Resources resources = new Resources(30, 50, 50);
 
         RegistrationRequestModel model = new RegistrationRequestModel();
-        model.setDescription (description);
+        model.setDescription(description);
         model.setMem(resources.getMem());
         model.setCpu(resources.getCpu());
         model.setGpu(resources.getGpu());
@@ -82,7 +82,7 @@ public class RequestsTests {
         final String description = "give me resources";
 
         RegistrationRequestModel model = new RegistrationRequestModel();
-        model.setDescription (description);
+        model.setDescription(description);
         model.setMem(-1);
         model.setCpu(-2);
         model.setGpu(-3);
@@ -108,7 +108,7 @@ public class RequestsTests {
         final String description = "give me resources";
 
         RegistrationRequestModel model = new RegistrationRequestModel();
-        model.setDescription (description);
+        model.setDescription(description);
         model.setMem(60);
         model.setCpu(99);
         model.setGpu(100);

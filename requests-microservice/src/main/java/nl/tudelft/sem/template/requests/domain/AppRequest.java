@@ -1,5 +1,6 @@
 package nl.tudelft.sem.template.requests.domain;
 
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -64,5 +65,10 @@ public class AppRequest extends HasEvents {
         }
         AppRequest appRequest = (AppRequest) o;
         return id == (appRequest.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
