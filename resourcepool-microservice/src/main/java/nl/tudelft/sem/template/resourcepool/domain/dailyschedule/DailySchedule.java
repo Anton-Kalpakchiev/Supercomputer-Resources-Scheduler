@@ -4,11 +4,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Table;
+import javax.persistence.*;
+
 import lombok.NoArgsConstructor;
 
 /**
@@ -31,6 +28,7 @@ public class DailySchedule {
     @Column(name = "resource_pool_id", nullable = false)
     private long resourcePoolId;
 
+    @ElementCollection
     @Column(name = "list_request_id", nullable = false)
     private List<Long> list;
 

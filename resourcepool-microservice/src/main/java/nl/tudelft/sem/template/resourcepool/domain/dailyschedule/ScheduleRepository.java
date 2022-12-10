@@ -11,6 +11,6 @@ public interface ScheduleRepository extends JpaRepository<DailySchedule, DailySc
     /**
      * Find requests for given day and resource pool.
      */
-    Optional<DailySchedule> findByDayAndResourcePool(Date day, long resourcePoolId);
+    Optional<DailySchedule> findByDayAndResourcePoolId(Date day, long resourcePoolId);
 
 }
