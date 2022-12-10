@@ -1,11 +1,11 @@
 package nl.tudelft.sem.template.requests.profiles;
 
-import nl.tudelft.sem.template.requests.authentication.AuthManager;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.authentication.AuthenticationManager;
 
 /**
  * A configuration profile to allow injection of a mock AuthenticationManager.
@@ -29,8 +29,8 @@ public class MockAuthenticationManagerProfile {
      */
     @Bean
     @Primary  // marks this bean as the first bean to use when trying to inject an AuthenticationManager
-    public AuthManager getMockAuthenticationManager() {
-        return Mockito.mock(AuthManager.class);
+    public AuthenticationManager getMockAuthenticationManager() {
+        return Mockito.mock(AuthenticationManager.class);
     }
 }
 
