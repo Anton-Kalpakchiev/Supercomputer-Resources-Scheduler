@@ -11,4 +11,5 @@ public interface RpFacultyRepository  extends JpaRepository<ResourcePool, Long> 
      */
     Optional<ResourcePool> findById(long id);
 
+    boolean existsByName(String name);
 }
