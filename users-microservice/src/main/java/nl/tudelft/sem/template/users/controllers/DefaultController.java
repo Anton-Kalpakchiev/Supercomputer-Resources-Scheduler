@@ -1,6 +1,7 @@
 package nl.tudelft.sem.template.users.controllers;
 
 import nl.tudelft.sem.template.users.authentication.AuthManager;
+import nl.tudelft.sem.template.users.domain.RegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,16 +17,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class DefaultController {
 
     private final transient AuthManager authManager;
+    private final transient RegistrationService registrationService;
 
     /**
-     * Instantiates a new controller.
+     * Constructor for the controller.
      *
-     * @param authManager Spring Security component used to authenticate and authorize the user
+     * @param authManager injected authentication manager.
+     * @param registrationService injected registration service.
      */
     @Autowired
-    public DefaultController(AuthManager authManager) {
+    public DefaultController(AuthManager authManager, RegistrationService registrationService) {
         this.authManager = authManager;
+        this.registrationService = registrationService;
     }
+
 
     /**
      * Gets users by id.
@@ -36,6 +41,12 @@ public class DefaultController {
     public ResponseEntity<String> helloWorld() {
         return ResponseEntity.ok("Hello " + authManager.getNetId());
 
+    }
+
+    @GetMapping("/newUser")
+    public ResponseEntity<String> newUserCreated() {
+        registrationService.registerUser(authManager.getNetId());
+        return ResponseEntity.ok("User " + authManager.getNetId() + " was added as a User.");
     }
 
 }
