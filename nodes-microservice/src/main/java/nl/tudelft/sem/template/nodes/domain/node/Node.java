@@ -4,11 +4,14 @@ import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.NoArgsConstructor;
 import nl.tudelft.sem.template.nodes.domain.resources.Resources;
 import nl.tudelft.sem.template.nodes.domain.resources.ResourcesAttributeConverter;
+
 
 /**
  * A DDD entity representing an application node in our domain.
@@ -19,6 +22,7 @@ import nl.tudelft.sem.template.nodes.domain.resources.ResourcesAttributeConverte
 public class Node {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private long id;
     @Column(name = "name", nullable = false, unique = true)
