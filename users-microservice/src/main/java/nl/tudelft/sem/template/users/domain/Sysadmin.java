@@ -5,7 +5,7 @@ import javax.persistence.Table;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "SYSADMINS")
+@Table(name = "sysadmin_accounts")
 public class Sysadmin extends User {
 
     /**

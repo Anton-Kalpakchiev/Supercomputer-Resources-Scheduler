@@ -7,7 +7,7 @@ import javax.persistence.Table;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "FACULTY_ACCOUNTS")
+@Table(name = "faculty_accounts")
 public class FacultyAccount extends User {
     @Column(name = "faculty", nullable = false, unique = true)
     private int assignedFacultyId;

@@ -9,7 +9,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, String> {
     /**
      * Find user by NetID.
      */
-    Optional<User> findByNetId(String netId);
+    Optional<Employee> findByNetId(String netId);
 
     /**
      * Check if an existing user already uses a NetID.
