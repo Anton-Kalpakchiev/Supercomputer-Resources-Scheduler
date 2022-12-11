@@ -78,23 +78,6 @@ public class AuthorizationService {
     }
 
     /**
-     * Drops an employee from the table with a given netId.
-     *
-     * @param netId the netId of the employee
-     * @return whether the employee was dropped
-     */
-    public boolean dropEmployee(String netId) {
-        Optional<Employee> toBeDropped = employeeRepository.findByNetId(netId);
-        if (toBeDropped.isEmpty()) {
-            return false;
-        } else {
-            Employee found = toBeDropped.get();
-            employeeRepository.delete(found);
-            return true;
-        }
-    }
-
-    /**
      * Adds a new faculty account in the respective repository.
      *
      * @param netId the netId of the new user.
@@ -106,6 +89,22 @@ public class AuthorizationService {
     }
 
     /**
+     * Drops an employee from the table with a given netId.
+     *
+     * @param netId the netId of the employee
+     * @return whether the employee was dropped
+     */
+    public boolean dropEmployee(String netId) {
+        boolean isFound = employeeRepository.existsByNetId(netId);
+        if (!isFound) {
+            return false;
+        } else {
+            employeeRepository.deleteByNetId(netId);
+            return true;
+        }
+    }
+
+    /**
      * Promotes an Employee to a Sysadmin.
      * Only works if the author is a Sysadmin and the toBePromoted is an Employee.
      *
@@ -114,15 +113,15 @@ public class AuthorizationService {
      * @throws Exception if the request is unauthorized or there is no such employee
      */
     public void promoteEmployeeToSysadmin(String authorNetId, String toBePromotedNetId) throws Exception {
-        if (isSysadmin(authorNetId)) {
-            if (isEmployee(toBePromotedNetId)) {
+        if (checkAccess(authorNetId).equals(Sysadmin.class.getSimpleName())) {
+            if (checkAccess(toBePromotedNetId).equals(Employee.class.getSimpleName())) {
                 dropEmployee(toBePromotedNetId);
                 addSysadmin(toBePromotedNetId);
             } else {
-                throw new NoSuchUserException(toBePromotedNetId);
+                throw new NoSuchUserException("No such employee: " + toBePromotedNetId);
             }
         } else {
-            throw new UnauthorizedException(authorNetId);
+            throw new UnauthorizedException("User (" + authorNetId + ") is not a Sysadmin => can not promote");
         }
     }
 
@@ -145,11 +144,11 @@ public class AuthorizationService {
         }
 
         if (isEmployee) {
-            return "Employee";
+            return Employee.class.getSimpleName();
         } else if (isFacultyAccount) {
-            return "Faculty Account";
+            return FacultyAccount.class.getSimpleName();
         } else {
-            return "Sysadmin";
+            return Sysadmin.class.getSimpleName();
         }
     }
 

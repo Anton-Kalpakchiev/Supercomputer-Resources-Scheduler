@@ -19,10 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Hello World users controller.
- * <p>
- * This controller shows how you can extract information from the JWT token.
- * </p>
+ * Controller for the users' microservice.
  */
 @RestController
 public class DefaultController {
