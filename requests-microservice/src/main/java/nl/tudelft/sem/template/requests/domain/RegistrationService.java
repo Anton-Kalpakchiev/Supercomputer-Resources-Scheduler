@@ -21,9 +21,9 @@ public class RegistrationService {
      * @param description The description of the request
      * @param resources   The resorces requested
      */
-    public AppRequest registerRequest(String description, Resources resources) {
+    public AppRequest registerRequest(String description, Resources resources, String owner) {
         // Create new request
-        AppRequest request = new AppRequest(description, resources);
+        AppRequest request = new AppRequest(description, resources, owner);
         requestRepository.save(request);
 
         return request;

@@ -50,7 +50,8 @@ public class DefaultController {
         try {
             String description = request.getDescription();
             Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
-            registrationService.registerRequest(description, resources);
+            String owner = authManager.getNetId();
+            registrationService.registerRequest(description, resources, owner);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }

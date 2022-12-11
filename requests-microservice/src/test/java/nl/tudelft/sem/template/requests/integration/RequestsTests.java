@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.NoSuchElementException;
+import nl.tudelft.sem.template.requests.authentication.AuthManager;
 import nl.tudelft.sem.template.requests.authentication.JwtTokenVerifier;
 import nl.tudelft.sem.template.requests.domain.AppRequest;
 import nl.tudelft.sem.template.requests.domain.RequestRepository;
@@ -20,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -38,7 +38,7 @@ public class RequestsTests {
     private MockMvc mockMvc;
 
     @Autowired
-    private transient AuthenticationManager mockAuthenticationManager;
+    private transient AuthManager mockAuthenticationManager;
 
     @Autowired
     private transient JwtTokenVerifier mockJwtTokenVerifier;

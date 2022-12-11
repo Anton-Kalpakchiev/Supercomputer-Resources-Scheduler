@@ -38,17 +38,22 @@ public class AppRequest extends HasEvents {
     @Column(name = "gpu", nullable = false)
     private int gpu;
 
+    @Getter
+    @Column(name = "owner", nullable = false)
+    private String owner;
+
     /**
      * Create new application request.
      *
      * @param description The description of the request
      * @param resources The resources in the request
      */
-    public AppRequest(String description, Resources resources) {
+    public AppRequest(String description, Resources resources, String owner) {
         this.description = description;
         this.mem = resources.getMem();
         this.cpu = resources.getCpu();
         this.gpu = resources.getGpu();
+        this.owner = owner;
         this.recordThat(new RequestWasCreatedEvent(description));
     }
 
