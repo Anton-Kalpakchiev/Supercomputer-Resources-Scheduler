@@ -6,9 +6,9 @@ import lombok.Data;
  * Model representing a registration request.
  */
 @Data
-public class FacultyRegistrationRequestModel {
+public class FacultyCreationModel {
 
     private String name;
 
-    private long managerId;
+    private long managerNetId;
 }
