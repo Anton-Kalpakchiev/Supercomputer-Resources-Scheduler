@@ -24,6 +24,17 @@ public class RpManagementService {
     }
 
     /**
+     * Creates the free pool on service startup.
+     */
+    @PostConstruct
+    public void createFreePool() {
+        ResourcePool freePool = new ResourcePool("Free pool");
+        freePool.setBaseResources(new Resources(1000, 200, 8000)); //Starting resources of the system
+        freePool.setAvailableResources(freePool.getBaseResources());
+        repo.save(freePool);
+    }
+
+    /**
      * Create a new Faculty.
      *
      * @param name    The name of the new faculty
