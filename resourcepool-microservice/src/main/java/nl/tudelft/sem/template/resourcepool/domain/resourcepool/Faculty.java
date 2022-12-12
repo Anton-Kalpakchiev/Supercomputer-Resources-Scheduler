@@ -5,7 +5,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import lombok.NoArgsConstructor;
-import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 
 
 /**
@@ -16,8 +15,8 @@ import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 @NoArgsConstructor
 public class Faculty extends ResourcePool {
 
-    @Column(name = "managerId")//if null, it's a RP, not a faculty
-    private long managerId;
+    @Column(name = "managerNetId")//if null, it's a RP, not a faculty
+    private long managerNetId;
 
 
     /**
@@ -38,8 +37,8 @@ public class Faculty extends ResourcePool {
      *
      * @return the manager id
      */
-    public long getManagerId() {
-        return managerId;
+    public long getManagerNetId() {
+        return managerNetId;
     }
 
     /**
@@ -59,7 +58,7 @@ public class Faculty extends ResourcePool {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), managerId);
+        return Objects.hash(super.hashCode(), managerNetId);
     }
 
     /**
@@ -75,7 +74,7 @@ public class Faculty extends ResourcePool {
                 + ", baseResources=" + super.getBaseResources()
                 + ", nodeResources=" + super.getNodeResources()
                 + ", availableResources=" + super.getAvailableResources()
-                + ", managerId=" + managerId
+                + ", managerNetId=" + managerNetId
                 + '}';
     }
 }
