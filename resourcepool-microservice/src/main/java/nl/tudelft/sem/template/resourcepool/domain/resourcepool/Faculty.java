@@ -24,13 +24,13 @@ public class Faculty extends ResourcePool {
      * Instantiates a new Faculty with the specified id and name and faculty manager id,
      * the other fields will be set to empty recourses.
      *
-     * @param id        the id
      * @param name      the name
-     * @param managerId the manager id
+     * @param managerNetId the manager id
      */
-    public Faculty(long id, String name, long managerId) {
-        super(id, name);
-        this.managerId = managerId;
+    public Faculty(String name, long managerNetId) {
+        super(name);
+        this.managerNetId = managerNetId;
+        this.recordThat(new FacultyWasCreatedEvent(name));
     }
 
     /**

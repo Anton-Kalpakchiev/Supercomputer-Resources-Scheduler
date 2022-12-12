@@ -41,11 +41,9 @@ public class ResourcePool {
      * Constructs a new ResourcePool with the specified id and name,
      * the other fields will be set to empty recourses.
      *
-     * @param id   the id of the resource pool
      * @param name the name of the resource pool
      */
-    public ResourcePool(long id, String name) {
-        this.id = id;
+    public ResourcePool(String name) {
         this.name = name;
         this.baseResources = new Resources(0, 0, 0);
         this.nodeResources = new Resources(0, 0, 0);
@@ -125,7 +123,7 @@ public class ResourcePool {
     }
 
     /**
-     * Equality is only based on the identifier.
+     * Equality is only based on the name.
      *
      * @return whether the resource pools are equal
      */
@@ -138,7 +136,7 @@ public class ResourcePool {
             return false;
         }
         ResourcePool that = (ResourcePool) o;
-        return id == that.id;
+        return name.equals(that.name);
     }
 
     /**
