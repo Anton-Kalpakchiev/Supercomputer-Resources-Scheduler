@@ -9,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.NoArgsConstructor;
+import nl.tudelft.sem.template.resourcepool.domain.HasEvents;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.domain.resources.ResourcesAttributeConverter;
 
@@ -18,7 +19,7 @@ import nl.tudelft.sem.template.resourcepool.domain.resources.ResourcesAttributeC
 @Entity
 @Table(name = "RpFaculty")//contains both ResourcePools(which we should have only 1, the free resource pool) and Faculties
 @NoArgsConstructor
-public class ResourcePool {
+public class ResourcePool extends HasEvents {
 
 
     @Id
