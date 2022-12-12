@@ -13,5 +13,5 @@ public interface RpFacultyRepository  extends JpaRepository<ResourcePool, Long> 
 
     boolean existsByName(String name);
 
-    //boolean existsByManagerNetId(String managerNetId);
+    boolean existsByManagerNetId(long managerNetId);
 }

@@ -38,6 +38,9 @@ public class ResourcePool extends HasEvents {
     @Convert(converter = ResourcesAttributeConverter.class)
     private Resources availableResources;
 
+    @Column(name = "managerNetId")//this is just here so the repo knows the column exists
+    private long managerNetId;
+
     /**
      * Constructs a new ResourcePool with the specified id and name,
      * the other fields will be set to empty recourses.

@@ -29,9 +29,9 @@ public class RpManagementService {
         if (repo.existsByName(name)) {
             throw new NameAlreadyInUseException(name);
         }
-        // if (repo.existsByManagerNetId(managerNetId)) {
-        //   throw new ManagerNetIdAlreadyAssignedException(managerNetId);
-        // }
+        if (repo.existsByManagerNetId(managerNetId)) {
+            throw new ManagerNetIdAlreadyAssignedException(managerNetId);
+        }
         Faculty faculty = new Faculty(name, managerNetId);
         repo.save(faculty);
     }
