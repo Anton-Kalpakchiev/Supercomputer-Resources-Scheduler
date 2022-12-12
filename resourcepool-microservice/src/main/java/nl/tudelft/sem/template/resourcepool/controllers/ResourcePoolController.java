@@ -63,6 +63,11 @@ public class ResourcePoolController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/getDistribution")
+    public ResponseEntity<String> getDistribution() {
+        return ResponseEntity.ok(rpManagementService.getDistribution());
+    }
+
     @GetMapping("/printDatabase")
     public ResponseEntity<String> printDatabase() {
         return ResponseEntity.ok(rpManagementService.printDatabase());
