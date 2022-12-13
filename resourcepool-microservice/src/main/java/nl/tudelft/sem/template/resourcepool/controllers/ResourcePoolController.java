@@ -5,6 +5,7 @@ import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementServ
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.models.DistributionModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
+import nl.tudelft.sem.template.resourcepool.models.ResourceByNameModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -64,14 +65,17 @@ public class ResourcePoolController {
     }
 
     @PostMapping("/resources")
-    public ResponseEntity<Resources> getFacultyResourcesByName(String facultyName) {
+    public ResponseEntity<String> getFacultyResourcesByName(@RequestBody ResourceByNameModel request) {
+        String facultyName = request.getFacultyName();
         Resources availableResources;
         try {
             availableResources = rpManagementService.findResourcesByName(facultyName);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-        return ResponseEntity.ok(availableResources);
+        String result = availableResources.getMemory() + "-" + availableResources.getCpu() + "-" + availableResources.getGpu();
+        return ResponseEntity.ok(result);
     }
 
 

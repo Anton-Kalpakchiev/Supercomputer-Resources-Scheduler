@@ -2,12 +2,13 @@ package nl.tudelft.sem.template.requests.controllers;
 
 import com.fasterxml.classmate.types.ResolvedInterfaceType;
 import nl.tudelft.sem.template.requests.authentication.AuthManager;
+import nl.tudelft.sem.template.requests.domain.InvalidResourcesException;
 import nl.tudelft.sem.template.requests.domain.RegistrationService;
 import nl.tudelft.sem.template.requests.domain.Resources;
 import nl.tudelft.sem.template.requests.models.RegistrationRequestModel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,8 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Calendar;
+
+import static nl.tudelft.sem.template.requests.authentication.JwtRequestFilter.AUTHORIZATION_HEADER;
 
 /**
  * Hello World requests controller.
@@ -50,15 +55,19 @@ public class DefaultController {
      * @throws Exception When requests are made with insufficient gpu compared to cpu.
      */
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody RegistrationRequestModel request) throws Exception {
+    public ResponseEntity register(@RequestBody RegistrationRequestModel request, HttpServletRequest requested) throws Exception {
 
         try {
             String description = request.getDescription();
             Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
             String owner = authManager.getNetId();
             String facultyName = request.getFacultyName();
-            Resources availableResources = getFacultyResourcesByName(facultyName);
-            Resources availableResourcesFRP = getFacultyResourcesByName("Free pool");
+
+            String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
+            String token = authorizationHeader.split(" ")[1];
+
+            Resources availableResources = getFacultyResourcesByName(facultyName, token);
+            Resources availableResourcesFRP = getFacultyResourcesByName("Free pool", token);
 
             String deadlineStr = request.getDeadline();//convert to Calendar immediately
             Calendar deadline = Calendar.getInstance();
@@ -69,6 +78,7 @@ public class DefaultController {
             registrationService.registerRequest(description, resources, owner, facultyName, availableResources, deadline, availableResourcesFRP);
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
@@ -81,11 +91,22 @@ public class DefaultController {
      * @return the available resources
      * @throws IOException
      */
-    public Resources getFacultyResourcesByName(String facultyName) throws IOException {
+    public Resources getFacultyResourcesByName(String facultyName, String token) throws IOException, InvalidResourcesException {
         RestTemplate restTemplate = new RestTemplate();
-        String request = facultyName;
-        Resources availableResources = restTemplate.postForObject("http://localhost:8085/resources", request, Resources.class);
-        return availableResources;
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/json");
+        headers.add("Authorization", "Bearer " + token);
+
+        String requestBody = "{\"facultyName\": \"" + facultyName + "\"}";
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity("http://localhost:8085/resources", request, String.class);
+
+        String[] responseArr = response.getBody().split("-");
+        Resources resources = new Resources(Integer.parseInt(responseArr[0]), Integer.parseInt(responseArr[1]), Integer.parseInt(responseArr[2]));
+
+//        Resources availableResources = restTemplate.postForObject("", request, );
+        return resources;
     }
 
     /**

@@ -39,7 +39,9 @@ public class RpManagementService {
     }
 
     public Resources findResourcesByName(String name) throws Exception{
-        if(!repo.existsByName(name)) throw new Exception();
+        if(!repo.existsByName(name)) {
+            throw new Exception();
+        }
         return repo.findByName(name).get().getAvailableResources();
     }
 
