@@ -2,6 +2,7 @@ package nl.tudelft.sem.template.resourcepool.controllers;
 
 import nl.tudelft.sem.template.resourcepool.authentication.AuthManager;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
+import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.models.DistributionModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +62,18 @@ public class ResourcePoolController {
         }
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/resources")
+    public ResponseEntity<Resources> getFacultyResourcesByName(String facultyName) {
+        Resources availableResources;
+        try {
+            availableResources = rpManagementService.findResourcesByName(facultyName);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+        return ResponseEntity.ok(availableResources);
+    }
+
 
     /**
      * Returns a string-representation of all the resource pools in the database.

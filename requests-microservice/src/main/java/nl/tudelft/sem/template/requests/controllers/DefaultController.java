@@ -1,5 +1,6 @@
 package nl.tudelft.sem.template.requests.controllers;
 
+import com.fasterxml.classmate.types.ResolvedInterfaceType;
 import nl.tudelft.sem.template.requests.authentication.AuthManager;
 import nl.tudelft.sem.template.requests.domain.RegistrationService;
 import nl.tudelft.sem.template.requests.domain.Resources;
@@ -11,7 +12,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.io.IOException;
+import java.util.Calendar;
 
 /**
  * Hello World requests controller.
@@ -51,12 +56,36 @@ public class DefaultController {
             String description = request.getDescription();
             Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
             String owner = authManager.getNetId();
-            registrationService.registerRequest(description, resources, owner);
+            String facultyName = request.getFacultyName();
+            Resources availableResources = getFacultyResourcesByName(facultyName);
+            Resources availableResourcesFRP = getFacultyResourcesByName("Free pool");
+
+            String deadlineStr = request.getDeadline();//convert to Calendar immediately
+            Calendar deadline = Calendar.getInstance();
+            deadline.set(Calendar.YEAR, Integer.parseInt(deadlineStr.split("-")[2]));
+            deadline.set(Calendar.MONTH, Integer.parseInt(deadlineStr.split("-")[1]));
+            deadline.set(Calendar.DAY_OF_MONTH, Integer.parseInt(deadlineStr.split("-")[0]));
+
+            registrationService.registerRequest(description, resources, owner, facultyName, availableResources, deadline, availableResourcesFRP);
+
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Requests the available resources from the RP MS
+     * @param facultyName name of the faculty
+     * @return the available resources
+     * @throws IOException
+     */
+    public Resources getFacultyResourcesByName(String facultyName) throws IOException {
+        RestTemplate restTemplate = new RestTemplate();
+        String request = facultyName;
+        Resources availableResources = restTemplate.postForObject("http://localhost:8085/resources", request, Resources.class);
+        return availableResources;
     }
 
     /**
@@ -68,5 +97,6 @@ public class DefaultController {
     public ResponseEntity<String> helloWorld() {
         return ResponseEntity.ok("Hello " + authManager.getNetId());
     }
+
 
 }

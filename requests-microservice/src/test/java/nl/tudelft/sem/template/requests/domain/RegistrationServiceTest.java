@@ -23,23 +23,23 @@ class RegistrationServiceTest {
     @Autowired
     private transient RequestRepository requestRepository;
 
-    @Test
-    public void createRequest_withValidData_worksCorrectly() throws Exception {
-        // Arrange
-        final String description = "give me resources";
-        final Resources resources = new Resources(30, 50, 50);
-        final String owner = "The Boss";
-
-        // Act
-        registrationService.registerRequest(description, resources, owner);
-
-        // Assert
-        AppRequest savedRequest = requestRepository.findById(0L).orElseThrow();
-
-        assertThat(savedRequest.getDescription()).isEqualTo(description);
-        assertThat(savedRequest.getMem()).isEqualTo(resources.getMem());
-        assertThat(savedRequest.getCpu()).isEqualTo(resources.getCpu());
-        assertThat(savedRequest.getGpu()).isEqualTo(resources.getGpu());
-        assertThat(savedRequest.getOwner()).isEqualTo(owner);
-    }
+//    @Test
+//    public void createRequest_withValidData_worksCorrectly() throws Exception {
+//        // Arrange
+//        final String description = "give me resources";
+//        final Resources resources = new Resources(30, 50, 50);
+//        final String owner = "The Boss";
+//
+//        // Act
+//        registrationService.registerRequest(description, resources, owner);
+//
+//        // Assert
+//        AppRequest savedRequest = requestRepository.findById(0L).orElseThrow();
+//
+//        assertThat(savedRequest.getDescription()).isEqualTo(description);
+//        assertThat(savedRequest.getMem()).isEqualTo(resources.getMem());
+//        assertThat(savedRequest.getCpu()).isEqualTo(resources.getCpu());
+//        assertThat(savedRequest.getGpu()).isEqualTo(resources.getGpu());
+//        assertThat(savedRequest.getOwner()).isEqualTo(owner);
+//    }
 }

@@ -1,5 +1,6 @@
 package nl.tudelft.sem.template.resourcepool.domain.resourcepool;
 
+import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import org.springframework.stereotype.Service;
 
 /**
@@ -35,6 +36,11 @@ public class RpManagementService {
         }
         Faculty faculty = new Faculty(name, managerNetId);
         repo.save(faculty);
+    }
+
+    public Resources findResourcesByName(String name) throws Exception{
+        if(!repo.existsByName(name)) throw new Exception();
+        return repo.findByName(name).get().getAvailableResources();
     }
 
     /**
