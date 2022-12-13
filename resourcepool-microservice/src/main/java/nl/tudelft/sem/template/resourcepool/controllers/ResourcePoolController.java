@@ -2,6 +2,7 @@ package nl.tudelft.sem.template.resourcepool.controllers;
 
 import nl.tudelft.sem.template.resourcepool.authentication.AuthManager;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
+import nl.tudelft.sem.template.resourcepool.models.DistributionModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,10 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Hello World resourcepool controller.
- * <p>
- * This controller shows how you can extract information from the JWT token.
- * </p>
+ * Controller for endpoints related to the management of resource pools.
  */
 @RestController
 public class ResourcePoolController {
@@ -26,9 +24,10 @@ public class ResourcePoolController {
     private final transient RpManagementService rpManagementService;
 
     /**
-     * Instantiates a new controller.
+     * Instantiates a new ResourcePoolController.
      *
      * @param authManager Spring Security component used to authenticate and authorize the user
+     * @param rpManagementService The service which will handle the business logic for managing the faculties
      */
     @Autowired
     public ResourcePoolController(AuthManager authManager, RpManagementService rpManagementService) {
@@ -37,9 +36,9 @@ public class ResourcePoolController {
     }
 
     /**
-     * Gets resourcepool by id.
+     * Returns a string-representation of the resource pool found in the database with the given id.
      *
-     * @return the resourcepool found in the database with the given id
+     * @return ResponseEntity containing a string of the resource pool found in the database with the given id
      */
     @GetMapping("/hello")
     public ResponseEntity<String> helloWorld() {
@@ -63,6 +62,11 @@ public class ResourcePoolController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Returns a string-representation of all the resource pools in the database.
+     *
+     * @return ResponseEntity containing a String with all the resource pools in the database
+     */
     @GetMapping("/printDatabase")
     public ResponseEntity<String> printDatabase() {
         return ResponseEntity.ok(rpManagementService.printDatabase());

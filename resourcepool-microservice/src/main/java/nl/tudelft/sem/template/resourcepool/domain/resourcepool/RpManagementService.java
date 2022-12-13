@@ -3,10 +3,11 @@ package nl.tudelft.sem.template.resourcepool.domain.resourcepool;
 import org.springframework.stereotype.Service;
 
 /**
- * A DDD service for registering a new user.
+ * A DDD service for managing the resource pools.
  */
 @Service
 public class RpManagementService {
+
     private final transient RpFacultyRepository repo;
 
     /**
@@ -19,11 +20,11 @@ public class RpManagementService {
     }
 
     /**
-     * Create a new Faculty.
+     * Creates a new Faculty.
      *
      * @param name    The name of the new faculty
      * @param managerNetId The NetId of the faculty manager
-     * @throws Exception if the user already exists
+     * @throws Exception if the name or the managerNetId already exists
      */
     public void createFaculty(String name, long managerNetId) throws Exception {
         if (repo.existsByName(name)) {
