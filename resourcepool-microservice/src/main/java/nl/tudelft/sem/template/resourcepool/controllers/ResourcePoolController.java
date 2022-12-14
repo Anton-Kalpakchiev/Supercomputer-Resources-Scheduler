@@ -65,7 +65,7 @@ public class ResourcePoolController {
     }
 
     @PostMapping("/resources")
-    public ResponseEntity<String> getFacultyResourcesByName(@RequestBody ResourceByNameModel request) {
+    public ResponseEntity<Resources> getFacultyResourcesByName(@RequestBody ResourceByNameModel request) {
         String facultyName = request.getFacultyName();
         Resources availableResources;
         try {
@@ -74,8 +74,8 @@ public class ResourcePoolController {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-        String result = availableResources.getMemory() + "-" + availableResources.getCpu() + "-" + availableResources.getGpu();
-        return ResponseEntity.ok(result);
+//        String result = availableResources.getMemory() + "-" + availableResources.getCpu() + "-" + availableResources.getGpu();
+        return ResponseEntity.ok(availableResources);
     }
 
 

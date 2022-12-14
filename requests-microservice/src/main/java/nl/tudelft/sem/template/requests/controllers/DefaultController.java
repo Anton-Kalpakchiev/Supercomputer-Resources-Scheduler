@@ -1,11 +1,14 @@
 package nl.tudelft.sem.template.requests.controllers;
 
 import com.fasterxml.classmate.types.ResolvedInterfaceType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.tudelft.sem.template.requests.authentication.AuthManager;
 import nl.tudelft.sem.template.requests.domain.InvalidResourcesException;
 import nl.tudelft.sem.template.requests.domain.RegistrationService;
+import nl.tudelft.sem.template.requests.domain.ResourcePoolService;
 import nl.tudelft.sem.template.requests.domain.Resources;
 import nl.tudelft.sem.template.requests.models.RegistrationRequestModel;
+import nl.tudelft.sem.template.requests.models.ResourcesDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -34,6 +37,7 @@ public class DefaultController {
 
     private final transient AuthManager authManager;
     private final transient RegistrationService registrationService;
+    private final transient ResourcePoolService resourcePoolService;
 
     /**
      * Instantiates a new controller.
@@ -42,9 +46,10 @@ public class DefaultController {
      * @param registrationService The service that will allow requests to be saved to the database
      */
     @Autowired
-    public DefaultController(AuthManager authManager, RegistrationService registrationService) {
+    public DefaultController(AuthManager authManager, RegistrationService registrationService, ResourcePoolService resourcePoolService) {
         this.authManager = authManager;
         this.registrationService = registrationService;
+        this.resourcePoolService = resourcePoolService;
     }
 
     /**
@@ -59,15 +64,15 @@ public class DefaultController {
 
         try {
             String description = request.getDescription();
-            Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
+            Resources resources = new Resources(request.getCpu(), request.getGpu(), request.getMemory());
             String owner = authManager.getNetId();
             String facultyName = request.getFacultyName();
 
             String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
             String token = authorizationHeader.split(" ")[1];
 
-            Resources availableResources = getFacultyResourcesByName(facultyName, token);
-            Resources availableResourcesFRP = getFacultyResourcesByName("Free pool", token);
+            Resources availableResources = resourcePoolService.getFacultyResourcesByName(facultyName, token);
+            Resources availableResourcesFRP = resourcePoolService.getFacultyResourcesByName("Free pool", token);
 
             String deadlineStr = request.getDeadline();//convert to Calendar immediately
             Calendar deadline = Calendar.getInstance();
@@ -83,30 +88,6 @@ public class DefaultController {
         }
 
         return ResponseEntity.ok().build();
-    }
-
-    /**
-     * Requests the available resources from the RP MS
-     * @param facultyName name of the faculty
-     * @return the available resources
-     * @throws IOException
-     */
-    public Resources getFacultyResourcesByName(String facultyName, String token) throws IOException, InvalidResourcesException {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", "application/json");
-        headers.add("Authorization", "Bearer " + token);
-
-        String requestBody = "{\"facultyName\": \"" + facultyName + "\"}";
-        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
-
-        ResponseEntity<String> response = restTemplate.postForEntity("http://localhost:8085/resources", request, String.class);
-
-        String[] responseArr = response.getBody().split("-");
-        Resources resources = new Resources(Integer.parseInt(responseArr[0]), Integer.parseInt(responseArr[1]), Integer.parseInt(responseArr[2]));
-
-//        Resources availableResources = restTemplate.postForObject("", request, );
-        return resources;
     }
 
     /**

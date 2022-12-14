@@ -38,9 +38,9 @@ public class RegistrationService {
         deadlineFiveMinutesBeforeEnd.set(Calendar.SECOND, 0);
 
         boolean facultyHasEnoughResources = true;
-        if(availableResources.getGpu() < resources.getGpu() || availableResources.getCpu() < resources.getCpu() || availableResources.getMem() < resources.getMem()) facultyHasEnoughResources = false;
+        if(availableResources.getGpu() < resources.getGpu() || availableResources.getCpu() < resources.getCpu() || availableResources.getMemory() < resources.getMemory()) facultyHasEnoughResources = false;
         boolean FRPHasEnoughResources = true;
-        if(FRPResources.getGpu() < resources.getGpu() || FRPResources.getCpu() < resources.getCpu() || FRPResources.getMem() < resources.getMem()) FRPHasEnoughResources = false;
+        if(FRPResources.getGpu() < resources.getGpu() || FRPResources.getCpu() < resources.getCpu() || FRPResources.getMemory() < resources.getMemory()) FRPHasEnoughResources = false;
         boolean isForTomorrow = isForTomorrow(deadline);
         int timePeriod = 0;//0 when before the 6h deadline, 1 when after the 6h deadline and before the 5min deadline, 2 when after the 5 min deadline
         if(Calendar.getInstance().after(deadlineSixHoursBeforeEnd) && Calendar.getInstance().before(deadlineFiveMinutesBeforeEnd)) timePeriod = 1;
@@ -78,7 +78,7 @@ public class RegistrationService {
         boolean isForTomorrow = isForTomorrow(deadline);
 
         boolean FRPHasEnoughResources = true;
-        if(FRPResources.getGpu() < resources.getGpu() || FRPResources.getCpu() < resources.getCpu() || FRPResources.getMem() < resources.getMem()) FRPHasEnoughResources = false;
+        if(FRPResources.getGpu() < resources.getGpu() || FRPResources.getCpu() < resources.getCpu() || FRPResources.getMemory() < resources.getMemory()) FRPHasEnoughResources = false;
         int timePeriod = 1;//0 when before the 6h deadline, 1 when after the 6h deadline and before the 5min deadline, 2 when after the 5 min deadline
 
         //automatic rejection
