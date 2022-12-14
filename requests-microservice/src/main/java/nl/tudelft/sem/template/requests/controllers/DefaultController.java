@@ -4,7 +4,9 @@ import com.fasterxml.classmate.types.ResolvedInterfaceType;
 import nl.tudelft.sem.template.requests.authentication.AuthManager;
 import nl.tudelft.sem.template.requests.domain.RegistrationService;
 import nl.tudelft.sem.template.requests.domain.Resources;
+import nl.tudelft.sem.template.requests.domain.StatusService;
 import nl.tudelft.sem.template.requests.models.RegistrationRequestModel;
+import nl.tudelft.sem.template.requests.models.SetStatusModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,7 @@ public class DefaultController {
 
     private final transient AuthManager authManager;
     private final transient RegistrationService registrationService;
+    private final transient StatusService statusService;
 
     /**
      * Instantiates a new controller.
@@ -37,9 +40,11 @@ public class DefaultController {
      * @param registrationService The service that will allow requests to be saved to the database
      */
     @Autowired
-    public DefaultController(AuthManager authManager, RegistrationService registrationService) {
+    public DefaultController(AuthManager authManager, RegistrationService registrationService,
+                             StatusService statusService) {
         this.authManager = authManager;
         this.registrationService = registrationService;
+        this.statusService = statusService;
     }
 
     /**
@@ -89,13 +94,33 @@ public class DefaultController {
     }
 
     /**
-     * Gets requests by id.
+     * Gets the status of a request.
      *
-     * @return the requests found in the database with the given id
+     * @return the status of the request found in the database with the given id
      */
-    @GetMapping("/hello")
-    public ResponseEntity<String> helloWorld() {
-        return ResponseEntity.ok("Hello " + authManager.getNetId());
+    @GetMapping("/status")
+    public ResponseEntity<Integer> getStatus(@RequestBody long id) {
+        return ResponseEntity.ok(statusService.getStatus(id));
+    }
+
+    /**
+     * Gets the status of a request.
+     *
+     * @return the status of the request found in the database with the given id
+     */
+    @PostMapping("/status")
+    public ResponseEntity setStatus(@RequestBody SetStatusModel setStatusModel) throws ResponseStatusException {
+        long id = setStatusModel.getId();
+        int status = setStatusModel.getStatus();
+
+        try {
+            statusService.setStatus(id, status);
+        }
+        catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+
+        return ResponseEntity.ok().build();
     }
 
 
