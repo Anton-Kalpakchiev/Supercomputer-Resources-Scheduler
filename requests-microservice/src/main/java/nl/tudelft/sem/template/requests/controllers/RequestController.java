@@ -1,14 +1,13 @@
 package nl.tudelft.sem.template.requests.controllers;
 
-import static nl.tudelft.sem.template.requests.authentication.JwtRequestFilter.AUTHORIZATION_HEADER;
-
+import java.io.IOException;
 import java.util.Calendar;
-import javax.servlet.http.HttpServletRequest;
 import nl.tudelft.sem.template.requests.authentication.AuthManager;
 import nl.tudelft.sem.template.requests.domain.RegistrationService;
-import nl.tudelft.sem.template.requests.domain.ResourcePoolService;
 import nl.tudelft.sem.template.requests.domain.Resources;
+import nl.tudelft.sem.template.requests.domain.StatusService;
 import nl.tudelft.sem.template.requests.models.RegistrationRequestModel;
+import nl.tudelft.sem.template.requests.models.SetStatusModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -29,7 +29,7 @@ public class RequestController {
 
     private final transient AuthManager authManager;
     private final transient RegistrationService registrationService;
-    private final transient ResourcePoolService resourcePoolService;
+    private final transient StatusService statusService;
 
     /**
      * Instantiates a new controller.
@@ -39,10 +39,10 @@ public class RequestController {
      */
     @Autowired
     public RequestController(AuthManager authManager, RegistrationService registrationService,
-                             ResourcePoolService resourcePoolService) {
+                             StatusService statusService) {
         this.authManager = authManager;
         this.registrationService = registrationService;
-        this.resourcePoolService = resourcePoolService;
+        this.statusService = statusService;
     }
 
     /**
@@ -53,31 +53,26 @@ public class RequestController {
      * @throws Exception When requests are made with insufficient gpu compared to cpu.
      */
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody RegistrationRequestModel request, HttpServletRequest requested)
-            throws Exception {
+    public ResponseEntity register(@RequestBody RegistrationRequestModel request) throws Exception {
 
         try {
+            final String description = request.getDescription();
+            final Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
+            final String owner = authManager.getNetId();
+            final String facultyName = request.getFacultyName();
+            final Resources availableResources = getFacultyResourcesByName(facultyName);
+            final Resources availableFreePoolResources = getFacultyResourcesByName("Free pool");
 
-            String facultyName = request.getFacultyName();
-
-            String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
-            String token = authorizationHeader.split(" ")[1];
-
-            String deadlineStr = request.getDeadline();
-            String[] deadlineArr = deadlineStr.split("-"); //convert to Calendar immediately
+            String deadlineStr = request.getDeadline(); //convert to Calendar immediately
             Calendar deadline = Calendar.getInstance();
-            deadline.set(Calendar.YEAR, Integer.parseInt(deadlineArr[2]));
-            deadline.set(Calendar.MONTH, Integer.parseInt(deadlineArr[1]) - 1);
-            deadline.set(Calendar.DAY_OF_MONTH, Integer.parseInt(deadlineArr[0]));
+            deadline.set(Calendar.YEAR, Integer.parseInt(deadlineStr.split("-")[2]));
+            deadline.set(Calendar.MONTH, Integer.parseInt(deadlineStr.split("-")[1]));
+            deadline.set(Calendar.DAY_OF_MONTH, Integer.parseInt(deadlineStr.split("-")[0]));
 
-            Resources availableResources = resourcePoolService.getFacultyResourcesByName(facultyName, token);
-            Resources availableResourcesFrp = resourcePoolService.getFacultyResourcesByName("Free pool", token);
-            Resources resources = new Resources(request.getCpu(), request.getGpu(), request.getMemory());
-            registrationService.registerRequest(request.getDescription(), resources,
-                    authManager.getNetId(), facultyName, availableResources, deadline, availableResourcesFrp, token);
+            registrationService.registerRequest(description, resources, owner,
+                    facultyName, availableResources, deadline, availableFreePoolResources);
 
         } catch (Exception e) {
-            e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
@@ -85,13 +80,48 @@ public class RequestController {
     }
 
     /**
-     * Gets requests by id.
+     * Requests the available resources from the RP MS.
      *
-     * @return the requests found in the database with the given id
+     * @param facultyName name of the faculty.
+     *
+     * @return the available resources
+     *
+     * @throws IOException when post for object fails
      */
-    @GetMapping("/hello")
-    public ResponseEntity<String> helloWorld() {
-        return ResponseEntity.ok("Hello " + authManager.getNetId());
+    public Resources getFacultyResourcesByName(String facultyName) throws IOException {
+        RestTemplate restTemplate = new RestTemplate();
+        String request = facultyName;
+        Resources availableResources = restTemplate.postForObject("http://localhost:8085/resources", request, Resources.class);
+        return availableResources;
+    }
+
+    /**
+     * Gets the status of a request.
+     *
+     * @return the status of the request found in the database with the given id
+     */
+    @GetMapping("/status")
+    public ResponseEntity<Integer> getStatus(@RequestBody long id) {
+        return ResponseEntity.ok(statusService.getStatus(id));
+    }
+
+    /**
+     * Gets the status of a request.
+     *
+     * @return the status of the request found in the database with the given id
+     */
+    @PostMapping("/status")
+    public ResponseEntity setStatus(@RequestBody SetStatusModel setStatusModel) throws ResponseStatusException {
+        long id = setStatusModel.getId();
+        int status = setStatusModel.getStatus();
+
+        try {
+            statusService.setStatus(id, status);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+
+        return ResponseEntity.ok().build();
     }
 
 

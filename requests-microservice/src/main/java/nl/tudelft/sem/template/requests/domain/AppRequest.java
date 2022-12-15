@@ -59,10 +59,12 @@ public class AppRequest extends HasEvents {
     @Setter
     @Column(name = "status", nullable = false)
     private int status;
-    //0 for pending,
-    // 1 for approved,
-    // 2 for rejected,
-    // 3 pending and waiting for the free RP to get resources at the 6h before end of day deadline
+    /*
+    0 for pending,
+    1 for approved,
+    2 for rejected,
+    3 pending and waiting for the free RP to get resources at the 6h before end of day deadline
+    */
 
 
 
@@ -72,8 +74,8 @@ public class AppRequest extends HasEvents {
      * @param description The description of the request
      * @param resources The resources in the request
      */
-    public AppRequest(String description, Resources resources, String owner, String facultyName,
-                      Calendar deadline, int status) {
+    public AppRequest(String description, Resources resources, String owner,
+                      String facultyName, Calendar deadline, int status) {
         this.facultyName = facultyName;
         this.description = description;
         this.mem = resources.getMemory();
