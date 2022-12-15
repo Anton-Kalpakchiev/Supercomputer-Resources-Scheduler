@@ -25,7 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
  * </p>
  */
 @RestController
-public class DefaultController {
+public class RequestController {
 
     private final transient AuthManager authManager;
     private final transient RegistrationService registrationService;
@@ -38,7 +38,7 @@ public class DefaultController {
      * @param registrationService The service that will allow requests to be saved to the database
      */
     @Autowired
-    public DefaultController(AuthManager authManager, RegistrationService registrationService,
+    public RequestController(AuthManager authManager, RegistrationService registrationService,
                              StatusService statusService) {
         this.authManager = authManager;
         this.registrationService = registrationService;
