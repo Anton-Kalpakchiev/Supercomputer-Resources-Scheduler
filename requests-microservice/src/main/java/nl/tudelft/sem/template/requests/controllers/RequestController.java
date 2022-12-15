@@ -33,7 +33,7 @@ import static nl.tudelft.sem.template.requests.authentication.JwtRequestFilter.A
  * </p>
  */
 @RestController
-public class DefaultController {
+public class RequestController {
 
     private final transient AuthManager authManager;
     private final transient RegistrationService registrationService;
@@ -46,7 +46,7 @@ public class DefaultController {
      * @param registrationService The service that will allow requests to be saved to the database
      */
     @Autowired
-    public DefaultController(AuthManager authManager, RegistrationService registrationService, ResourcePoolService resourcePoolService) {
+    public RequestController(AuthManager authManager, RegistrationService registrationService, ResourcePoolService resourcePoolService) {
         this.authManager = authManager;
         this.registrationService = registrationService;
         this.resourcePoolService = resourcePoolService;
@@ -74,13 +74,15 @@ public class DefaultController {
             Resources availableResources = resourcePoolService.getFacultyResourcesByName(facultyName, token);
             Resources availableResourcesFRP = resourcePoolService.getFacultyResourcesByName("Free pool", token);
 
-            String deadlineStr = request.getDeadline();//convert to Calendar immediately
+            String deadlineStr = request.getDeadline();
+            String[] deadlineArr = deadlineStr.split("-");//convert to Calendar immediately
             Calendar deadline = Calendar.getInstance();
-            deadline.set(Calendar.YEAR, Integer.parseInt(deadlineStr.split("-")[2]));
-            deadline.set(Calendar.MONTH, Integer.parseInt(deadlineStr.split("-")[1]));
-            deadline.set(Calendar.DAY_OF_MONTH, Integer.parseInt(deadlineStr.split("-")[0]));
-
-            registrationService.registerRequest(description, resources, owner, facultyName, availableResources, deadline, availableResourcesFRP);
+            deadline.set(Calendar.YEAR, Integer.parseInt(deadlineArr[2]));
+            deadline.set(Calendar.MONTH, Integer.parseInt(deadlineArr[1])-1);
+            deadline.set(Calendar.DAY_OF_MONTH, Integer.parseInt(deadlineArr[0]));
+            Calendar day = deadline;
+            System.out.println("Truly crazy: " + day.get(Calendar.DAY_OF_MONTH) + "-" + day.get(Calendar.MONTH) + "-" + day.get(Calendar.YEAR));
+            registrationService.registerRequest(description, resources, owner, facultyName, availableResources, deadline, availableResourcesFRP, token);
 
         } catch (Exception e) {
             e.printStackTrace();

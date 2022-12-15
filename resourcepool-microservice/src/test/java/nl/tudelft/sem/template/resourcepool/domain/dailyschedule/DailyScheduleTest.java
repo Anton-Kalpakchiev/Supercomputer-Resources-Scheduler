@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -14,31 +15,51 @@ class DailyScheduleTest {
 
     @Test
     public void constructorTest() {
-        DailySchedule ds = new DailySchedule(new Date(2022, 1, 1), 1);
+        Calendar day = Calendar.getInstance();
+        day.set(Calendar.YEAR, 2022);
+        day.set(Calendar.MONTH, 1);
+        day.set(Calendar.DAY_OF_MONTH, 1);
+        DailySchedule ds = new DailySchedule(day, 1);
         assertNotNull(ds);
     }
 
     @Test
     void getDay() {
-        DailySchedule ds = new DailySchedule(new Date(2022, 1, 1), 1);
-        assertEquals(ds.getDay(), new Date(2022, 1, 1));
+        Calendar day = Calendar.getInstance();
+        day.set(Calendar.YEAR, 2022);
+        day.set(Calendar.MONTH, 1);
+        day.set(Calendar.DAY_OF_MONTH, 1);
+        DailySchedule ds = new DailySchedule(day, 1);
+        assertEquals(ds.getDay(), day);
     }
 
     @Test
     void getResourcePoolId() {
-        DailySchedule ds = new DailySchedule(new Date(2022, 1, 1), 1);
+        Calendar day = Calendar.getInstance();
+        day.set(Calendar.YEAR, 2022);
+        day.set(Calendar.MONTH, 1);
+        day.set(Calendar.DAY_OF_MONTH, 1);
+        DailySchedule ds = new DailySchedule(day, 1);
         assertEquals(ds.getResourcePoolId(), 1);
     }
 
     @Test
     void getList() {
-        DailySchedule ds = new DailySchedule(new Date(2022, 12, 31), 1);
+        Calendar day = Calendar.getInstance();
+        day.set(Calendar.YEAR, 2022);
+        day.set(Calendar.MONTH, 1);
+        day.set(Calendar.DAY_OF_MONTH, 1);
+        DailySchedule ds = new DailySchedule(day, 1);
         assertEquals(ds.getList(), new ArrayList<>());
     }
 
     @Test
     void addRequest() {
-        DailySchedule ds = new DailySchedule(new Date(2022, 12, 31), 1);
+        Calendar day = Calendar.getInstance();
+        day.set(Calendar.YEAR, 2022);
+        day.set(Calendar.MONTH, 1);
+        day.set(Calendar.DAY_OF_MONTH, 1);
+        DailySchedule ds = new DailySchedule(day, 1);
         ds.addRequest(1L);
         ds.addRequest(61L);
         List<Long> list = new ArrayList<>();
@@ -49,16 +70,28 @@ class DailyScheduleTest {
 
     @Test
     void testEquals() {
-        DailySchedule ds1 = new DailySchedule(new Date(2022, 1, 1), 1);
-        DailySchedule ds2 = new DailySchedule(new Date(2022, 1, 1), 1);
+        Calendar day = Calendar.getInstance();
+        day.set(Calendar.YEAR, 2022);
+        day.set(Calendar.MONTH, 1);
+        day.set(Calendar.DAY_OF_MONTH, 1);
+        DailySchedule ds1 = new DailySchedule(day, 1);
+        DailySchedule ds2 = new DailySchedule(day, 1);
         ds2.addRequest(50L);
         assertEquals(ds1, ds2);
     }
 
     @Test
     void testNotEquals() {
-        DailySchedule ds1 = new DailySchedule(new Date(2022, 1, 1), 1);
-        DailySchedule ds2 = new DailySchedule(new Date(2023, 8, 4), 1);
+        Calendar day = Calendar.getInstance();
+        day.set(Calendar.YEAR, 2022);
+        day.set(Calendar.MONTH, 1);
+        day.set(Calendar.DAY_OF_MONTH, 1);
+        Calendar day2 = Calendar.getInstance();
+        day2.set(Calendar.YEAR, 2022);
+        day2.set(Calendar.MONTH, 1);
+        day2.set(Calendar.DAY_OF_MONTH, 1);
+        DailySchedule ds1 = new DailySchedule(day, 1);
+        DailySchedule ds2 = new DailySchedule(day2, 1);
         ds1.addRequest(50L);
         ds2.addRequest(50L);
         assertNotEquals(ds1, ds2);

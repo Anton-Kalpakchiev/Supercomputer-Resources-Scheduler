@@ -1,9 +1,6 @@
 package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -24,9 +21,10 @@ public class DailySchedule {
     /**
      * Identifier for the daily schedule.
      */
+
     @Id
     @Column(name = "day", nullable = false)
-    private Date day;
+    private Calendar day;
 
     @Id
     @Column(name = "resource_pool_id", nullable = false)
@@ -42,7 +40,7 @@ public class DailySchedule {
      * @param day            the day that the requests are scheduled on
      * @param resourcePoolId the id of the resource pool the requests are scheduled in
      */
-    public DailySchedule(Date day, long resourcePoolId) {
+    public DailySchedule(Calendar day, long resourcePoolId) {
         this.day = day;
         this.resourcePoolId = resourcePoolId;
         this.list = new ArrayList<>();
@@ -53,7 +51,7 @@ public class DailySchedule {
      *
      * @return the day
      */
-    public Date getDay() {
+    public Calendar getDay() {
         return day;
     }
 

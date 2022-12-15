@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.util.Calendar;
 
 @Component
 public class ResourcePoolService {
@@ -39,4 +40,23 @@ public class ResourcePoolService {
         ResourcesDto availableResources = objectMapper.readValue(response.getBody(), ResourcesDto.class);
         return new Resources(availableResources.getCpu(), availableResources.getGpu(), availableResources.getMemory());
     }
+
+    public ResponseEntity<Boolean> automaticApproval(Calendar day, long requestId, String token) throws IOException, InvalidResourcesException {
+        System.out.println(requestId);
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/json");
+        headers.add("Authorization", "Bearer " + token);
+
+        int month = day.get(Calendar.MONTH) + 1;
+        String dayString = day.get(Calendar.DAY_OF_MONTH) + "-" + month + "-" + day.get(Calendar.YEAR);
+        String requestBody = "{\"day\": \"" + dayString + "\",\"requestId\": \"" + requestId + "\"}";
+        System.out.println(requestBody);
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<Boolean> response = restTemplate.postForEntity("http://localhost:8085/automaticApproval", request, Boolean.class);
+
+        return response;
+    }
+
 }

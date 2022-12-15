@@ -3,6 +3,7 @@ package nl.tudelft.sem.template.resourcepool.controllers;
 import nl.tudelft.sem.template.resourcepool.authentication.AuthManager;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
+import nl.tudelft.sem.template.resourcepool.models.AutomaticApprovalModel;
 import nl.tudelft.sem.template.resourcepool.models.DistributionModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
 import nl.tudelft.sem.template.resourcepool.models.ResourceByNameModel;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Calendar;
 
 /**
  * Controller for endpoints related to the management of resource pools.
@@ -74,10 +77,8 @@ public class ResourcePoolController {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-//        String result = availableResources.getMemory() + "-" + availableResources.getCpu() + "-" + availableResources.getGpu();
         return ResponseEntity.ok(availableResources);
     }
-
 
     /**
      * Returns a string-representation of all the resource pools in the database.

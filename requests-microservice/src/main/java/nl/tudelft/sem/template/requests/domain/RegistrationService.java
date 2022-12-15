@@ -2,20 +2,23 @@ package nl.tudelft.sem.template.requests.domain;
 
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 
 @Service
 public class RegistrationService {
     private final transient RequestRepository requestRepository;
+    private final transient ResourcePoolService resourcePoolService;
 
     /**
      * Instantiates a new RegistrationService.
      *
      * @param requestRepository the request repository
      */
-    public RegistrationService(RequestRepository requestRepository) {
+    public RegistrationService(RequestRepository requestRepository, ResourcePoolService resourcePoolService) {
         this.requestRepository = requestRepository;
+        this.resourcePoolService = resourcePoolService;
     }
 
     /**
@@ -24,8 +27,9 @@ public class RegistrationService {
      * @param description The description of the request
      * @param resources   The resorces requested
      */
-    public AppRequest registerRequest(String description, Resources resources, String owner, String facultyName, Resources availableResources, Calendar deadline, Resources FRPResources){
+    public AppRequest registerRequest(String description, Resources resources, String owner, String facultyName, Resources availableResources, Calendar deadline, Resources FRPResources, String token) throws IOException, InvalidResourcesException {
         AppRequest request = new AppRequest(description, resources, owner, facultyName, deadline, -1);
+
         Calendar deadlineSixHoursBeforeEnd = Calendar.getInstance();
         Calendar deadlineFiveMinutesBeforeEnd = Calendar.getInstance();
 
@@ -48,13 +52,15 @@ public class RegistrationService {
 
         //automatic rejection
         if((timePeriod == 2 && isForTomorrow) || (!FRPHasEnoughResources && timePeriod == 1 && isForTomorrow)){
-            //auto reject
+//            //auto reject
             request.setStatus(2);
         }
         //automatic approval
         else if((timePeriod == 1 && FRPHasEnoughResources )|| (isForTomorrow && timePeriod == 0 && !facultyHasEnoughResources && FRPHasEnoughResources)){
             //auto approve
             request.setStatus(1);
+            requestRepository.save(request);
+            resourcePoolService.automaticApproval(deadline, request.getId(), token);
             //update RP/Schedule MS os that it can update the schedule for the corresponding faculty for tomorrow
         }
         //waiting for the free resource pool to get resources at 6h before end of day

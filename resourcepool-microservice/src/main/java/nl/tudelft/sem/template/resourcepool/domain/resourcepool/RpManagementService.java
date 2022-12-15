@@ -45,6 +45,15 @@ public class RpManagementService {
         return repo.findByName(name).get().getAvailableResources();
     }
 
+    public void updateResources(long resourcePoolId, long requestId) throws Exception {
+//        if(!repo.existsById(resourcePoolId)) {
+//            throw new Exception();
+//        }
+
+        System.out.println("Didnt update resources but that's okay");
+
+    }
+
     /**
      * Returns a string with all resource pools in the database.
      *
