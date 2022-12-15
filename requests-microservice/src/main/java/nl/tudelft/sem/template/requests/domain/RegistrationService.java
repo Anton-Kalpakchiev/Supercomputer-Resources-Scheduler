@@ -26,7 +26,7 @@ public class RegistrationService {
      * Register a new request.
      *
      * @param description The description of the request
-     * @param resources   The resorces requested
+     * @param resources   The resources requested
      */
     public AppRequest registerRequest(String description, Resources resources, String owner, String facultyName,
                                   Resources availableResources, Calendar deadline, Resources frpResources, String token)

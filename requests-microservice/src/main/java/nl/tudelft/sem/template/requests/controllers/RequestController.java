@@ -1,9 +1,13 @@
 package nl.tudelft.sem.template.requests.controllers;
 
+import static nl.tudelft.sem.template.requests.authentication.JwtRequestFilter.AUTHORIZATION_HEADER;
+
 import java.io.IOException;
 import java.util.Calendar;
+import javax.servlet.http.HttpServletRequest;
 import nl.tudelft.sem.template.requests.authentication.AuthManager;
 import nl.tudelft.sem.template.requests.domain.RegistrationService;
+import nl.tudelft.sem.template.requests.domain.ResourcePoolService;
 import nl.tudelft.sem.template.requests.domain.Resources;
 import nl.tudelft.sem.template.requests.domain.StatusService;
 import nl.tudelft.sem.template.requests.models.RegistrationRequestModel;
@@ -30,6 +34,7 @@ public class RequestController {
     private final transient AuthManager authManager;
     private final transient RegistrationService registrationService;
     private final transient StatusService statusService;
+    private final transient ResourcePoolService resourcePoolService;
 
     /**
      * Instantiates a new controller.
@@ -39,25 +44,27 @@ public class RequestController {
      */
     @Autowired
     public RequestController(AuthManager authManager, RegistrationService registrationService,
-                             StatusService statusService) {
+                             StatusService statusService, ResourcePoolService resourcePoolService) {
         this.authManager = authManager;
         this.registrationService = registrationService;
         this.statusService = statusService;
+        this.resourcePoolService = resourcePoolService;
     }
 
     /**
      * The registration process for a request.
      *
      * @param request The request model.
+     * @param requested To get the token
      * @return The response entity status.
      * @throws Exception When requests are made with insufficient gpu compared to cpu.
      */
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody RegistrationRequestModel request) throws Exception {
-
+    public ResponseEntity register(@RequestBody RegistrationRequestModel request, HttpServletRequest requested)
+            throws Exception {
         try {
             final String description = request.getDescription();
-            final Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
+            final Resources resources = new Resources(request.getMemory(), request.getCpu(), request.getGpu());
             final String owner = authManager.getNetId();
             final String facultyName = request.getFacultyName();
             final Resources availableResources = getFacultyResourcesByName(facultyName);
@@ -69,8 +76,11 @@ public class RequestController {
             deadline.set(Calendar.MONTH, Integer.parseInt(deadlineStr.split("-")[1]));
             deadline.set(Calendar.DAY_OF_MONTH, Integer.parseInt(deadlineStr.split("-")[0]));
 
+            String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
+            String token = authorizationHeader.split(" ")[1];
+
             registrationService.registerRequest(description, resources, owner,
-                    facultyName, availableResources, deadline, availableFreePoolResources);
+                    facultyName, availableResources, deadline, availableFreePoolResources, token);
 
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
