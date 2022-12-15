@@ -10,7 +10,7 @@ class ResourcesTest {
     @Test
     public void createValidResources() throws Exception {
         Resources resources = new Resources(3, 2, 1);
-        assertThat(resources.getMem() == 3);
+        assertThat(resources.getMemory() == 3);
         assertThat(resources.getCpu() == 2);
         assertThat(resources.getGpu() == 1);
     }
