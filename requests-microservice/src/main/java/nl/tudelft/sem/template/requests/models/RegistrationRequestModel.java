@@ -1,7 +1,6 @@
 package nl.tudelft.sem.template.requests.models;
 
 import lombok.Data;
-import java.util.Calendar;
 
 @Data
 public class RegistrationRequestModel {

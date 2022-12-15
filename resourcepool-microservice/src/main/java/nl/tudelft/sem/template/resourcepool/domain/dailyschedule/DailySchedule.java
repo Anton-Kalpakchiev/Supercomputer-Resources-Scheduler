@@ -1,6 +1,9 @@
 package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;

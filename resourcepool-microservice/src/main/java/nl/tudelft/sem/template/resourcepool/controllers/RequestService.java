@@ -1,6 +1,7 @@
 package nl.tudelft.sem.template.resourcepool.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.models.ResourcesByIdModel;
 import org.springframework.http.HttpEntity;
@@ -9,18 +10,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
-
 @Component
 public class RequestService {
 
     /**
-     * Requests the resources from the Request MS
+     * Requests the resources from the Request MS.
      *
      * @param requestId name of the faculty
      * @param token the jwtToken
      * @return the available resources
-     * @throws IOException
+     * @throws IOException when the input is incorrectly formatted.
      */
     public Resources getRequestedResourcesById(long requestId, String token) throws IOException {
         RestTemplate restTemplate = new RestTemplate();

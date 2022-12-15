@@ -2,8 +2,12 @@ package nl.tudelft.sem.template.requests.domain;
 
 import java.util.Calendar;
 import java.util.Objects;
-import javax.persistence.*;
-
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -54,7 +58,11 @@ public class AppRequest extends HasEvents {
     @Getter
     @Setter
     @Column(name = "status", nullable = false)
-    private int status;//0 for pending, 1 for approved, 2 for rejected, 3 pending and waiting for the free RP to get resources at the 6h before end of day deadline
+    private int status;
+    //0 for pending,
+    // 1 for approved,
+    // 2 for rejected,
+    // 3 pending and waiting for the free RP to get resources at the 6h before end of day deadline
 
 
 
@@ -64,7 +72,8 @@ public class AppRequest extends HasEvents {
      * @param description The description of the request
      * @param resources The resources in the request
      */
-    public AppRequest(String description, Resources resources, String owner, String facultyName, Calendar deadline, int status) {
+    public AppRequest(String description, Resources resources, String owner, String facultyName,
+                      Calendar deadline, int status) {
         this.facultyName = facultyName;
         this.description = description;
         this.mem = resources.getMemory();

@@ -16,6 +16,7 @@ public class DailyScheduleId implements Serializable {
     public DailyScheduleId() {
 
     }
+
     /**
      * Instantiates a new DailyScheduleId.
      *

@@ -3,8 +3,6 @@ package nl.tudelft.sem.template.resourcepool.controllers;
 import nl.tudelft.sem.template.resourcepool.authentication.AuthManager;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
-import nl.tudelft.sem.template.resourcepool.models.AutomaticApprovalModel;
-import nl.tudelft.sem.template.resourcepool.models.DistributionModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
 import nl.tudelft.sem.template.resourcepool.models.ResourceByNameModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.Calendar;
 
 /**
  * Controller for endpoints related to the management of resource pools.
@@ -67,17 +63,21 @@ public class ResourcePoolController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Requests the available resources by the faculty name.
+     *
+     * @param request The resourcesByName model
+     * @return the available resources of the faculty
+     */
     @PostMapping("/resources")
     public ResponseEntity<Resources> getFacultyResourcesByName(@RequestBody ResourceByNameModel request) {
         String facultyName = request.getFacultyName();
-        Resources availableResources;
         try {
-            availableResources = rpManagementService.findResourcesByName(facultyName);
+            return ResponseEntity.ok(rpManagementService.findResourcesByName(facultyName));
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-        return ResponseEntity.ok(availableResources);
     }
 
     /**

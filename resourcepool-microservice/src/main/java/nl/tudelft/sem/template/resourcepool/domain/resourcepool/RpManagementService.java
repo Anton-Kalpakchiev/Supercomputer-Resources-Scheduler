@@ -38,17 +38,31 @@ public class RpManagementService {
         repo.save(faculty);
     }
 
-    public Resources findResourcesByName(String name) throws Exception{
-        if(!repo.existsByName(name)) {
+    /**
+     * Find the available resources given the faculty name.
+     *
+     * @param name the name of the faculty
+     * @return the available resources
+     * @throws Exception when something fails
+     */
+    public Resources findResourcesByName(String name) throws Exception {
+        if (!repo.existsByName(name)) {
             throw new Exception();
         }
         return repo.findByName(name).get().getAvailableResources();
     }
 
+    /**
+     * Updates the available resources.
+     *
+     * @param resourcePoolId the resource pool id
+     * @param requestId the request that is scheduled
+     * @throws Exception if something fails
+     */
     public void updateResources(long resourcePoolId, long requestId) throws Exception {
-//        if(!repo.existsById(resourcePoolId)) {
-//            throw new Exception();
-//        }
+        //        if(!repo.existsById(resourcePoolId)) {
+        //            throw new Exception();
+        //        }
 
         System.out.println("Didnt update resources but that's okay");
 

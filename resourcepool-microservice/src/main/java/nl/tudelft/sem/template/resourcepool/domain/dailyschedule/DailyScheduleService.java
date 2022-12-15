@@ -1,12 +1,9 @@
 package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 
-import nl.tudelft.sem.template.resourcepool.controllers.RequestService;
-import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpFacultyRepository;
-import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
-import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
-import org.springframework.stereotype.Service;
-
 import java.util.Calendar;
+import nl.tudelft.sem.template.resourcepool.controllers.RequestService;
+import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
+import org.springframework.stereotype.Service;
 
 /**
  * A DDD service for managing the resource pools.
@@ -22,15 +19,24 @@ public class DailyScheduleService {
      *
      * @param repo the ScheduleRepository repository
      */
-    public DailyScheduleService(ScheduleRepository repo, RpManagementService rpManagementService, RequestService requestService) {
+    public DailyScheduleService(ScheduleRepository repo, RpManagementService rpManagementService,
+                                RequestService requestService) {
         this.repo = repo;
         this.rpManagementService = rpManagementService;
         this.requestService = requestService;
     }
 
-    public void scheduleFP(Calendar day, long requestId, String token) throws Exception {
-        DailyScheduleId id = new DailyScheduleId( day, 1);
-        if(!repo.existsById(id)) {
+    /**
+     * Schedules a request in the free pool.
+     *
+     * @param day the day that the request has to be scheduled on
+     * @param requestId the id of the request
+     * @param token the jwtToken
+     * @throws Exception if something fails
+     */
+    public void scheduleFp(Calendar day, long requestId, String token) throws Exception {
+        DailyScheduleId id = new DailyScheduleId(day, 1);
+        if (!repo.existsById(id)) {
             DailySchedule toSave = new DailySchedule(day, 1);
             repo.save(toSave);
         }

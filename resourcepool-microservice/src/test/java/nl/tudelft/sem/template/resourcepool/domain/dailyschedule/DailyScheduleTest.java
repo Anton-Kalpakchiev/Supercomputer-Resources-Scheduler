@@ -88,8 +88,8 @@ class DailyScheduleTest {
         day.set(Calendar.DAY_OF_MONTH, 1);
         Calendar day2 = Calendar.getInstance();
         day2.set(Calendar.YEAR, 2022);
-        day2.set(Calendar.MONTH, 1);
-        day2.set(Calendar.DAY_OF_MONTH, 1);
+        day2.set(Calendar.MONTH, 2);
+        day2.set(Calendar.DAY_OF_MONTH, 2);
         DailySchedule ds1 = new DailySchedule(day, 1);
         DailySchedule ds2 = new DailySchedule(day2, 1);
         ds1.addRequest(50L);

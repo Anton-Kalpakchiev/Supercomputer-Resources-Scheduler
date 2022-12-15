@@ -1,30 +1,22 @@
 package nl.tudelft.sem.template.requests.controllers;
 
-import com.fasterxml.classmate.types.ResolvedInterfaceType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static nl.tudelft.sem.template.requests.authentication.JwtRequestFilter.AUTHORIZATION_HEADER;
+
+import java.util.Calendar;
+import javax.servlet.http.HttpServletRequest;
 import nl.tudelft.sem.template.requests.authentication.AuthManager;
-import nl.tudelft.sem.template.requests.domain.InvalidResourcesException;
 import nl.tudelft.sem.template.requests.domain.RegistrationService;
 import nl.tudelft.sem.template.requests.domain.ResourcePoolService;
 import nl.tudelft.sem.template.requests.domain.Resources;
 import nl.tudelft.sem.template.requests.models.RegistrationRequestModel;
-import nl.tudelft.sem.template.requests.models.ResourcesDto;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Calendar;
-
-import static nl.tudelft.sem.template.requests.authentication.JwtRequestFilter.AUTHORIZATION_HEADER;
 
 /**
  * Hello World requests controller.
@@ -46,7 +38,8 @@ public class RequestController {
      * @param registrationService The service that will allow requests to be saved to the database
      */
     @Autowired
-    public RequestController(AuthManager authManager, RegistrationService registrationService, ResourcePoolService resourcePoolService) {
+    public RequestController(AuthManager authManager, RegistrationService registrationService,
+                             ResourcePoolService resourcePoolService) {
         this.authManager = authManager;
         this.registrationService = registrationService;
         this.resourcePoolService = resourcePoolService;
@@ -60,29 +53,28 @@ public class RequestController {
      * @throws Exception When requests are made with insufficient gpu compared to cpu.
      */
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody RegistrationRequestModel request, HttpServletRequest requested) throws Exception {
+    public ResponseEntity register(@RequestBody RegistrationRequestModel request, HttpServletRequest requested)
+            throws Exception {
 
         try {
-            String description = request.getDescription();
-            Resources resources = new Resources(request.getCpu(), request.getGpu(), request.getMemory());
-            String owner = authManager.getNetId();
+
             String facultyName = request.getFacultyName();
 
             String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
             String token = authorizationHeader.split(" ")[1];
 
-            Resources availableResources = resourcePoolService.getFacultyResourcesByName(facultyName, token);
-            Resources availableResourcesFRP = resourcePoolService.getFacultyResourcesByName("Free pool", token);
-
             String deadlineStr = request.getDeadline();
-            String[] deadlineArr = deadlineStr.split("-");//convert to Calendar immediately
+            String[] deadlineArr = deadlineStr.split("-"); //convert to Calendar immediately
             Calendar deadline = Calendar.getInstance();
             deadline.set(Calendar.YEAR, Integer.parseInt(deadlineArr[2]));
-            deadline.set(Calendar.MONTH, Integer.parseInt(deadlineArr[1])-1);
+            deadline.set(Calendar.MONTH, Integer.parseInt(deadlineArr[1]) - 1);
             deadline.set(Calendar.DAY_OF_MONTH, Integer.parseInt(deadlineArr[0]));
-            Calendar day = deadline;
-            System.out.println("Truly crazy: " + day.get(Calendar.DAY_OF_MONTH) + "-" + day.get(Calendar.MONTH) + "-" + day.get(Calendar.YEAR));
-            registrationService.registerRequest(description, resources, owner, facultyName, availableResources, deadline, availableResourcesFRP, token);
+
+            Resources availableResources = resourcePoolService.getFacultyResourcesByName(facultyName, token);
+            Resources availableResourcesFrp = resourcePoolService.getFacultyResourcesByName("Free pool", token);
+            Resources resources = new Resources(request.getCpu(), request.getGpu(), request.getMemory());
+            registrationService.registerRequest(request.getDescription(), resources,
+                    authManager.getNetId(), facultyName, availableResources, deadline, availableResourcesFrp, token);
 
         } catch (Exception e) {
             e.printStackTrace();
