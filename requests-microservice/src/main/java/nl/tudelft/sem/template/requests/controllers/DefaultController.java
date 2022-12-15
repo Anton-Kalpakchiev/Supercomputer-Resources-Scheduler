@@ -1,6 +1,7 @@
 package nl.tudelft.sem.template.requests.controllers;
 
-import com.fasterxml.classmate.types.ResolvedInterfaceType;
+import java.io.IOException;
+import java.util.Calendar;
 import nl.tudelft.sem.template.requests.authentication.AuthManager;
 import nl.tudelft.sem.template.requests.domain.RegistrationService;
 import nl.tudelft.sem.template.requests.domain.Resources;
@@ -16,9 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.io.IOException;
-import java.util.Calendar;
 
 /**
  * Hello World requests controller.
@@ -58,20 +56,21 @@ public class DefaultController {
     public ResponseEntity register(@RequestBody RegistrationRequestModel request) throws Exception {
 
         try {
-            String description = request.getDescription();
-            Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
-            String owner = authManager.getNetId();
-            String facultyName = request.getFacultyName();
-            Resources availableResources = getFacultyResourcesByName(facultyName);
-            Resources availableResourcesFRP = getFacultyResourcesByName("Free pool");
+            final String description = request.getDescription();
+            final Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
+            final String owner = authManager.getNetId();
+            final String facultyName = request.getFacultyName();
+            final Resources availableResources = getFacultyResourcesByName(facultyName);
+            final Resources availableFreePoolResources = getFacultyResourcesByName("Free pool");
 
-            String deadlineStr = request.getDeadline();//convert to Calendar immediately
+            String deadlineStr = request.getDeadline(); //convert to Calendar immediately
             Calendar deadline = Calendar.getInstance();
             deadline.set(Calendar.YEAR, Integer.parseInt(deadlineStr.split("-")[2]));
             deadline.set(Calendar.MONTH, Integer.parseInt(deadlineStr.split("-")[1]));
             deadline.set(Calendar.DAY_OF_MONTH, Integer.parseInt(deadlineStr.split("-")[0]));
 
-            registrationService.registerRequest(description, resources, owner, facultyName, availableResources, deadline, availableResourcesFRP);
+            registrationService.registerRequest(description, resources, owner,
+                    facultyName, availableResources, deadline, availableFreePoolResources);
 
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -81,10 +80,13 @@ public class DefaultController {
     }
 
     /**
-     * Requests the available resources from the RP MS
-     * @param facultyName name of the faculty
+     * Requests the available resources from the RP MS.
+     *
+     * @param facultyName name of the faculty.
+     *
      * @return the available resources
-     * @throws IOException
+     *
+     * @throws IOException when post for object fails
      */
     public Resources getFacultyResourcesByName(String facultyName) throws IOException {
         RestTemplate restTemplate = new RestTemplate();
@@ -115,8 +117,7 @@ public class DefaultController {
 
         try {
             statusService.setStatus(id, status);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 

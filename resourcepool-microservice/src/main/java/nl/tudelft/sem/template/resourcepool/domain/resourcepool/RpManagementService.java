@@ -38,8 +38,10 @@ public class RpManagementService {
         repo.save(faculty);
     }
 
-    public Resources findResourcesByName(String name) throws Exception{
-        if(!repo.existsByName(name)) throw new Exception();
+    public Resources findResourcesByName(String name) throws Exception {
+        if (!repo.existsByName(name)) {
+            throw new Exception();
+        }
         return repo.findByName(name).get().getAvailableResources();
     }
 
