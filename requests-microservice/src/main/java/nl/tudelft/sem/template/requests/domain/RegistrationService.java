@@ -82,14 +82,14 @@ public class RegistrationService {
             //set for manual approval/rejection
             request.setStatus(0);
         }
-        requestRepository.save(request);
 
+        requestRepository.save(request);
         return request;
     }
 
     public AppRequest processRequestInPeriodOne(
             AppRequest request, Resources freePoolResources) throws InvalidResourcesException {
-        Calendar deadline = request.getDeadline();
+        Calendar deadline = Calendar.getInstance(); //request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
         boolean isForTomorrow = isForTomorrow(deadline);
 
