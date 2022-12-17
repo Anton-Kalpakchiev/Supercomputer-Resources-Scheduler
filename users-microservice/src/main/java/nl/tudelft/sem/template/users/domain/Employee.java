@@ -4,8 +4,10 @@ import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 @Entity
+@Table(name = "employee_accounts")
 public class Employee extends User {
 
     @Column(name = "parentFacultyId", nullable = true, unique = false)
