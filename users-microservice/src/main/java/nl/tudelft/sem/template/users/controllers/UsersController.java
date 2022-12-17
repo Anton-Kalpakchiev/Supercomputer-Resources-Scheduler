@@ -1,11 +1,13 @@
 package nl.tudelft.sem.template.users.controllers;
 
 import nl.tudelft.sem.template.users.authentication.AuthManager;
-import nl.tudelft.sem.template.users.domain.AuthorizationService;
+import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
+import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
+import nl.tudelft.sem.template.users.domain.AccountType;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
+import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.Sysadmin;
-import nl.tudelft.sem.template.users.domain.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.User;
 import nl.tudelft.sem.template.users.models.CheckAccessResponseModel;
 import nl.tudelft.sem.template.users.models.PromotionRequestModel;
@@ -19,41 +21,33 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Controller for the users' microservice.
+ * Controller for the user microservice.
  */
 @RestController
-public class DefaultController {
+public class UsersController {
 
-    private final transient AuthManager authManager;
+    private final transient AuthManager authentication;
+    private final transient AuthorizationManager authorization;
+
+    private final transient PromotionAndEmploymentService promotionAndEmploymentService;
     private final transient RegistrationService registrationService;
-    private final transient AuthorizationService authorizationService;
 
     /**
-     * Constructor for the controller.
+     * Constructor for the user controller.
      *
-     * @param authManager injected authentication manager.
-     * @param registrationService injected registration service.
-     * @param authorizationService injected authorization service.
+     * @param authentication the injected authentication manager.
+     * @param authorization the injected authorization manager.
+     * @param promotionAndEmploymentService the injected promotion and employment service.
+     * @param registrationService the injected registration service.
      */
     @Autowired
-    public DefaultController(AuthManager authManager,
-                             RegistrationService registrationService,
-                             AuthorizationService authorizationService) {
-        this.authManager = authManager;
+    public UsersController(AuthManager authentication, AuthorizationManager authorization,
+                           PromotionAndEmploymentService promotionAndEmploymentService,
+                           RegistrationService registrationService) {
+        this.authentication = authentication;
+        this.authorization = authorization;
+        this.promotionAndEmploymentService = promotionAndEmploymentService;
         this.registrationService = registrationService;
-        this.authorizationService = authorizationService;
-    }
-
-
-    /**
-     * Gets users by id.
-     *
-     * @return the users found in the database with the given id
-     */
-    @GetMapping("/hello")
-    public ResponseEntity<String> helloWorld() {
-        return ResponseEntity.ok("Hello " + authManager.getNetId());
-
     }
 
     /**
@@ -64,11 +58,11 @@ public class DefaultController {
      */
     @GetMapping("/newUser")
     public ResponseEntity<String> newUserCreated() {
-        User added = registrationService.registerUser(authManager.getNetId());
+        User added = registrationService.registerUser(authentication.getNetId());
         if (added.getClass().equals(Sysadmin.class)) {
-            return ResponseEntity.ok("User " + authManager.getNetId() + " was added as a Sysadmin.");
+            return ResponseEntity.ok("User (" + authentication.getNetId() + ") was added as a Sysadmin.");
         }
-        return ResponseEntity.ok("User " + authManager.getNetId() + " was added as an Employee.");
+        return ResponseEntity.ok("User (" + authentication.getNetId() + ") was added as an Employee.");
     }
 
     /**
@@ -83,14 +77,12 @@ public class DefaultController {
             throws Exception {
         try {
             String toBePromoted = request.getNetId();
-            String promoter = authManager.getNetId();
-            authorizationService.promoteEmployeeToSysadmin(promoter, toBePromoted);
+            String promoter = authentication.getNetId();
+            promotionAndEmploymentService.promoteEmployeeToSysadmin(promoter, toBePromoted);
             return ResponseEntity.ok("User (" + toBePromoted + ") was promoted to a Sysadmin");
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            if (e.getClass().equals(UnauthorizedException.class)) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-            }
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
@@ -104,9 +96,9 @@ public class DefaultController {
     @GetMapping("/checkAccess")
     public ResponseEntity<CheckAccessResponseModel> checkUserAccess() throws Exception {
         try {
-            String netId = authManager.getNetId();
-            String result = authorizationService.checkAccess(netId);
-            return ResponseEntity.ok(new CheckAccessResponseModel(result));
+            String netId = authentication.getNetId();
+            AccountType result = authorization.checkAccess(netId);
+            return ResponseEntity.ok(new CheckAccessResponseModel(result.getName()));
         } catch (NoSuchUserException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }

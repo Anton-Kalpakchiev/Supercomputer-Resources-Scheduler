@@ -45,4 +45,56 @@ public class RegistrationService {
         }
     }
 
+    /**
+     * Adds a new sysadmin account in the respective repository.
+     *
+     * @param netId the netId of the user
+     * @return the newly created Sysadmin.
+     */
+    public Sysadmin addSysadmin(String netId) {
+        Sysadmin newSysadmin = new Sysadmin(netId);
+        sysadminRepository.save(newSysadmin);
+        return newSysadmin;
+    }
+
+    /**
+     * Adds a new employee account in the respective repository.
+     *
+     * @param netId the netId of the user
+     * @return the newly created Employee.
+     */
+    public Employee addEmployee(String netId) {
+        Employee newEmployee = new Employee(netId);
+        employeeRepository.save(newEmployee);
+        return newEmployee;
+    }
+
+    /**
+     * Adds a new faculty account in the respective repository.
+     *
+     * @param netId the netId of the user
+     * @param assignedFaculty the assigned faculty of the user.
+     * @return the newly created faculty account.
+     */
+    public FacultyAccount addFacultyAccount(String netId, int assignedFaculty) {
+        FacultyAccount newFacultyAccount = new FacultyAccount(netId, assignedFaculty);
+        facultyAccountRepository.save(newFacultyAccount);
+        return newFacultyAccount;
+    }
+
+    /**
+     * Drops an employee from the table with a given netId.
+     *
+     * @param netId the netId of the employee
+     * @return whether the employee was dropped
+     */
+    public boolean dropEmployee(String netId) {
+        boolean isFound = employeeRepository.existsByNetId(netId);
+        if (!isFound) {
+            return false;
+        } else {
+            employeeRepository.deleteByNetId(netId);
+            return true;
+        }
+    }
 }
