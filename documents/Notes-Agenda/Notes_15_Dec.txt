@@ -1,0 +1,18 @@
+ - everyone tells what they did this week
+ - talk about UML diagram - seperate into logical components and the lollipoop notation
+ should be used between those specific components. The DB should be a component as well.
+ - about pipelines failing, everything that is trying to get merged to main should have
+ a passing pipeline.
+ - Vic does a demonstration of the added Resource Pool functionality, shows a few example calls
+ - Ivo does a demonstration of how authorization works and how different user types interact, shows a few example calls
+ - put all agendas, notes and other relevant documents on gitlab, if we have not done that yet
+ - we talk about design patterns
+ 	- implement 2, doing more would not result in more points
+	- our ideas are good about the Facade and the Chain of Responsibility
+ - should make sure any MS except User should be able to check if it got a request
+from the User MS or from a malitious user(Natalia approved our idea of using a password for this)
+
+ - if meeting next week, notify Natalia by Sunday
+ - check rubric on Brightspace - make sure we get all the points right
+ - make sure we do testing right, it is very important
+ - tomorrow is the deadline for assignment 1
