@@ -83,6 +83,24 @@ public class ResourcePoolController {
     }
 
     /**
+     * Gets the resources of the faculty by name.
+     *
+     * @param facultyName the faculty name
+     * @return the response
+     */
+    @PostMapping("/resources")
+    public ResponseEntity<Resources> getFacultyResourcesByName(String facultyName) {
+        Resources availableResources;
+        try {
+            availableResources = rpManagementService.findResourcesByName(facultyName);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+        return ResponseEntity.ok(availableResources);
+    }
+
+
+    /**
      * Returns a string-representation of all the resource pools in the database.
      *
      * @return ResponseEntity containing a String with all the resource pools in the database

@@ -8,4 +8,6 @@ public class RegistrationRequestModel {
     private int mem;
     private int cpu;
     private int gpu;
+    private String facultyName;
+    private String deadline;
 }

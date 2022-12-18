@@ -39,6 +39,20 @@ public class RpManagementService {
     }
 
     /**
+     * Finds the resources of a faculty by faculty name.
+     *
+     * @param name the faculty name
+     * @return the resources of the faculty
+     * @throws Exception when the faculty could not be found
+     */
+    public Resources findResourcesByName(String name) throws Exception {
+        if (!repo.existsByName(name)) {
+            throw new Exception();
+        }
+        return repo.findByName(name).get().getAvailableResources();
+    }
+
+    /**
      * Returns a string with all resource pools in the database.
      *
      * @return String with all resource pools in the database
