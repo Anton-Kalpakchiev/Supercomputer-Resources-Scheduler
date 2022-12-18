@@ -6,3 +6,5 @@ include 'nodes-microservice'
 include 'requests-microservice'
 include 'users-microservice'
 include 'resourcepool-microservice'
+include 'common'
+

@@ -11,7 +11,7 @@ import javax.persistence.Table;
 public class Employee extends User {
 
     @Column(name = "parentFacultyId", nullable = true, unique = false)
-    private int parentFacultyId;
+    private long parentFacultyId;
 
     /**
      * Constructor for the regular employee.
@@ -19,7 +19,7 @@ public class Employee extends User {
      * @param netId the netId of the employee
      * @param parentFacultyId the parent faculty this employee works in.
      */
-    public Employee(String netId, int parentFacultyId) {
+    public Employee(String netId, long parentFacultyId) {
         super(netId);
         this.parentFacultyId = parentFacultyId;
     }
@@ -47,7 +47,7 @@ public class Employee extends User {
      *
      * @return the parent faculties.
      */
-    public int getParentFacultyId() {
+    public long getParentFacultyId() {
         return parentFacultyId;
     }
 
@@ -56,7 +56,7 @@ public class Employee extends User {
      *
      * @param parentFacultyId the new parent faculty id.
      */
-    public void setParentFacultyId(int parentFacultyId) {
+    public void setParentFacultyId(long parentFacultyId) {
         this.parentFacultyId = parentFacultyId;
     }
 
