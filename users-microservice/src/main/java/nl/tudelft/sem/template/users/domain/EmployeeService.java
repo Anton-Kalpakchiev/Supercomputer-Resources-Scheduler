@@ -1,9 +1,14 @@
 package nl.tudelft.sem.template.users.domain;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
-import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
-import nl.tudelft.sem.template.users.models.ResourceDto;
+import nl.tudelft.sem.template.users.models.ResourcesDto;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 @AllArgsConstructor
@@ -31,10 +36,20 @@ public class EmployeeService {
      * @return the Resources for tomorrow
      * @throws NoSuchUserException thrown if the employee cannot be found.
      */
-    public ResourceDto getResourcesForTomorrow(String netId) throws NoSuchUserException {
+    public ResourcesDto getResourcesForTomorrow(String netId, String token) throws NoSuchUserException, JsonProcessingException {
         long facultyId = this.getParentFacultyId(netId);
-        //TODO: take implementation from Sophie's branch upon completion
-        return new ResourceDto(100, 100, 100);
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/json");
+        headers.add("Authorization", "Bearer " + token);
+
+        String requestBody = "{\"resourcePoolId\": \"" + facultyId + "\"}";;
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity("http://localhost:8085/availableFacultyResources", request, String.class);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(response.getBody(), ResourcesDto.class);
     }
 
 }

@@ -5,7 +5,7 @@ import lombok.Data;
 
 @AllArgsConstructor
 @Data
-public class ResourceDto {
+public class ResourcesDto {
     private final transient int cpu;
     private final transient int gpu;
     private final transient int memory;

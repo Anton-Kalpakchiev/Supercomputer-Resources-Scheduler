@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ScheduleResponse {
     private Calendar day;
-    private ResourceDto availableResources;
+    private ResourcesDto availableResources;
 }
 

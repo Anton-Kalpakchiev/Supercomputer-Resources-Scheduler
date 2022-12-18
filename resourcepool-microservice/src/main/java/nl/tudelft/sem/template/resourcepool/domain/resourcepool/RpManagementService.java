@@ -1,5 +1,6 @@
 package nl.tudelft.sem.template.resourcepool.domain.resourcepool;
 
+import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import org.springframework.stereotype.Service;
 
 /**
@@ -44,5 +45,21 @@ public class RpManagementService {
      */
     public String printDatabase() {
         return repo.findAll().toString();
+    }
+
+    /**
+     * Retrieves the available resources of a resource pool.
+     *
+     * @param resourcePoolId the id of the resource pool
+     * @return the available resources
+     * @throws Exception thrown when resources were not found
+     */
+    public Resources getAvailableResourcesById(long resourcePoolId) throws Exception {
+        if (repo.findById(resourcePoolId).isPresent()) {
+            return repo.findById(resourcePoolId).get().getAvailableResources();
+        } else {
+            // Proper exception implemented in different brancehs
+            throw new Exception("Resource pool note found");
+        }
     }
 }
