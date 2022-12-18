@@ -1,9 +1,12 @@
 package nl.tudelft.sem.template.users.controllers;
 
+import lombok.AllArgsConstructor;
 import nl.tudelft.sem.template.users.authentication.AuthManager;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
+import nl.tudelft.sem.template.users.domain.EmployeeService;
+import nl.tudelft.sem.template.users.domain.FacultyAccountService;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
@@ -11,44 +14,32 @@ import nl.tudelft.sem.template.users.domain.Sysadmin;
 import nl.tudelft.sem.template.users.domain.User;
 import nl.tudelft.sem.template.users.models.CheckAccessResponseModel;
 import nl.tudelft.sem.template.users.models.PromotionRequestModel;
-import org.springframework.beans.factory.annotation.Autowired;
+import nl.tudelft.sem.template.users.models.RequestScheduleModel;
+import nl.tudelft.sem.template.users.models.ScheduleResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Controller for the user microservice.
  */
 @RestController
+@AllArgsConstructor
 public class UsersController {
 
     private final transient AuthManager authentication;
     private final transient AuthorizationManager authorization;
-
     private final transient PromotionAndEmploymentService promotionAndEmploymentService;
     private final transient RegistrationService registrationService;
 
-    /**
-     * Constructor for the user controller.
-     *
-     * @param authentication the injected authentication manager.
-     * @param authorization the injected authorization manager.
-     * @param promotionAndEmploymentService the injected promotion and employment service.
-     * @param registrationService the injected registration service.
-     */
-    @Autowired
-    public UsersController(AuthManager authentication, AuthorizationManager authorization,
-                           PromotionAndEmploymentService promotionAndEmploymentService,
-                           RegistrationService registrationService) {
-        this.authentication = authentication;
-        this.authorization = authorization;
-        this.promotionAndEmploymentService = promotionAndEmploymentService;
-        this.registrationService = registrationService;
-    }
+    private final transient EmployeeService employeeService;
+
+    private final transient  FacultyAccountService facultyAccountService;
 
     /**
      * Adds a new user as an admin if their netId is "admin", else
