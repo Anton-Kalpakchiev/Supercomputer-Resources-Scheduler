@@ -36,7 +36,8 @@ public class EmployeeService {
      * @return the Resources for tomorrow
      * @throws NoSuchUserException thrown if the employee cannot be found.
      */
-    public ResourcesDto getResourcesForTomorrow(String netId, String token) throws NoSuchUserException, JsonProcessingException {
+    public ResourcesDto getResourcesForTomorrow(String netId, String token) throws NoSuchUserException,
+                                                                                JsonProcessingException {
         long facultyId = this.getParentFacultyId(netId);
 
         RestTemplate restTemplate = new RestTemplate();
@@ -44,7 +45,7 @@ public class EmployeeService {
         headers.add("Content-Type", "application/json");
         headers.add("Authorization", "Bearer " + token);
 
-        String requestBody = "{\"resourcePoolId\": \"" + facultyId + "\"}";;
+        String requestBody = "{\"resourcePoolId\": \"" + facultyId + "\"}";
         HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity("http://localhost:8085/availableFacultyResources", request, String.class);

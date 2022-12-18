@@ -54,7 +54,8 @@ public class ResourcePoolController {
      * @return the available resources of that faculty
      */
     @PostMapping("/availableFacultyResources")
-    public ResponseEntity<Resources> getAvailableFacultyResources(@RequestBody RequestTomorrowResourcesRequestModel request) {
+    public ResponseEntity<Resources> getAvailableFacultyResources(@RequestBody
+                                                                      RequestTomorrowResourcesRequestModel request) {
         long facultyId = request.getResourcePoolId();
         try {
             return ResponseEntity.ok(rpManagementService.getAvailableResourcesById(facultyId));
