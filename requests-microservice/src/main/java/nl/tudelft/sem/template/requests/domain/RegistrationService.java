@@ -87,6 +87,14 @@ public class RegistrationService {
         return request;
     }
 
+    /**
+     * Processes a request in period one.
+     *
+     * @param request the given request
+     * @param freePoolResources the free resources
+     * @return the AppRequest returned after processing
+     * @throws InvalidResourcesException thrown when resources are invalid
+     */
     public AppRequest processRequestInPeriodOne(
             AppRequest request, Resources freePoolResources) throws InvalidResourcesException {
         Calendar deadline = Calendar.getInstance(); //request.getDeadline();
@@ -108,13 +116,16 @@ public class RegistrationService {
 
         //automatic rejection
         if ((!freePoolHasEnoughResources && isForTomorrow)) {
+            System.out.println("To be implemented!");
             //auto reject
             //find request in Repo, update its status
         } else if (freePoolHasEnoughResources) {
+            System.out.println("To be implemented!");
             //auto approve for tomorrow
             //find request in Repo, update its status
             //update RP/Schedule MS os that it can update the schedule for the corresponding faculty for tomorrow
         } else {
+            System.out.println("To be implemented!");
             //set for manual approval
             //find request in Repo, update its status
         }
@@ -122,6 +133,12 @@ public class RegistrationService {
         return request;
     }
 
+    /**
+     * Check whether the deadline is for tomorrow or not.
+     *
+     * @param deadline the deadline to compare to
+     * @return boolean whether the deadline is tomorrow not
+     */
     public boolean isForTomorrow(Calendar deadline) {
         Calendar endOfTomorrow = Calendar.getInstance();
         endOfTomorrow.set(Calendar.HOUR_OF_DAY, 23);

@@ -63,6 +63,12 @@ public class ResourcePoolController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Gets the resources of the faculty by name.
+     *
+     * @param facultyName the faculty name
+     * @return the response
+     */
     @PostMapping("/resources")
     public ResponseEntity<Resources> getFacultyResourcesByName(String facultyName) {
         Resources availableResources;
