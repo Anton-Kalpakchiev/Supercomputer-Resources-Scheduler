@@ -9,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.NoArgsConstructor;
+import nl.tudelft.sem.template.resourcepool.domain.HasEvents;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.domain.resources.ResourcesAttributeConverter;
 
@@ -18,7 +19,7 @@ import nl.tudelft.sem.template.resourcepool.domain.resources.ResourcesAttributeC
 @Entity
 @Table(name = "RpFaculty")//contains both ResourcePools(which we should have only 1, the free resource pool) and Faculties
 @NoArgsConstructor
-public class ResourcePool {
+public class ResourcePool extends HasEvents {
 
 
     @Id
@@ -37,15 +38,16 @@ public class ResourcePool {
     @Convert(converter = ResourcesAttributeConverter.class)
     private Resources availableResources;
 
+    @Column(name = "managerNetId")//this is just here so the repo knows the column exists
+    private long managerNetId;
+
     /**
      * Constructs a new ResourcePool with the specified id and name,
      * the other fields will be set to empty recourses.
      *
-     * @param id   the id of the resource pool
      * @param name the name of the resource pool
      */
-    public ResourcePool(long id, String name) {
-        this.id = id;
+    public ResourcePool(String name) {
         this.name = name;
         this.baseResources = new Resources(0, 0, 0);
         this.nodeResources = new Resources(0, 0, 0);
@@ -125,7 +127,7 @@ public class ResourcePool {
     }
 
     /**
-     * Equality is only based on the identifier.
+     * Equality is only based on the name.
      *
      * @return whether the resource pools are equal
      */
@@ -138,7 +140,7 @@ public class ResourcePool {
             return false;
         }
         ResourcePool that = (ResourcePool) o;
-        return id == that.id;
+        return name.equals(that.name);
     }
 
     /**

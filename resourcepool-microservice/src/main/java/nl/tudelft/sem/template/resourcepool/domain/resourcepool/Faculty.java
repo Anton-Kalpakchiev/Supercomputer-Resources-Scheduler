@@ -5,7 +5,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import lombok.NoArgsConstructor;
-import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 
 
 /**
@@ -16,21 +15,21 @@ import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 @NoArgsConstructor
 public class Faculty extends ResourcePool {
 
-    @Column(name = "managerId")//if null, it's a RP, not a faculty
-    private long managerId;
+    @Column(name = "managerNetId")//if null, it's a RP, not a faculty
+    private long managerNetId;
 
 
     /**
      * Instantiates a new Faculty with the specified id and name and faculty manager id,
      * the other fields will be set to empty recourses.
      *
-     * @param id        the id
      * @param name      the name
-     * @param managerId the manager id
+     * @param managerNetId the manager id
      */
-    public Faculty(long id, String name, long managerId) {
-        super(id, name);
-        this.managerId = managerId;
+    public Faculty(String name, long managerNetId) {
+        super(name);
+        this.managerNetId = managerNetId;
+        this.recordThat(new FacultyWasCreatedEvent(name));
     }
 
     /**
@@ -38,8 +37,8 @@ public class Faculty extends ResourcePool {
      *
      * @return the manager id
      */
-    public long getManagerId() {
-        return managerId;
+    public long getManagerNetId() {
+        return managerNetId;
     }
 
     /**
@@ -59,7 +58,7 @@ public class Faculty extends ResourcePool {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), managerId);
+        return Objects.hash(super.hashCode(), managerNetId);
     }
 
     /**
@@ -75,7 +74,7 @@ public class Faculty extends ResourcePool {
                 + ", baseResources=" + super.getBaseResources()
                 + ", nodeResources=" + super.getNodeResources()
                 + ", availableResources=" + super.getAvailableResources()
-                + ", managerId=" + managerId
+                + ", managerNetId=" + managerNetId
                 + '}';
     }
 }

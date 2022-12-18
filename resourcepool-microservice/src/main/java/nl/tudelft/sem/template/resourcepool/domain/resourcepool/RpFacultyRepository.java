@@ -11,4 +11,18 @@ public interface RpFacultyRepository  extends JpaRepository<ResourcePool, Long> 
      */
     Optional<ResourcePool> findById(long id);
 
+    /**
+     * Find RP/Faculty by name.
+     */
+    Optional<ResourcePool> findByName(String name);
+
+    /**
+     * Checks if a RP/Faculty exists by name.
+     */
+    boolean existsByName(String name);
+
+    /**
+     * Checks if a RP/Faculty exists by managerNetId.
+     */
+    boolean existsByManagerNetId(long managerNetId);
 }
