@@ -83,7 +83,7 @@ public class RequestsTests {
 
         RegistrationRequestModel model = new RegistrationRequestModel();
         model.setDescription(description);
-        model.setMem(-1);
+        model.setMemory(-1);
         model.setCpu(-2);
         model.setGpu(-3);
 
@@ -109,7 +109,7 @@ public class RequestsTests {
 
         RegistrationRequestModel model = new RegistrationRequestModel();
         model.setDescription(description);
-        model.setMem(60);
+        model.setMemory(60);
         model.setCpu(99);
         model.setGpu(100);
 

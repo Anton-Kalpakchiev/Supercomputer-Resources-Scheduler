@@ -53,6 +53,22 @@ public class RpManagementService {
     }
 
     /**
+     * Updates the available resources.
+     *
+     * @param resourcePoolId the resource pool id
+     * @param requestId the request that is scheduled
+     * @throws Exception if something fails
+     */
+    public void updateResources(long resourcePoolId, long requestId) throws Exception {
+        //        if(!repo.existsById(resourcePoolId)) {
+        //            throw new Exception();
+        //        }
+
+        System.out.println("Didnt update resources but that's okay");
+
+    }
+
+    /**
      * Returns a string with all resource pools in the database.
      *
      * @return String with all resource pools in the database
