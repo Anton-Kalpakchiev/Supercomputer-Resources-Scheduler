@@ -51,42 +51,42 @@ public class RequestsTests {
     @MockBean
     private transient RequestController mockRequestController;
 
-        @Test
-        public void register_withValidData_worksCorrectly() throws Exception {
-            // Arrange
-            final String description = "give me resources";
-            final Resources resources = new Resources(30, 50, 50);
-            final String facultyName = "CSE";
-            final String deadline = "01-01-2023";
-            final Resources facultyResources = new Resources(100, 100, 100);
+    @Test
+    public void register_withValidData_worksCorrectly() throws Exception {
+        // Arrange
+        final String description = "give me resources";
+        final Resources resources = new Resources(30, 50, 50);
+        final String facultyName = "CSE";
+        final String deadline = "01-01-2023";
+        final Resources facultyResources = new Resources(100, 100, 100);
 
-            when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-            when(mockRequestController.getFacultyResourcesByName(anyString())).thenReturn(facultyResources);
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(mockRequestController.getFacultyResourcesByName(anyString())).thenReturn(facultyResources);
 
-            RegistrationRequestModel model = new RegistrationRequestModel();
-            model.setDescription(description);
-            model.setMem(resources.getMem());
-            model.setCpu(resources.getCpu());
-            model.setGpu(resources.getGpu());
-            model.setFacultyName(facultyName);
-            model.setDeadline(deadline);
+        RegistrationRequestModel model = new RegistrationRequestModel();
+        model.setDescription(description);
+        model.setMem(resources.getMem());
+        model.setCpu(resources.getCpu());
+        model.setGpu(resources.getGpu());
+        model.setFacultyName(facultyName);
+        model.setDeadline(deadline);
 
-            // Act
-            ResultActions resultActions = mockMvc.perform(post("/register")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", "Bearer MockedToken")
-                    .content(JsonUtil.serialize(model)));
+        // Act
+        ResultActions resultActions = mockMvc.perform(post("/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer MockedToken")
+                .content(JsonUtil.serialize(model)));
 
-            // Assert
-            resultActions.andExpect(status().isOk());
+        // Assert
+        resultActions.andExpect(status().isOk());
 
-            AppRequest savedRequest = requestRepository.findById(-1L).orElseThrow();
+        AppRequest savedRequest = requestRepository.findById(-1L).orElseThrow();
 
-            assertThat(savedRequest.getDescription()).isEqualTo(description);
-            assertThat(savedRequest.getMem()).isEqualTo(resources.getMem());
-            assertThat(savedRequest.getCpu()).isEqualTo(resources.getCpu());
-            assertThat(savedRequest.getGpu()).isEqualTo(resources.getGpu());
-           }
+        assertThat(savedRequest.getDescription()).isEqualTo(description);
+        assertThat(savedRequest.getMem()).isEqualTo(resources.getMem());
+        assertThat(savedRequest.getCpu()).isEqualTo(resources.getCpu());
+        assertThat(savedRequest.getGpu()).isEqualTo(resources.getGpu());
+    }
 
     @Test
     public void register_withNegativeResources_throwsException() throws Exception {

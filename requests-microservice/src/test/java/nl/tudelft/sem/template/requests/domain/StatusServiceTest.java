@@ -29,8 +29,8 @@ class StatusServiceTest {
     @Autowired
     private transient RequestRepository requestRepository;
 
-    @BeforeEach
-    void setup() {
+    @Test
+    public void getStatusOnExistingRequestTest() throws Exception {
         final String description = "give me resources";
         final Resources resources;
 
@@ -45,37 +45,82 @@ class StatusServiceTest {
         final Calendar deadline = Calendar.getInstance();
 
         AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 0);
-        Optional<AppRequest> res = Optional.of(appRequest);
-        requestRepository = mock(RequestRepository.class);
-        when(requestRepository.findById(0L)).thenReturn(res);
-    }
+        AppRequest savedRequest = requestRepository.save(appRequest);
+        long requestId = savedRequest.getId();
 
-    // TODO: Fix Test
-    /*@Test
-    public void getStatusOnExistingRequestTest() throws Exception {
-        int status = statusService.getStatus(0L);
+        int status = statusService.getStatus(requestId);
         assertThat(status == 0);
-    }*/
+    }
 
     @Test
     public void getStatusOnNonExistentRequestTest() throws Exception {
+        final String description = "give me resources";
+        final Resources resources;
+
+        try {
+            resources = new Resources(30, 50, 50);
+        } catch (InvalidResourcesException e) {
+            throw new RuntimeException(e);
+        }
+
+        final String owner = "The Boss";
+        final String facultyName = "CSE";
+        final Calendar deadline = Calendar.getInstance();
+
+        AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 0);
+        AppRequest savedRequest = requestRepository.save(appRequest);
+        long requestId = savedRequest.getId();
+
         assertThrows(NoSuchElementException.class, () -> {
-            int status = statusService.getStatus(1L);
+            int status = statusService.getStatus(requestId + 1);
         });
     }
 
-    // TODO: Fix Test
-    /* @Test
+    @Test
     public void setStatusOnExistingRequestTest() throws Exception {
-        statusService.setStatus(0L, 3);
-        int status = statusService.getStatus(0L);
+        final String description = "give me resources";
+        final Resources resources;
+
+        try {
+            resources = new Resources(30, 50, 50);
+        } catch (InvalidResourcesException e) {
+            throw new RuntimeException(e);
+        }
+
+        final String owner = "The Boss";
+        final String facultyName = "CSE";
+        final Calendar deadline = Calendar.getInstance();
+
+        AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 0);
+        AppRequest savedRequest = requestRepository.save(appRequest);
+        long requestId = savedRequest.getId();
+
+        statusService.setStatus(requestId, 3);
+        int status = statusService.getStatus(requestId);
         assertThat(status == 3);
     }
-*/
+
     @Test
     public void setStatusOnNonExistentRequestTest() throws Exception {
+        final String description = "give me resources";
+        final Resources resources;
+
+        try {
+            resources = new Resources(30, 50, 50);
+        } catch (InvalidResourcesException e) {
+            throw new RuntimeException(e);
+        }
+
+        final String owner = "The Boss";
+        final String facultyName = "CSE";
+        final Calendar deadline = Calendar.getInstance();
+
+        AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 0);
+        AppRequest savedRequest = requestRepository.save(appRequest);
+        long requestId = savedRequest.getId();
+
         assertThrows(NoSuchElementException.class, () -> {
-            statusService.setStatus(1L, 3);
+            statusService.setStatus(requestId + 1, 3);
         });
     }
 }
