@@ -3,6 +3,8 @@ package nl.tudelft.sem.template.resourcepool.domain.resourcepool;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 /**
  * A DDD service for managing the resource pools.
  */
@@ -52,21 +54,13 @@ public class RpManagementService {
         return repo.findByName(name).get().getAvailableResources();
     }
 
-    /**
-     * Updates the available resources.
-     *
-     * @param resourcePoolId the resource pool id
-     * @param requestId the request that is scheduled
-     * @throws Exception if something fails
-     */
-    public void updateResources(long resourcePoolId, long requestId) throws Exception {
-        //        if(!repo.existsById(resourcePoolId)) {
-        //            throw new Exception();
-        //        }
-
-        System.out.println("Didnt update resources but that's okay");
-
+    public Optional<ResourcePool> findById(long resourcePoolId) throws Exception {
+        if(!repo.existsById(resourcePoolId)) {
+            throw new Exception();
+        }
+        return repo.findById(resourcePoolId);
     }
+
 
     /**
      * Returns a string with all resource pools in the database.
