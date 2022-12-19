@@ -5,9 +5,11 @@ import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.models.FacultyCreationRequestModel;
 import nl.tudelft.sem.template.users.models.FacultyCreationResponseModel;
 import nl.tudelft.sem.template.users.models.TemporaryRequestModel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -34,15 +36,16 @@ public class PromotionAndEmploymentService {
      */
     public PromotionAndEmploymentService(SysadminRepository sysadminRepository,
                                          EmployeeRepository employeeRepository,
-                                         FacultyAccountRepository facultyAccountRepository) {
+                                         FacultyAccountRepository facultyAccountRepository,
+                                         RegistrationService registrationService,
+                                         AuthorizationManager authorization,
+                                         RestTemplate restTemplate) {
         this.sysadminRepository = sysadminRepository;
         this.employeeRepository = employeeRepository;
         this.facultyAccountRepository = facultyAccountRepository;
-        registrationService = new RegistrationService(sysadminRepository,
-                employeeRepository, facultyAccountRepository);
-        authorization = new AuthorizationManager(sysadminRepository,
-                employeeRepository, facultyAccountRepository);
-        restTemplate = new RestTemplate();
+        this.registrationService = registrationService;
+        this.authorization = authorization;
+        this.restTemplate = restTemplate;
     }
 
     /**
@@ -73,9 +76,10 @@ public class PromotionAndEmploymentService {
      * @param managerNetId the netid of the manager of the request.
      * @param facultyName the new faculty name.
      * @param token the token of the request.
+     * @return the id of the new faculty
      * @throws Exception if a user is unauthorized or does not exist
      */
-    public void createFaculty(String authorNetId, String managerNetId, String facultyName, String token) throws Exception {
+    public long createFaculty(String authorNetId, String managerNetId, String facultyName, String token) throws Exception {
         if (authorization.isOfType(authorNetId, AccountType.SYSADMIN)) {
             if (authorization.isOfType(managerNetId, AccountType.EMPLOYEE)) {
                 String url = "http://localhost:8085/createFaculty";
@@ -87,13 +91,17 @@ public class PromotionAndEmploymentService {
                         //TODO: change to string
                         new TemporaryRequestModel(facultyName, managerNetId.hashCode()), headers);
 
-                FacultyCreationResponseModel result = restTemplate.postForObject(url, entity,
+                ResponseEntity<FacultyCreationResponseModel> result = restTemplate.postForEntity(url, entity,
                         FacultyCreationResponseModel.class);
 
-                System.out.println(result.getFacultyId());
-                registrationService.dropEmployee(managerNetId);
-                registrationService.addFacultyAccount(managerNetId, (int) result.getFacultyId());
+                if (result.getStatusCode().is2xxSuccessful()) {
+                    registrationService.dropEmployee(managerNetId);
+                    registrationService.addFacultyAccount(managerNetId, (int) result.getBody().getFacultyId());
 
+                    return result.getBody().getFacultyId();
+                } else {
+                    throw new Exception(result.getStatusCode().getReasonPhrase());
+                }
             } else {
                 throw new NoSuchUserException("No such employee: " + managerNetId);
             }

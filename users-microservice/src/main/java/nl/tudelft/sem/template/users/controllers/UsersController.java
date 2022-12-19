@@ -120,8 +120,11 @@ public class UsersController {
         String token = JwtRequestFilter.token;
         System.out.println(token);
         try {
-            promotionAndEmploymentService.createFaculty(authorNetId, managerNetId, facultyName, token);
-            return ResponseEntity.ok("Faculty (" + facultyName + "), managed by (" + managerNetId + ") was created");
+            long facId = promotionAndEmploymentService.createFaculty(authorNetId, managerNetId, facultyName, token);
+            System.out.println("Faculty \"" + facultyName + "\" with id " + facId + " was created. "
+                    + "Managed by: (" + managerNetId + ").");
+            return ResponseEntity.ok("Faculty \"" + facultyName
+                    + "\", managed by (" + managerNetId + "), was created.");
         } catch (UnauthorizedException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (Exception e) {
