@@ -2,13 +2,9 @@ package nl.tudelft.sem.template.requests.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.util.Calendar;
 import java.util.NoSuchElementException;
-import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +39,7 @@ class StatusServiceTest {
         final String owner = "The Boss";
         final String facultyName = "CSE";
         final Calendar deadline = Calendar.getInstance();
+        deadline.set(Calendar.YEAR, 2010);
 
         AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 0);
         AppRequest savedRequest = requestRepository.save(appRequest);
@@ -66,8 +63,9 @@ class StatusServiceTest {
         final String owner = "The Boss";
         final String facultyName = "CSE";
         final Calendar deadline = Calendar.getInstance();
+        deadline.set(Calendar.YEAR, 2010);
 
-        AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 0);
+        AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, -1);
         AppRequest savedRequest = requestRepository.save(appRequest);
         long requestId = savedRequest.getId();
 
@@ -90,6 +88,7 @@ class StatusServiceTest {
         final String owner = "The Boss";
         final String facultyName = "CSE";
         final Calendar deadline = Calendar.getInstance();
+        deadline.set(Calendar.YEAR, 2010);
 
         AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 0);
         AppRequest savedRequest = requestRepository.save(appRequest);
@@ -114,6 +113,7 @@ class StatusServiceTest {
         final String owner = "The Boss";
         final String facultyName = "CSE";
         final Calendar deadline = Calendar.getInstance();
+        deadline.set(Calendar.YEAR, 2010);
 
         AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 0);
         AppRequest savedRequest = requestRepository.save(appRequest);
