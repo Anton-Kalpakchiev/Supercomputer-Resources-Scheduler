@@ -2,6 +2,8 @@ package nl.tudelft.sem.template.users.domain;
 
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+
 /**
  * A DDD service for registering a new user.
  */
@@ -58,13 +60,26 @@ public class RegistrationService {
     }
 
     /**
-     * Adds a new employee account in the respective repository.
+     * Adds a new employee account in the respective repository with only netId.
      *
      * @param netId the netId of the user
      * @return the newly created Employee.
      */
     public Employee addEmployee(String netId) {
         Employee newEmployee = new Employee(netId);
+        employeeRepository.save(newEmployee);
+        return newEmployee;
+    }
+
+    /**
+     * Adds a new employee account in the repository with facultyIds.
+     *
+     * @param netId the netId of the user.
+     * @param parentFacultyIds the faculties the employee is employed at
+     * @return the newly saved employee
+     */
+    public Employee addEmployee(String netId, Set<Long> parentFacultyIds) {
+        Employee newEmployee = new Employee(netId, parentFacultyIds);
         employeeRepository.save(newEmployee);
         return newEmployee;
     }

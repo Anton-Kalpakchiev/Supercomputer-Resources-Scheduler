@@ -3,6 +3,7 @@ package nl.tudelft.sem.template.users.domain.user;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.util.Objects;
+import java.util.Set;
 import nl.tudelft.sem.template.users.domain.Employee;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,20 +11,20 @@ import org.junit.jupiter.api.Test;
 public class EmployeeAndUserUnitTest {
     private String netId;
     private String empty;
-    private int parentFacultyId;
+    private long parentFacultyId;
     private Employee testSubject;
 
     @BeforeEach
     void setup() {
         netId = "employee";
         empty = "";
-        parentFacultyId = 5;
-        testSubject = new Employee(netId, parentFacultyId);
+        parentFacultyId = 5L;
+        testSubject = new Employee(netId, Set.of(parentFacultyId));
     }
 
     @Test
     public void constructorTest() {
-        Employee user = new Employee(netId, parentFacultyId);
+        Employee user = new Employee(netId, Set.of(parentFacultyId));
         assertThat(user).isNotNull();
     }
 
@@ -41,19 +42,19 @@ public class EmployeeAndUserUnitTest {
 
     @Test
     public void getParentFacultyIdTest() {
-        assertThat(testSubject.getParentFacultyId()).isEqualTo(parentFacultyId);
+        assertThat(testSubject.getParentFacultyIds()).isEqualTo(Set.of(parentFacultyId));
     }
 
     @Test
     public void setParentFacultyIdTest() {
-        testSubject.setParentFacultyId(6);
-        assertThat(testSubject.getParentFacultyId()).isEqualTo(6);
+        testSubject.setParentFacultyIds(Set.of(6L));
+        assertThat(testSubject.getParentFacultyIds()).isEqualTo(Set.of(6L));
     }
 
     @Test
     public void toStringTest() {
         assertThat(testSubject.toString())
-                .isEqualTo("Employee with netId: " + netId + " -> at faculty " + parentFacultyId);
+                .isEqualTo("Employee with netId: " + netId + " -> at faculty [" + parentFacultyId + "]");
         Employee noFaculty = new Employee(netId);
         assertThat(noFaculty.toString())
                 .isEqualTo("Employee with netId: " + netId + " -> no faculty.");
@@ -75,7 +76,7 @@ public class EmployeeAndUserUnitTest {
 
     @Test
     public void equalsTest() {
-        Employee other = new Employee(netId, 6);
+        Employee other = new Employee(netId, Set.of(6L));
         //only compared by netId.
         assertThat(testSubject.equals(other)).isTrue();
     }

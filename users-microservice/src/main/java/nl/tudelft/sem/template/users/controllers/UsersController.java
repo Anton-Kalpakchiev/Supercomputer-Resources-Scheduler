@@ -1,5 +1,6 @@
 package nl.tudelft.sem.template.users.controllers;
 
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import nl.tudelft.sem.template.users.authentication.AuthManager;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
@@ -13,17 +14,16 @@ import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.Sysadmin;
 import nl.tudelft.sem.template.users.domain.User;
 import nl.tudelft.sem.template.users.models.CheckAccessResponseModel;
+import nl.tudelft.sem.template.users.models.FacultyAssignmentRequestModel;
 import nl.tudelft.sem.template.users.models.PromotionRequestModel;
-import nl.tudelft.sem.template.users.models.RequestScheduleModel;
-import nl.tudelft.sem.template.users.models.ScheduleResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
+
 
 /**
  * Controller for the user microservice.
@@ -54,6 +54,66 @@ public class UsersController {
             return ResponseEntity.ok("User (" + authentication.getNetId() + ") was added as a Sysadmin.");
         }
         return ResponseEntity.ok("User (" + authentication.getNetId() + ") was added as an Employee.");
+    }
+
+    /**
+     * Assign a user to a faculty.
+     *
+     * @param request the request body with a given model
+     * @return a HTTP response
+     */
+    @PostMapping("/assignFaculty")
+    public ResponseEntity<String> assignFacultyToEmployee(@RequestBody FacultyAssignmentRequestModel request) {
+        String employer = request.getNetId();
+        String employee = authentication.getNetId();
+        try {
+            Set<Long> facultyIds = employeeService.parseJsonFacultyIds(request.getFacultyIds());
+            Set<Long> assignedFaculties = employeeService
+                    .authenticateEmploymentAssignmentRequest(employer, employee, facultyIds);
+            if (assignedFaculties.size() > 1) {
+                return ResponseEntity.ok("User (" + employer
+                        + ") was assigned to the following faculties: " + assignedFaculties);
+            } else if (assignedFaculties.size() == 1) {
+                return ResponseEntity.ok("User (" + employer
+                        + ") was assigned to faculty: " + assignedFaculties);
+            } else {
+                throw new Exception("Cannot return an empty set of assigned faculties");
+            }
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
+     * Remove a user from a faculty.
+     *
+     * @param request the request body with a given model
+     * @return a HTTP response
+     */
+    @PostMapping("/removeFaculty")
+    public ResponseEntity<String> removeFacultyEmployee(@RequestBody FacultyAssignmentRequestModel request) {
+        String employer = request.getNetId();
+        String employee = authentication.getNetId();
+        try {
+            Set<Long> facultyIds = employeeService.parseJsonFacultyIds(request.getFacultyIds());
+            Set<Long> assignedFaculties = employeeService
+                    .authenticateEmploymentAssignmentRequest(employer, employee, facultyIds);
+            if (assignedFaculties.size() > 1) {
+                return ResponseEntity.ok("User (" + employer
+                        + ") was removed from the following faculties: " + assignedFaculties);
+            } else if (assignedFaculties.size() == 1) {
+                return ResponseEntity.ok("User (" + employer
+                        + ") was removed from faculty: " + assignedFaculties);
+            } else {
+                throw new Exception("Cannot return an empty set of removed faculties");
+            }
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     /**
