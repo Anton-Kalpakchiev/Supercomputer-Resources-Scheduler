@@ -27,7 +27,7 @@ public class RpManagementService {
      * @param managerNetId The NetId of the faculty manager
      * @throws Exception if the name or the managerNetId already exists
      */
-    public void createFaculty(String name, long managerNetId) throws Exception {
+    public void createFaculty(String name, String managerNetId) throws Exception {
         if (repo.existsByName(name)) {
             throw new NameAlreadyInUseException(name);
         }

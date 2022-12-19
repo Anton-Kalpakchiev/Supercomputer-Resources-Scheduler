@@ -10,5 +10,5 @@ public class FacultyCreationModel {
 
     private String name;
 
-    private long managerNetId;
+    private String managerNetId;
 }
