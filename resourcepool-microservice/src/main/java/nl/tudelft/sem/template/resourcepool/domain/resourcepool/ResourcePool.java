@@ -34,12 +34,9 @@ public class ResourcePool extends HasEvents {
     @Column(name = "nodeResources", nullable = false)
     @Convert(converter = ResourcesAttributeConverter.class)
     private Resources nodeResources;
-    @Column(name = "availableResources", nullable = false)
-    @Convert(converter = ResourcesAttributeConverter.class)
-    private Resources availableResources;
 
     @Column(name = "managerNetId")//this is just here so the repo knows the column exists
-    private long managerNetId;
+    private String managerNetId;
 
     /**
      * Constructs a new ResourcePool with the specified id and name,
@@ -51,7 +48,6 @@ public class ResourcePool extends HasEvents {
         this.name = name;
         this.baseResources = new Resources(0, 0, 0);
         this.nodeResources = new Resources(0, 0, 0);
-        this.availableResources = new Resources(0, 0, 0);
     }
 
     /**
@@ -91,15 +87,6 @@ public class ResourcePool extends HasEvents {
     }
 
     /**
-     * Gets available resources.
-     *
-     * @return the available resources
-     */
-    public Resources getAvailableResources() {
-        return availableResources;
-    }
-
-    /**
      * Sets base resources.
      *
      * @param baseResources the base resources
@@ -115,15 +102,6 @@ public class ResourcePool extends HasEvents {
      */
     public void setNodeResources(Resources nodeResources) {
         this.nodeResources = nodeResources;
-    }
-
-    /**
-     * Sets available resources.
-     *
-     * @param availableResources the available resources
-     */
-    public void setAvailableResources(Resources availableResources) {
-        this.availableResources = availableResources;
     }
 
     /**
@@ -150,7 +128,7 @@ public class ResourcePool extends HasEvents {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, baseResources, nodeResources, availableResources);
+        return Objects.hash(id, name, baseResources, nodeResources);
     }
 
     /**
@@ -165,7 +143,6 @@ public class ResourcePool extends HasEvents {
                 + ", name='" + name + '\''
                 + ", baseResources=" + baseResources
                 + ", nodeResources=" + nodeResources
-                + ", availableResources=" + availableResources
                 + '}';
     }
 }

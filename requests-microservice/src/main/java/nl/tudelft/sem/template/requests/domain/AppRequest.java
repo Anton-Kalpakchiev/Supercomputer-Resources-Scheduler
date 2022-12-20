@@ -78,7 +78,7 @@ public class AppRequest extends HasEvents {
                       String facultyName, Calendar deadline, int status) {
         this.facultyName = facultyName;
         this.description = description;
-        this.mem = resources.getMem();
+        this.mem = resources.getMemory();
         this.cpu = resources.getCpu();
         this.gpu = resources.getGpu();
         this.owner = owner;
