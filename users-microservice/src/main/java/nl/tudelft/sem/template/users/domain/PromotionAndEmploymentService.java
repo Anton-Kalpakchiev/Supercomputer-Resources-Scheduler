@@ -1,11 +1,8 @@
 package nl.tudelft.sem.template.users.domain;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
+import nl.tudelft.sem.template.users.models.FacultyCreationRequestModel;
 import nl.tudelft.sem.template.users.models.FacultyCreationResponseModel;
 import nl.tudelft.sem.template.users.models.TemporaryRequestModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +12,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A DDD service for promoting employees and employing them to faculties.
@@ -26,10 +28,11 @@ public class PromotionAndEmploymentService {
     private final transient FacultyAccountRepository facultyAccountRepository;
 
     private final transient RegistrationService registrationService;
-    private final transient AuthorizationManager authorization;
-    private final transient RestTemplate restTemplate;
 
     private final transient FacultyAccountService facultyAccountService;
+    private final transient AuthorizationManager authorization;
+
+    private final transient RestTemplate restTemplate;
 
     /**
      * Constructor for the Promotions and Employment Service.
@@ -40,16 +43,18 @@ public class PromotionAndEmploymentService {
      */
     public PromotionAndEmploymentService(SysadminRepository sysadminRepository,
                                          EmployeeRepository employeeRepository,
-                                         FacultyAccountRepository facultyAccountRepository) {
+                                         FacultyAccountRepository facultyAccountRepository,
+                                         RegistrationService registrationService,
+                                         AuthorizationManager authorization,
+                                         RestTemplate restTemplate,
+                                         FacultyAccountService facultyAccountService) {
         this.sysadminRepository = sysadminRepository;
         this.employeeRepository = employeeRepository;
         this.facultyAccountRepository = facultyAccountRepository;
-        this.registrationService = new RegistrationService(sysadminRepository,
-                employeeRepository, facultyAccountRepository);
-        authorization = new AuthorizationManager(sysadminRepository,
-                employeeRepository, facultyAccountRepository);
-        restTemplate = new RestTemplate();
-        this.facultyAccountService = new FacultyAccountService(facultyAccountRepository);
+        this.registrationService = registrationService;
+        this.authorization = authorization;
+        this.restTemplate = restTemplate;
+        this.facultyAccountService = facultyAccountService;
     }
 
     /**

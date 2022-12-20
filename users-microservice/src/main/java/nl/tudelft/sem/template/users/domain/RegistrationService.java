@@ -1,6 +1,5 @@
 package nl.tudelft.sem.template.users.domain;
 
-import java.util.Set;
 import org.springframework.stereotype.Service;
 
 /**

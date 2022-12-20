@@ -21,6 +21,7 @@ import nl.tudelft.sem.template.users.domain.EmployeeRepository;
 import nl.tudelft.sem.template.users.domain.EmploymentException;
 import nl.tudelft.sem.template.users.domain.FacultyAccount;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
+import nl.tudelft.sem.template.users.domain.FacultyAccountService;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
@@ -40,6 +41,8 @@ public class PromotionAndEmploymentUnitTest {
     private FacultyAccountRepository facultyAccountRepository;
     private RestTemplate restTemplate;
     private RegistrationService registrationService;
+
+    private FacultyAccountService facultyAccountService;
     private AuthorizationManager authorization;
     private MockRestServiceServer mockRestServiceServer;
     private PromotionAndEmploymentService sut;
@@ -49,13 +52,14 @@ public class PromotionAndEmploymentUnitTest {
     private FacultyAccount facultyAccount;
     private final String adminNetId = "admin";
     private final String employeeNetId = "ivo";
-    private final long facultyId = 6L;
     private final String facultyNetId = "professor";
     private final String facultyName = "math";
+    private final long facultyId = 6L;
+
+    private final String sampleToken = "1234567";
 
     @Captor
     private ArgumentCaptor<Employee> employeeArgumentCaptor;
-
 
     @BeforeEach
     void setup() throws Exception {
@@ -68,11 +72,12 @@ public class PromotionAndEmploymentUnitTest {
         mockRestServiceServer = MockRestServiceServer.createServer(restTemplate);
 
         sut = new PromotionAndEmploymentService(sysadminRepository, employeeRepository,
-                facultyAccountRepository);
+                facultyAccountRepository, registrationService, authorization, restTemplate, facultyAccountService);
 
         admin = new Sysadmin(adminNetId);
         employee = new Employee(employeeNetId);
         facultyAccount = new FacultyAccount(facultyNetId, facultyId);
+
         employeeArgumentCaptor = ArgumentCaptor.forClass(Employee.class);
 
         when(authorization.isOfType(adminNetId, AccountType.SYSADMIN)).thenReturn(true);
@@ -108,6 +113,45 @@ public class PromotionAndEmploymentUnitTest {
         NoSuchUserException result2 = assertThrows(NoSuchUserException.class,
                 () -> sut.promoteEmployeeToSysadmin(adminNetId, facultyNetId));
         assertEquals("No such employee: " + facultyNetId, result2.getMessage());
+    }
+
+    @Test
+    public void createFacultyNormalFlow() {
+        try {
+            mockRestServiceServer.expect(requestTo("http://localhost:8085/createFaculty"))
+                    .andRespond(withSuccess("{\"facultyId\": \"" + facultyId + "\"}", MediaType.APPLICATION_JSON));
+
+            long expected = sut.createFaculty(adminNetId, employeeNetId, facultyName, sampleToken);
+            assertThat(expected).isEqualTo(facultyId);
+
+            verify(registrationService).dropEmployee(employeeNetId);
+            verify(registrationService).addFacultyAccount(employeeNetId, facultyId);
+        } catch (Exception e) {
+            fail("An exception was thrown.");
+        }
+    }
+
+    @Test
+    public void createFacultyExceptionsUnauthorized() {
+        assertThrows(UnauthorizedException.class, () -> {
+            sut.createFaculty(facultyNetId, employeeNetId, facultyName, sampleToken);
+        });
+    }
+
+    @Test
+    public void createFacultyExceptionsNoSuchUser() {
+        assertThrows(NoSuchUserException.class, () -> {
+            sut.createFaculty(adminNetId, facultyNetId, facultyName, sampleToken);
+        });
+    }
+
+    @Test
+    public void createFacultyExceptionsCanNotSendRequest() {
+        mockRestServiceServer.expect(requestTo("http://localhost:8085/createFaculty"))
+                .andRespond(withBadRequest());
+        assertThrows(Exception.class, () -> {
+            sut.createFaculty(adminNetId, employeeNetId, facultyName, sampleToken);
+        });
     }
 
     @Test
@@ -165,45 +209,5 @@ public class PromotionAndEmploymentUnitTest {
         Set<Long> result = Set.of(6L);
         sut.assignFacultyToEmployee(employeeNetId, facultyId);
         assertThrows(EmploymentException.class, () -> sut.assignFacultyToEmployee(employeeNetId, facultyId));
-    }
-
-
-    @Test
-    public void createFacultyNormalFlow() {
-        try {
-            mockRestServiceServer.expect(requestTo("http://localhost:8085/createFaculty"))
-                    .andRespond(withSuccess("{\"facultyId\": \"" + facultyId + "\"}", MediaType.APPLICATION_JSON));
-
-            long expected = sut.createFaculty(adminNetId, employeeNetId, facultyName, sampleToken);
-            assertThat(expected).isEqualTo(facultyId);
-
-            verify(registrationService).dropEmployee(employeeNetId);
-            verify(registrationService).addFacultyAccount(employeeNetId, facultyId);
-        } catch (Exception e) {
-            fail("An exception was thrown.");
-        }
-    }
-
-    @Test
-    public void createFacultyExceptionsUnauthorized() {
-        assertThrows(UnauthorizedException.class, () -> {
-            sut.createFaculty(facultyNetId, employeeNetId, facultyName, sampleToken);
-        });
-    }
-
-    @Test
-    public void createFacultyExceptionsNoSuchUser() {
-        assertThrows(NoSuchUserException.class, () -> {
-            sut.createFaculty(adminNetId, facultyNetId, facultyName, sampleToken);
-        });
-    }
-
-    @Test
-    public void createFacultyExceptionsCanNotSendRequest() {
-        mockRestServiceServer.expect(requestTo("http://localhost:8085/createFaculty"))
-                .andRespond(withBadRequest());
-        assertThrows(Exception.class, () -> {
-            sut.createFaculty(adminNetId, employeeNetId, facultyName, sampleToken);
-        });
     }
 }
