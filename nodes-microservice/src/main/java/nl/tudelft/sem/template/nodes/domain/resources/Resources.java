@@ -23,23 +23,38 @@ public class Resources {
         this.memory = memory;
     }
 
+    /**
+     * Gets cpu.
+     *
+     * @return the cpu
+     */
     public int getCpu() {
         return cpu;
     }
 
+    /**
+     * Gets gpu.
+     *
+     * @return the gpu
+     */
     public int getGpu() {
         return gpu;
     }
 
+    /**
+     * Gets memory.
+     *
+     * @return the memory
+     */
     public int getMemory() {
         return memory;
     }
 
-    @Override
-    public String toString() {
-        return getCpu() + ", " + getGpu() + ", " + getMemory();
-    }
-
+    /**
+     * Equality is based on all fields.
+     *
+     * @return whether the daily schedules are equal
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -52,8 +67,23 @@ public class Resources {
         return cpu == resource.cpu && gpu == resource.gpu && memory == resource.memory;
     }
 
+    /**
+     * Returns the hash code value for these resources.
+     *
+     * @return the hash code value for these resources
+     */
     @Override
     public int hashCode() {
         return Objects.hash(cpu, gpu, memory);
+    }
+
+    /**
+     * Returns a string representation for these resources.
+     *
+     * @return a string representation for these resources
+     */
+    @Override
+    public String toString() {
+        return getCpu() + ", " + getGpu() + ", " + getMemory();
     }
 }
