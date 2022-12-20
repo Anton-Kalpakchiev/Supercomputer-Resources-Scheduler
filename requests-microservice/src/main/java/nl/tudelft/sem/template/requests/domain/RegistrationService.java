@@ -45,22 +45,21 @@ public class RegistrationService {
         deadlineFiveMinutesBeforeEnd.set(Calendar.MINUTE, 55);
         deadlineFiveMinutesBeforeEnd.set(Calendar.SECOND, 0);
 
-        if (availableResources.getGpu() < resources.getGpu() || availableResources.getCpu() < resources.getCpu()
-                || availableResources.getMemory() < resources.getMemory()) {
-            facultyHasEnoughResources = false;
-        } else {
-            facultyHasEnoughResources = true;
-        }
-        if (frpResources.getGpu() < resources.getGpu() || frpResources.getCpu() < resources.getCpu()
-                || frpResources.getMemory() < resources.getMemory()) {
-            frpHasEnoughResources = false;
-        } else {
-            frpHasEnoughResources = true;
-        }
-        boolean isForTomorrow = isForTomorrow(deadline);
-        // 0 when before the 6h deadline,
-        // 1 when after the 6h deadline and before the 5min deadline,
-        // 2 when after the 5 min deadline
+        final boolean facultyHasEnoughResources = !(availableResources.getGpu() < resources.getGpu()
+                || availableResources.getCpu() < resources.getCpu()
+                || availableResources.getMem() < resources.getMem());
+
+        final boolean freePoolHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
+                || freePoolResources.getCpu() < resources.getCpu()
+                || freePoolResources.getMem() < resources.getMem());
+
+        final boolean isForTomorrow = isForTomorrow(deadline);
+        int timePeriod;
+        /*
+        0 when before the 6h deadline
+        1 when after the 6h deadline and before the 5min deadline,
+        2 when after the 5 min deadline
+         */
         if (Calendar.getInstance().after(deadlineSixHoursBeforeEnd)
                 && Calendar.getInstance().before(deadlineFiveMinutesBeforeEnd)) {
             timePeriod = 1;
@@ -106,13 +105,11 @@ public class RegistrationService {
         Calendar deadline = Calendar.getInstance(); //request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
 
-        frpHasEnoughResources = true;
-        if (freePoolResources.getGpu() < resources.getGpu()
+        boolean freePoolHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
                 || freePoolResources.getCpu() < resources.getCpu()
-                || freePoolResources.getMemory() < resources.getMemory()) {
-            frpHasEnoughResources = false;
-        }
-        //int timePeriod = 1;
+                || freePoolResources.getMem() < resources.getMem());
+
+        // int timePeriod = 1;
         /*
         0 when before the 6h deadline,
         1 when after the 6h deadline and before the 5min deadline,
@@ -165,6 +162,7 @@ public class RegistrationService {
         endOfTomorrow.set(Calendar.SECOND, 59);
         endOfTomorrow.set(Calendar.MILLISECOND, 999);
         endOfTomorrow.add(Calendar.DAY_OF_YEAR, 1);
+
         if (deadline.after(endOfTomorrow)) {
             return false;
         }
