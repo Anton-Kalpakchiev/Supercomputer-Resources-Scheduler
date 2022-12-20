@@ -122,14 +122,21 @@ public class PromotionAndEmploymentUnitTest {
     }
 
     @Test
-    public void createFacultyExceptions() {
+    public void createFacultyExceptionsUnauthorized() {
         assertThrows(UnauthorizedException.class, () -> {
             sut.createFaculty(facultyNetId, employeeNetId, facultyName, sampleToken);
         });
+    }
+
+    @Test
+    public void createFacultyExceptionsNoSuchUser() {
         assertThrows(NoSuchUserException.class, () -> {
             sut.createFaculty(adminNetId, facultyNetId, facultyName, sampleToken);
         });
+    }
 
+    @Test
+    public void createFacultyExceptionsCanNotSendRequest() {
         mockRestServiceServer.expect(requestTo("http://localhost:8085/createFaculty"))
                 .andRespond(withBadRequest());
         assertThrows(Exception.class, () -> {
