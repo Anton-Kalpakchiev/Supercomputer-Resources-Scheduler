@@ -117,6 +117,8 @@ public class PromotionAndEmploymentService {
      * @throws EmploymentException employment handled incorrectly
      * @throws UnauthorizedException user is not authorized.
      */
+
+    @SuppressWarnings({"PMD.AvoidLiteralsInIfCondition"})
     public Set<Long> authorizeEmploymentAssignmentRequest(
             String employerNetId, String employeeNetId, Set<Long> facultyIds) throws Exception {
         if (authorization.isOfType(employerNetId, AccountType.SYSADMIN)) {
@@ -151,6 +153,7 @@ public class PromotionAndEmploymentService {
      * @throws EmploymentException employment handled incorrectly
      * @throws UnauthorizedException user is not authorized.
      */
+    @SuppressWarnings({"PMD.AvoidLiteralsInIfCondition"})
     public Set<Long> authorizeEmploymentRemovalRequest(
             String employerNetId, String employeeNetId, Set<Long> facultyIds) throws Exception {
         if (authorization.isOfType(employerNetId, AccountType.SYSADMIN)) {

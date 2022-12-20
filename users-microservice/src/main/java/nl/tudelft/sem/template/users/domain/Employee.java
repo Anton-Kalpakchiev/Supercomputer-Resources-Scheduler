@@ -5,7 +5,6 @@ import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity
@@ -52,6 +51,15 @@ public class Employee extends User {
      */
     public Set<Long> getParentFacultyIds() {
         return parentFacultyIds;
+    }
+
+    /**
+     * Sets the parent facultyIds.
+     *
+     * @param parentFacultyIds the new set of parent faculties
+     */
+    public void setParentFacultyIds(Set<Long> parentFacultyIds) {
+        this.parentFacultyIds = parentFacultyIds;
     }
 
     /**

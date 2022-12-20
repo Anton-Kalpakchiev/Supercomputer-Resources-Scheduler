@@ -48,6 +48,7 @@ public class UsersController {
      *
      * @return whether the request was successful
      */
+    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     @GetMapping("/newUser")
     public ResponseEntity<String> newUserCreated() {
         User added = registrationService.registerUser(authentication.getNetId());
@@ -63,6 +64,7 @@ public class UsersController {
      * @param request the request body with a given model
      * @return a HTTP response
      */
+    @SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.AvoidLiteralsInIfCondition"})
     @PostMapping("/hireEmployee")
     public ResponseEntity<String> assignFacultyToEmployee(@RequestBody FacultyAssignmentRequestModel request) {
         String employee = request.getNetId();
@@ -93,6 +95,7 @@ public class UsersController {
      * @param request the request body with a given model
      * @return a HTTP response
      */
+    @SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.AvoidLiteralsInIfCondition"})
     @PostMapping("/terminateEmployee")
     public ResponseEntity<String> removeFacultyFromEmployee(@RequestBody FacultyAssignmentRequestModel request) {
         String employee = request.getNetId();
