@@ -25,7 +25,6 @@ import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.Sysadmin;
 import nl.tudelft.sem.template.users.domain.SysadminRepository;
-import nl.tudelft.sem.template.users.models.FacultyCreationResponseModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -49,7 +48,7 @@ public class PromotionAndEmploymentUnitTest {
     private final String employeeNetId = "ivo";
     private final String facultyNetId = "professor";
     private final String facultyName = "math";
-    private final int facultyNumber = 0;
+    private final long facultyId = 0L;
 
     private final String sampleToken = "1234567";
 
@@ -68,7 +67,7 @@ public class PromotionAndEmploymentUnitTest {
 
         admin = new Sysadmin(adminNetId);
         employee = new Employee(employeeNetId);
-        facultyAccount = new FacultyAccount(facultyNetId, facultyNumber);
+        facultyAccount = new FacultyAccount(facultyNetId, facultyId);
 
         when(authorization.isOfType(adminNetId, AccountType.SYSADMIN)).thenReturn(true);
         when(authorization.isOfType(employeeNetId, AccountType.EMPLOYEE)).thenReturn(true);
@@ -109,13 +108,13 @@ public class PromotionAndEmploymentUnitTest {
     public void createFacultyNormalFlow() {
         try {
             mockRestServiceServer.expect(requestTo("http://localhost:8085/createFaculty"))
-                    .andRespond(withSuccess("{\"facultyId\": \"" + facultyNumber + "\"}", MediaType.APPLICATION_JSON));
+                    .andRespond(withSuccess("{\"facultyId\": \"" + facultyId + "\"}", MediaType.APPLICATION_JSON));
 
             long expected = sut.createFaculty(adminNetId, employeeNetId, facultyName, sampleToken);
-            assertThat(expected).isEqualTo(facultyNumber);
+            assertThat(expected).isEqualTo(facultyId);
 
             verify(registrationService).dropEmployee(employeeNetId);
-            verify(registrationService).addFacultyAccount(employeeNetId, facultyNumber);
+            verify(registrationService).addFacultyAccount(employeeNetId, facultyId);
         } catch (Exception e) {
             fail("An exception was thrown.");
         }
