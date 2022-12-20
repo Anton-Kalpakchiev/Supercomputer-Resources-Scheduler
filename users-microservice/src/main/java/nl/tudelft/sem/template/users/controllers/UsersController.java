@@ -2,6 +2,7 @@ package nl.tudelft.sem.template.users.controllers;
 
 import lombok.AllArgsConstructor;
 import nl.tudelft.sem.template.users.authentication.AuthManager;
+import nl.tudelft.sem.template.users.authentication.JwtRequestFilter;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
@@ -13,6 +14,7 @@ import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.Sysadmin;
 import nl.tudelft.sem.template.users.domain.User;
 import nl.tudelft.sem.template.users.models.CheckAccessResponseModel;
+import nl.tudelft.sem.template.users.models.FacultyCreationRequestModel;
 import nl.tudelft.sem.template.users.models.PromotionRequestModel;
 import nl.tudelft.sem.template.users.models.RequestScheduleModel;
 import nl.tudelft.sem.template.users.models.ScheduleResponse;
@@ -91,6 +93,33 @@ public class UsersController {
             AccountType result = authorization.checkAccess(netId);
             return ResponseEntity.ok(new CheckAccessResponseModel(result.getName()));
         } catch (NoSuchUserException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
+     * Request for creating a new faculty.
+     *
+     * @param request the faculty creation request
+     * @return whether the request was successful.
+     */
+    @PostMapping("/createFaculty")
+    public ResponseEntity<String> createFaculty(@RequestBody FacultyCreationRequestModel request) {
+        String authorNetId = authentication.getNetId();
+        String managerNetId = request.getManagerNetId();
+        String facultyName = request.getName();
+        String token = JwtRequestFilter.token;
+        System.out.println(token);
+        try {
+            long facId = promotionAndEmploymentService.createFaculty(authorNetId, managerNetId, facultyName, token);
+            System.out.println("Faculty \"" + facultyName + "\" with id " + facId + " was created. "
+                    + "Managed by: (" + managerNetId + ").");
+            return ResponseEntity.ok("Faculty \"" + facultyName
+                    + "\", managed by (" + managerNetId + "), was created.");
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
