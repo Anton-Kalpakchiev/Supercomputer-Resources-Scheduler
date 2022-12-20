@@ -1,5 +1,6 @@
 package nl.tudelft.sem.template.users.domain;
 
+import java.util.Set;
 import org.springframework.stereotype.Service;
 
 /**
@@ -58,7 +59,7 @@ public class RegistrationService {
     }
 
     /**
-     * Adds a new employee account in the respective repository.
+     * Adds a new employee account in the respective repository with only netId.
      *
      * @param netId the netId of the user
      * @return the newly created Employee.

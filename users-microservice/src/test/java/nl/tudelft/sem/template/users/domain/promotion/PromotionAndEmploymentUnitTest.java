@@ -1,11 +1,9 @@
 package nl.tudelft.sem.template.users.domain.promotion;
 
-import static net.bytebuddy.matcher.ElementMatchers.any;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -13,11 +11,14 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import java.util.Optional;
+import java.util.Set;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
 import nl.tudelft.sem.template.users.domain.Employee;
 import nl.tudelft.sem.template.users.domain.EmployeeRepository;
+import nl.tudelft.sem.template.users.domain.EmploymentException;
 import nl.tudelft.sem.template.users.domain.FacultyAccount;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
@@ -27,6 +28,8 @@ import nl.tudelft.sem.template.users.domain.Sysadmin;
 import nl.tudelft.sem.template.users.domain.SysadminRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
@@ -46,11 +49,13 @@ public class PromotionAndEmploymentUnitTest {
     private FacultyAccount facultyAccount;
     private final String adminNetId = "admin";
     private final String employeeNetId = "ivo";
+    private final long facultyId = 6L;
     private final String facultyNetId = "professor";
     private final String facultyName = "math";
-    private final long facultyId = 0L;
 
-    private final String sampleToken = "1234567";
+    @Captor
+    private ArgumentCaptor<Employee> employeeArgumentCaptor;
+
 
     @BeforeEach
     void setup() throws Exception {
@@ -63,11 +68,12 @@ public class PromotionAndEmploymentUnitTest {
         mockRestServiceServer = MockRestServiceServer.createServer(restTemplate);
 
         sut = new PromotionAndEmploymentService(sysadminRepository, employeeRepository,
-                facultyAccountRepository, registrationService, authorization, restTemplate);
+                facultyAccountRepository);
 
         admin = new Sysadmin(adminNetId);
         employee = new Employee(employeeNetId);
         facultyAccount = new FacultyAccount(facultyNetId, facultyId);
+        employeeArgumentCaptor = ArgumentCaptor.forClass(Employee.class);
 
         when(authorization.isOfType(adminNetId, AccountType.SYSADMIN)).thenReturn(true);
         when(authorization.isOfType(employeeNetId, AccountType.EMPLOYEE)).thenReturn(true);
@@ -103,6 +109,64 @@ public class PromotionAndEmploymentUnitTest {
                 () -> sut.promoteEmployeeToSysadmin(adminNetId, facultyNetId));
         assertEquals("No such employee: " + facultyNetId, result2.getMessage());
     }
+
+    @Test
+    void jsonParsedCorrectly() throws EmploymentException {
+        String facultyIds = "6, 7, 8";
+        assertThat(sut.parseJsonFacultyIds(facultyIds)).isEqualTo(Set.of(6L, 7L, 8L));
+    }
+
+    @Test
+    void jsonParsedIncorrectly() {
+        String facultyIds = "6 7, 8";
+        assertThrows(EmploymentException.class, () -> sut.parseJsonFacultyIds(facultyIds));
+    }
+
+    @Test
+    void jsonParsedIncorrectlyNone() {
+        String facultyIds = "None";
+        assertThrows(EmploymentException.class, () -> sut.parseJsonFacultyIds(facultyIds));
+    }
+
+    @Test
+    void assignFacultyToEmployeeNotFound() {
+        when(employeeRepository.findByNetId(employeeNetId)).thenReturn(Optional.empty());
+        assertThrows(NoSuchUserException.class, () -> sut.assignFacultyToEmployee(employeeNetId, facultyId));
+    }
+
+    @Test
+    void removeFacultyFromEmployeeNotFound() {
+        when(employeeRepository.findByNetId(employeeNetId)).thenReturn(Optional.empty());
+        assertThrows(NoSuchUserException.class, () -> sut.removeEmployeeFromFaculty(employeeNetId, facultyId));
+    }
+
+    @Test
+    void assignFacultyToEmployeeSuccessful() throws NoSuchUserException, EmploymentException {
+        when(employeeRepository.findByNetId(employeeNetId)).thenReturn(Optional.of(employee));
+        Set<Long> result = Set.of(6L);
+        sut.assignFacultyToEmployee(employeeNetId, facultyId);
+        verify(employeeRepository).saveAndFlush(employeeArgumentCaptor.capture());
+        assertThat(employeeArgumentCaptor.getValue().getParentFacultyIds()).isEqualTo(result);
+    }
+
+    @Test
+    void removeFacultyFromEmployeeSuccessful() throws NoSuchUserException, EmploymentException {
+        Employee employedEmployee = new Employee(employeeNetId, Set.of(facultyId));
+        when(employeeRepository.findByNetId(employeeNetId)).thenReturn(Optional.of(employedEmployee));
+        Set<Long> result = Set.of();
+        sut.removeEmployeeFromFaculty(employeeNetId, facultyId);
+        verify(employeeRepository).saveAndFlush(employeeArgumentCaptor.capture());
+        assertThat(employeeArgumentCaptor.getValue().getParentFacultyIds()).isEqualTo(result);
+    }
+
+    @Test
+    void assignFacultyToEmployeeDuplicate() throws NoSuchUserException, EmploymentException {
+        when(employeeRepository.findByNetId(employeeNetId)).thenReturn(Optional.of(employee));
+        Set<Long> result = Set.of(6L);
+        sut.assignFacultyToEmployee(employeeNetId, facultyId);
+        assertThrows(EmploymentException.class, () -> sut.assignFacultyToEmployee(employeeNetId, facultyId));
+    }
+
 
     @Test
     public void createFacultyNormalFlow() {
