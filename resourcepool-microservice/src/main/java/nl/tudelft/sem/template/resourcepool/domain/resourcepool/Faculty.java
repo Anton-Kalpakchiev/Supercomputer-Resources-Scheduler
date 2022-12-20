@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class Faculty extends ResourcePool {
 
     @Column(name = "managerNetId")//if null, it's a RP, not a faculty
-    private long managerNetId;
+    private String managerNetId;
 
 
     /**
@@ -26,7 +26,7 @@ public class Faculty extends ResourcePool {
      * @param name      the name
      * @param managerNetId the manager id
      */
-    public Faculty(String name, long managerNetId) {
+    public Faculty(String name, String managerNetId) {
         super(name);
         this.managerNetId = managerNetId;
         this.recordThat(new FacultyWasCreatedEvent(name));
@@ -37,7 +37,7 @@ public class Faculty extends ResourcePool {
      *
      * @return the manager id
      */
-    public long getManagerNetId() {
+    public String getManagerNetId() {
         return managerNetId;
     }
 
@@ -73,7 +73,6 @@ public class Faculty extends ResourcePool {
                 + ", name='" + super.getName() + '\''
                 + ", baseResources=" + super.getBaseResources()
                 + ", nodeResources=" + super.getNodeResources()
-                + ", availableResources=" + super.getAvailableResources()
                 + ", managerNetId=" + managerNetId
                 + '}';
     }

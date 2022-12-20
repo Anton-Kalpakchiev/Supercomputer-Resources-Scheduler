@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
 import lombok.NoArgsConstructor;
+import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 
 /**
  * A DDD entity representing an application user in our domain.
@@ -37,6 +38,12 @@ public class DailySchedule {
     @Column(name = "list_request_id", nullable = false)
     private List<Long> list;
 
+    @Column(name = "available_resources", nullable = true)
+    private Resources availableResources;
+
+    @Column(name = "total_resources", nullable = true)
+    private Resources totalResources;
+
     /**
      * Create a new DailySchedule per Resource Pool.
      *
@@ -46,6 +53,8 @@ public class DailySchedule {
     public DailySchedule(Calendar day, long resourcePoolId) {
         this.day = day;
         this.resourcePoolId = resourcePoolId;
+        this.availableResources = new Resources(0, 0, 0);
+        this.totalResources = new Resources(0, 0, 0);
         this.list = new ArrayList<>();
     }
 
@@ -74,6 +83,42 @@ public class DailySchedule {
      */
     public List<Long> getList() {
         return list;
+    }
+
+    /**
+     * Gets the available resources.
+     *
+     * @return the available resources
+     */
+    public Resources getAvailableResources() {
+        return availableResources;
+    }
+
+    /**
+     * Sets the available resources.
+     *
+     * @param availableResources the available resources for this day and faculty
+     */
+    public void setAvailableResources(Resources availableResources) {
+        this.availableResources = availableResources;
+    }
+
+    /**
+     * Gets the total amount of resources that were available for this day.
+     *
+     * @return the total amount of resources
+     */
+    public Resources getTotalResources() {
+        return totalResources;
+    }
+
+    /**
+     * Sets the total amount of resources.
+     *
+     * @param totalResources the total amount of resources that need to be set
+     */
+    public void setTotalResources(Resources totalResources) {
+        this.totalResources = totalResources;
     }
 
     /**

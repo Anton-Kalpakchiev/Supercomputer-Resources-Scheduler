@@ -1,6 +1,6 @@
 package nl.tudelft.sem.template.resourcepool.domain.resourcepool;
 
-import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 /**
@@ -25,9 +25,10 @@ public class RpManagementService {
      *
      * @param name    The name of the new faculty
      * @param managerNetId The NetId of the faculty manager
+     * @return the newly created faculty
      * @throws Exception if the name or the managerNetId already exists
      */
-    public void createFaculty(String name, long managerNetId) throws Exception {
+    public Faculty createFaculty(String name, String managerNetId) throws Exception {
         if (repo.existsByName(name)) {
             throw new NameAlreadyInUseException(name);
         }
@@ -36,37 +37,23 @@ public class RpManagementService {
         }
         Faculty faculty = new Faculty(name, managerNetId);
         repo.save(faculty);
+        return faculty;
     }
 
     /**
-     * Find the available resources given the faculty name.
+     * Finds the resource pool given the id.
      *
-     * @param name the name of the faculty
-     * @return the available resources
-     * @throws Exception when something fails
+     * @param resourcePoolId the id
+     * @return the resources pool if found
+     * @throws Exception when the resource pool could not be found
      */
-    public Resources findResourcesByName(String name) throws Exception {
-        if (!repo.existsByName(name)) {
+    public Optional<ResourcePool> findById(long resourcePoolId) throws Exception {
+        if (!repo.existsById(resourcePoolId)) {
             throw new Exception();
         }
-        return repo.findByName(name).get().getAvailableResources();
+        return repo.findById(resourcePoolId);
     }
 
-    /**
-     * Updates the available resources.
-     *
-     * @param resourcePoolId the resource pool id
-     * @param requestId the request that is scheduled
-     * @throws Exception if something fails
-     */
-    public void updateResources(long resourcePoolId, long requestId) throws Exception {
-        //        if(!repo.existsById(resourcePoolId)) {
-        //            throw new Exception();
-        //        }
-
-        System.out.println("Didnt update resources but that's okay");
-
-    }
 
     /**
      * Returns a string with all resource pools in the database.
@@ -76,4 +63,5 @@ public class RpManagementService {
     public String printDatabase() {
         return repo.findAll().toString();
     }
+
 }

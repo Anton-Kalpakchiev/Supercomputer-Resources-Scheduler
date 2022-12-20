@@ -9,7 +9,7 @@ public interface FacultyAccountRepository extends JpaRepository<FacultyAccount, 
     /**
      * Find user by NetID.
      */
-    Optional<User> findByNetId(String netId);
+    Optional<FacultyAccount> findByNetId(String netId);
 
     /**
      * Check if an existing user already uses a NetID.

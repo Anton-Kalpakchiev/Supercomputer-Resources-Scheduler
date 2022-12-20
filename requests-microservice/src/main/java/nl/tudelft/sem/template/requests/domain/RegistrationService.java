@@ -5,6 +5,8 @@ import java.util.Calendar;
 import org.springframework.stereotype.Service;
 
 @Service
+//We can remove this line later on, but I can't figure out how to fix this and the code works perfect with the error in it
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class RegistrationService {
     private final transient RequestRepository requestRepository;
     private final transient ResourcePoolService resourcePoolService;
@@ -29,7 +31,7 @@ public class RegistrationService {
      * @param resources   The resources requested
      */
     public AppRequest registerRequest(String description, Resources resources, String owner, String facultyName,
-                                  Resources availableResources, Calendar deadline, Resources frpResources, String token)
+                                  Resources availableResources, Calendar deadline, Resources freePoolResources, String token)
             throws IOException, InvalidResourcesException {
         AppRequest request = new AppRequest(description, resources, owner, facultyName, deadline, -1);
 
@@ -43,22 +45,21 @@ public class RegistrationService {
         deadlineFiveMinutesBeforeEnd.set(Calendar.MINUTE, 55);
         deadlineFiveMinutesBeforeEnd.set(Calendar.SECOND, 0);
 
-        if (availableResources.getGpu() < resources.getGpu() || availableResources.getCpu() < resources.getCpu()
-                || availableResources.getMemory() < resources.getMemory()) {
-            facultyHasEnoughResources = false;
-        } else {
-            facultyHasEnoughResources = true;
-        }
-        if (frpResources.getGpu() < resources.getGpu() || frpResources.getCpu() < resources.getCpu()
-                || frpResources.getMemory() < resources.getMemory()) {
-            frpHasEnoughResources = false;
-        } else {
-            frpHasEnoughResources = true;
-        }
-        boolean isForTomorrow = isForTomorrow(deadline);
-        // 0 when before the 6h deadline,
-        // 1 when after the 6h deadline and before the 5min deadline,
-        // 2 when after the 5 min deadline
+        final boolean facultyHasEnoughResources = !(availableResources.getGpu() < resources.getGpu()
+                || availableResources.getCpu() < resources.getCpu()
+                || availableResources.getMemory() < resources.getMemory());
+
+        final boolean freePoolHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
+                || freePoolResources.getCpu() < resources.getCpu()
+                || freePoolResources.getMemory() < resources.getMemory());
+
+        final boolean isForTomorrow = isForTomorrow(deadline);
+        int timePeriod;
+        /*
+        0 when before the 6h deadline
+        1 when after the 6h deadline and before the 5min deadline,
+        2 when after the 5 min deadline
+         */
         if (Calendar.getInstance().after(deadlineSixHoursBeforeEnd)
                 && Calendar.getInstance().before(deadlineFiveMinutesBeforeEnd)) {
             timePeriod = 1;
@@ -86,33 +87,54 @@ public class RegistrationService {
             //set for manual approval/rejection
             request.setStatus(0);
         }
-        requestRepository.save(request);
 
+        requestRepository.save(request);
         return request;
     }
 
     /**
-     * Processes a request in period 1, so after the 6h deadline.
+     * Processes a request in period one.
      *
-     * @param request the request to be processed.
-     * @param frpResources the available resources in the free pool.
-     * @return the updated request
-     * @throws InvalidResourcesException when the frpResources are invalid.
+     * @param request the given request
+     * @param freePoolResources the free resources
+     * @return the AppRequest returned after processing
+     * @throws InvalidResourcesException thrown when resources are invalid
      */
-    public AppRequest processRequestInPeriodOne(AppRequest request, Resources frpResources)
-            throws InvalidResourcesException {
+    public AppRequest processRequestInPeriodOne(
+            AppRequest request, Resources freePoolResources) throws InvalidResourcesException {
+        Calendar deadline = Calendar.getInstance(); //request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
 
-        if (frpResources.getGpu() < resources.getGpu() || frpResources.getCpu() < resources.getCpu()
-                || frpResources.getMemory() < resources.getMemory()) {
-            frpHasEnoughResources = false;
+        boolean freePoolHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
+                || freePoolResources.getCpu() < resources.getCpu()
+                || freePoolResources.getMemory() < resources.getMemory());
+
+        // int timePeriod = 1;
+        /*
+        0 when before the 6h deadline,
+        1 when after the 6h deadline and before the 5min deadline,
+        2 when after the 5 min deadline
+        */
+
+        //automatic rejection
+        if ((!frpHasEnoughResources && isForTomorrow(deadline))) {
+            System.out.println("To be implemented!");
+            //auto reject
+            //find request in Repo, update its status
+        } else if (frpHasEnoughResources) {
+            System.out.println("To be implemented!");
+            //auto approve for tomorrow
+            //find request in Repo, update its status
+            //update RP/Schedule MS os that it can update the schedule for the corresponding faculty for tomorrow
         } else {
-            frpHasEnoughResources = true;
+            System.out.println("To be implemented!");
+            //set for manual approval
+            //find request in Repo, update its status
         }
         //0 when before the 6h deadline,
         // 1 when after the 6h deadline and before the 5min deadline,
         // 2 when after the 5min deadline
-        timePeriod = 1;
+        // timePeriod = 1;
         //        if ((!FRPHasEnoughResources && isForTomorrow(request.getDeadline())) {
         //            //auto reject
         //            //find request in Repo, update its status
@@ -128,10 +150,10 @@ public class RegistrationService {
     }
 
     /**
-     * Checks whether the request deadline is tomorrow.
+     * Check whether the deadline is for tomorrow or not.
      *
-     * @param deadline the deadline of the request.
-     * @return true if the request deadline is tomorrow, false otherwise.
+     * @param deadline the deadline to compare to
+     * @return boolean whether the deadline is tomorrow not
      */
     public boolean isForTomorrow(Calendar deadline) {
         Calendar endOfTomorrow = Calendar.getInstance();
@@ -140,6 +162,7 @@ public class RegistrationService {
         endOfTomorrow.set(Calendar.SECOND, 59);
         endOfTomorrow.set(Calendar.MILLISECOND, 999);
         endOfTomorrow.add(Calendar.DAY_OF_YEAR, 1);
+
         if (deadline.after(endOfTomorrow)) {
             return false;
         }

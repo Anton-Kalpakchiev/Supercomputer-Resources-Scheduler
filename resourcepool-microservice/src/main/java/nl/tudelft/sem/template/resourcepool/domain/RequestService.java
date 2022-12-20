@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.resourcepool.controllers;
+package nl.tudelft.sem.template.resourcepool.domain;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;

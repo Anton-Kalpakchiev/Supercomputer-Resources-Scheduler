@@ -1,16 +1,14 @@
 package nl.tudelft.sem.template.users.domain;
 
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "FACULTY_ACCOUNTS")
+@Table(name = "faculty_accounts")
 public class FacultyAccount extends User {
     @Column(name = "faculty", nullable = false, unique = true)
-    private int assignedFacultyId;
+    private long assignedFacultyId;
 
     /**
      * Constructor for the faculty account.
@@ -18,7 +16,7 @@ public class FacultyAccount extends User {
      * @param netId the netId of the faculty account
      * @param assignedFacultyId the corresponding faculty.
      */
-    public FacultyAccount(String netId, int assignedFacultyId) {
+    public FacultyAccount(String netId, long assignedFacultyId) {
         super(netId);
         this.assignedFacultyId = assignedFacultyId;
     }
@@ -32,7 +30,7 @@ public class FacultyAccount extends User {
      *
      * @return the corresponding faculty.
      */
-    public int getAssignedFacultyId() {
+    public long getAssignedFacultyId() {
         return assignedFacultyId;
     }
 
@@ -41,7 +39,7 @@ public class FacultyAccount extends User {
      *
      * @param assignedFacultyId the new faculty.
      */
-    public void setAssignedFacultyId(int assignedFacultyId) {
+    public void setAssignedFacultyId(long assignedFacultyId) {
         this.assignedFacultyId = assignedFacultyId;
     }
 }
