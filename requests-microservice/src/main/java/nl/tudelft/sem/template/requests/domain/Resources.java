@@ -32,7 +32,7 @@ public class Resources {
         this.gpu = gpu;
         this.memory = memory;
 
-        if (mem < 0 || cpu < 0 || gpu < 0 || cpu < gpu) {
+        if (memory < 0 || cpu < 0 || gpu < 0 || cpu < gpu) {
             throw new InvalidResourcesException(this);
         }
     }
@@ -45,7 +45,7 @@ public class Resources {
     @Override
     public boolean equals(Object other) {
         Resources o = (Resources) other;
-        return (this.mem == o.getMem() && this.cpu == o.getCpu() && this.gpu == o.getGpu());
+        return (this.memory == o.getMemory() && this.cpu == o.getCpu() && this.gpu == o.getGpu());
     }
 
     @Override

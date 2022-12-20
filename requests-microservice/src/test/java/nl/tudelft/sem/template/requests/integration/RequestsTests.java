@@ -59,7 +59,7 @@ public class RequestsTests {
     public void register_withValidData_worksCorrectly() throws Exception {
         // Arrange
         final String description = "give me resources";
-        final Resources resources = new Resources(30, 50, 50);
+        final Resources resources = new Resources(50, 30, 50);
         final String owner = "User";
         final String facultyName = "CSE";
         final String deadline = "01-01-2023";
@@ -74,7 +74,7 @@ public class RequestsTests {
 
         RegistrationRequestModel model = new RegistrationRequestModel();
         model.setDescription(description);
-        model.setMem(resources.getMem());
+        model.setMemory(resources.getMemory());
         model.setCpu(resources.getCpu());
         model.setGpu(resources.getGpu());
         model.setFacultyName(facultyName);
@@ -92,7 +92,7 @@ public class RequestsTests {
         AppRequest savedRequest = requestRepository.findById(0L).orElseThrow();
 
         assertThat(savedRequest.getDescription()).isEqualTo(description);
-        assertThat(savedRequest.getMem()).isEqualTo(resources.getMem());
+        assertThat(savedRequest.getMem()).isEqualTo(resources.getMemory());
         assertThat(savedRequest.getCpu()).isEqualTo(resources.getCpu());
         assertThat(savedRequest.getGpu()).isEqualTo(resources.getGpu());
         assertThat(savedRequest.getOwner()).isEqualTo(owner);
@@ -104,7 +104,7 @@ public class RequestsTests {
         // Arrange
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
         final String description = "give me resources";
-        final Resources resources = new Resources(30, 50, 50);
+        final Resources resources = new Resources(50, 30, 50);
         final String owner = "User";
         final String facultyName = "CSE";
         final String deadline = "01-01-2023";
@@ -147,7 +147,7 @@ public class RequestsTests {
     public void register_withNotEnoughCpu_throwsException() throws Exception {
         // Arrange
         final String description = "give me resources";
-        final Resources resources = new Resources(30, 50, 50);
+        final Resources resources = new Resources(50, 30, 50);
         final String owner = "User";
         final String facultyName = "CSE";
         final String deadline = "01-01-2023";

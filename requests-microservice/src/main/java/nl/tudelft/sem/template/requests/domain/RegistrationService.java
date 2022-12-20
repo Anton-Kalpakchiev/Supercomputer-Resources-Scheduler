@@ -31,7 +31,7 @@ public class RegistrationService {
      * @param resources   The resources requested
      */
     public AppRequest registerRequest(String description, Resources resources, String owner, String facultyName,
-                                  Resources availableResources, Calendar deadline, Resources frpResources, String token)
+                                  Resources availableResources, Calendar deadline, Resources freePoolResources, String token)
             throws IOException, InvalidResourcesException {
         AppRequest request = new AppRequest(description, resources, owner, facultyName, deadline, -1);
 
@@ -47,11 +47,11 @@ public class RegistrationService {
 
         final boolean facultyHasEnoughResources = !(availableResources.getGpu() < resources.getGpu()
                 || availableResources.getCpu() < resources.getCpu()
-                || availableResources.getMem() < resources.getMem());
+                || availableResources.getMemory() < resources.getMemory());
 
         final boolean freePoolHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
                 || freePoolResources.getCpu() < resources.getCpu()
-                || freePoolResources.getMem() < resources.getMem());
+                || freePoolResources.getMemory() < resources.getMemory());
 
         final boolean isForTomorrow = isForTomorrow(deadline);
         int timePeriod;
@@ -107,7 +107,7 @@ public class RegistrationService {
 
         boolean freePoolHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
                 || freePoolResources.getCpu() < resources.getCpu()
-                || freePoolResources.getMem() < resources.getMem());
+                || freePoolResources.getMemory() < resources.getMemory());
 
         // int timePeriod = 1;
         /*

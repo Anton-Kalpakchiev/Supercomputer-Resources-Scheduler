@@ -23,8 +23,8 @@ class FacultyTest {
 
     @Test
     void testEquals() {
-        Faculty faculty1 = new Faculty("test", 1L);
-        Faculty faculty2 = new Faculty("test", 1L);
+        Faculty faculty1 = new Faculty("test", "EEMCS");
+        Faculty faculty2 = new Faculty("test", "EEMCS");
         faculty2.setBaseResources(new Resources(10, 20, 30));
         assertEquals(faculty1, faculty2);
     }
@@ -41,6 +41,6 @@ class FacultyTest {
         Faculty faculty = new Faculty("test", "EEMCS");
         faculty.setNodeResources(new Resources(42, 42, 42));
         assertEquals("Faculty{id=0, name='test', baseResources=0, 0, 0, nodeResources=42, 42, 42,"
-                + " managerNetId=8}", faculty.toString());
+                + " managerNetId=EEMCS}", faculty.toString());
     }
 }

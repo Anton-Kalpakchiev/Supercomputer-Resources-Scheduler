@@ -78,9 +78,9 @@ public class DailyScheduleId implements Serializable {
             return false;
         }
         DailyScheduleId that = (DailyScheduleId) o;
-        return resourcePoolId == that.resourcePoolId && day.get(Calendar.YEAR) == that.day.get(Calendar.YEAR) &&
-                day.get(Calendar.MONTH) == that.day.get(Calendar.MONTH) &&
-                day.get(Calendar.DAY_OF_MONTH) == that.day.get(Calendar.DAY_OF_MONTH);
+        return resourcePoolId == that.resourcePoolId && day.get(Calendar.YEAR) == that.day.get(Calendar.YEAR)
+                && day.get(Calendar.MONTH) == that.day.get(Calendar.MONTH)
+                && day.get(Calendar.DAY_OF_MONTH) == that.day.get(Calendar.DAY_OF_MONTH);
     }
 
     /**

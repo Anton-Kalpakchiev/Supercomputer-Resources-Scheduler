@@ -55,7 +55,7 @@ class StatusServiceTest {
         final Resources resources;
 
         try {
-            resources = new Resources(30, 50, 50);
+            resources = new Resources(50, 30, 50);
         } catch (InvalidResourcesException e) {
             throw new RuntimeException(e);
         }
@@ -80,7 +80,7 @@ class StatusServiceTest {
         final Resources resources;
 
         try {
-            resources = new Resources(30, 50, 50);
+            resources = new Resources(50, 30, 50);
         } catch (InvalidResourcesException e) {
             throw new RuntimeException(e);
         }
@@ -105,7 +105,7 @@ class StatusServiceTest {
         final Resources resources;
 
         try {
-            resources = new Resources(30, 50, 50);
+            resources = new Resources(50, 30, 50);
         } catch (InvalidResourcesException e) {
             throw new RuntimeException(e);
         }
