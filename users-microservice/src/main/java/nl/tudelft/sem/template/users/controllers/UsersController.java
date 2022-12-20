@@ -70,10 +70,11 @@ public class UsersController {
     public ResponseEntity<String> assignFacultyToEmployee(@RequestBody FacultyAssignmentRequestModel request) {
         String employee = request.getNetId();
         String employer = authentication.getNetId();
+        String token = JwtRequestFilter.token;
         try {
             Set<Long> facultyIds = promotionAndEmploymentService.parseJsonFacultyIds(request.getFacultyIds());
             Set<Long> assignedFaculties = promotionAndEmploymentService
-                    .authorizeEmploymentAssignmentRequest(employer, employee, facultyIds);
+                    .authorizeEmploymentAssignmentRequest(employer, employee, facultyIds, token);
             if (assignedFaculties.size() > 1) {
                 return ResponseEntity.ok("User (" + employee
                         + ") was assigned to the following faculties: " + assignedFaculties);
@@ -101,10 +102,11 @@ public class UsersController {
     public ResponseEntity<String> removeFacultyFromEmployee(@RequestBody FacultyAssignmentRequestModel request) {
         String employee = request.getNetId();
         String employer = authentication.getNetId();
+        String token = JwtRequestFilter.token;
         try {
             Set<Long> facultyIds = promotionAndEmploymentService.parseJsonFacultyIds(request.getFacultyIds());
             Set<Long> assignedFaculties = promotionAndEmploymentService
-                    .authorizeEmploymentRemovalRequest(employer, employee, facultyIds);
+                    .authorizeEmploymentRemovalRequest(employer, employee, facultyIds, token);
             if (assignedFaculties.size() > 1) {
                 return ResponseEntity.ok("User (" + employee
                         + ") was removed from the following faculties: " + assignedFaculties);

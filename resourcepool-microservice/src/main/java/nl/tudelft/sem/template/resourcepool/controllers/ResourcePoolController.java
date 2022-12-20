@@ -4,10 +4,7 @@ import nl.tudelft.sem.template.resourcepool.authentication.AuthManager;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.Faculty;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
-import nl.tudelft.sem.template.resourcepool.models.DistributionModel;
-import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
-import nl.tudelft.sem.template.resourcepool.models.FacultyCreationResponseModel;
-import nl.tudelft.sem.template.resourcepool.models.RequestTomorrowResourcesRequestModel;
+import nl.tudelft.sem.template.resourcepool.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -79,6 +76,24 @@ public class ResourcePoolController {
         try {
             Faculty newFaculty = rpManagementService.createFaculty(request.getName(), request.getManagerNetId());
             return ResponseEntity.ok(new FacultyCreationResponseModel(newFaculty.getId()));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
+     * Verifies whether a faculty exists or not.
+     *
+     * @param request the request to verify a faculty
+     * @return a response indicating whether it exists
+     * @throws Exception when request is incorrectly formatted
+     */
+    @PostMapping("/verifyFaculty")
+    public ResponseEntity<VerifyFacultyResponseModel> verifyFaculty(@RequestBody VerifyFacultyRequestModel request)
+            throws Exception {
+        try {
+            boolean result = rpManagementService.verifyFaculty(request.getFacultyId());
+            return ResponseEntity.ok(new VerifyFacultyResponseModel(result));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }

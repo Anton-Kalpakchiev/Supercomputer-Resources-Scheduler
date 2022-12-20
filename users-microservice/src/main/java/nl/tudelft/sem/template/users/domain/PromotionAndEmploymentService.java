@@ -1,11 +1,16 @@
 package nl.tudelft.sem.template.users.domain;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
-import nl.tudelft.sem.template.users.models.FacultyCreationRequestModel;
 import nl.tudelft.sem.template.users.models.FacultyCreationResponseModel;
 import nl.tudelft.sem.template.users.models.TemporaryRequestModel;
-import org.springframework.beans.factory.annotation.Autowired;
+import nl.tudelft.sem.template.users.models.VerifyFacultyRequestModel;
+import nl.tudelft.sem.template.users.models.VerifyFacultyResponseModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -13,10 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * A DDD service for promoting employees and employing them to faculties.
@@ -120,6 +121,33 @@ public class PromotionAndEmploymentService {
     }
 
     /**
+     * Verifies whether a faculty actually exists.
+     *
+     * @param facultyId the faculty id to be verified
+     * @param token the authentication token
+     * @return whether a faculty exists
+     * @throws EmploymentException thrown when faculty does not exist
+     */
+    public boolean verifyFaculty(long facultyId, String token) throws EmploymentException {
+        String url = "http://localhost:8085/verifyFaculty";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(token);
+        HttpEntity<VerifyFacultyRequestModel> entity = new HttpEntity<>(new VerifyFacultyRequestModel(facultyId), headers);
+
+        ResponseEntity<VerifyFacultyResponseModel> result = restTemplate.postForEntity(url, entity,
+                VerifyFacultyResponseModel.class);
+
+        if (result.getStatusCode().is2xxSuccessful() && Objects.requireNonNull(result.getBody()).isVerified()) {
+            return true;
+        } else {
+            throw new EmploymentException("The faculty the user wants to be employed at does not exist");
+
+        }
+    }
+
+    /**
      * Authorizes an employee assignment request from a user.
      *
      * @param employerNetId the netId of the employer
@@ -132,7 +160,10 @@ public class PromotionAndEmploymentService {
 
     @SuppressWarnings({"PMD.AvoidLiteralsInIfCondition"})
     public Set<Long> authorizeEmploymentAssignmentRequest(
-            String employerNetId, String employeeNetId, Set<Long> facultyIds) throws Exception {
+            String employerNetId, String employeeNetId, Set<Long> facultyIds, String token) throws Exception {
+        for (long facultyId : facultyIds) {
+            verifyFaculty(facultyId, token);
+        }
         if (authorization.isOfType(employerNetId, AccountType.SYSADMIN)) {
             for (Long facultyId : facultyIds) {
                 assignFacultyToEmployee(employeeNetId, facultyId);
@@ -167,7 +198,10 @@ public class PromotionAndEmploymentService {
      */
     @SuppressWarnings({"PMD.AvoidLiteralsInIfCondition"})
     public Set<Long> authorizeEmploymentRemovalRequest(
-            String employerNetId, String employeeNetId, Set<Long> facultyIds) throws Exception {
+            String employerNetId, String employeeNetId, Set<Long> facultyIds, String token) throws Exception {
+        for (long facultyId : facultyIds) {
+            verifyFaculty(facultyId, token);
+        }
         if (authorization.isOfType(employerNetId, AccountType.SYSADMIN)) {
             for (Long facultyId : facultyIds) {
                 removeEmployeeFromFaculty(employeeNetId, facultyId);

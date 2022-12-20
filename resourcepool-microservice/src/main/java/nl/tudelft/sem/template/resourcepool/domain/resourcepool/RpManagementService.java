@@ -41,6 +41,16 @@ public class RpManagementService {
     }
 
     /**
+     * Check whether a faculty exists in the repository.
+     *
+     * @param facultyId the faculty to be verified
+     * @return whether it exists
+     */
+    public boolean verifyFaculty(long facultyId) {
+        return repo.existsById(facultyId);
+    }
+
+    /**
      * Finds the resources of a faculty by faculty name.
      *
      * @param name the faculty name
