@@ -97,7 +97,7 @@ public class DailySchedule {
     /**
      * Sets the available resources.
      *
-     * @param availableResources
+     * @param availableResources the available resources for this day and faculty
      */
     public void setAvailableResources(Resources availableResources) {
         this.availableResources = availableResources;
@@ -113,9 +113,9 @@ public class DailySchedule {
     }
 
     /**
-     * Sets the total amount of resources
+     * Sets the total amount of resources.
      *
-     * @param totalResources
+     * @param totalResources the total amount of resources that need to be set
      */
     public void setTotalResources(Resources totalResources) {
         this.totalResources = totalResources;

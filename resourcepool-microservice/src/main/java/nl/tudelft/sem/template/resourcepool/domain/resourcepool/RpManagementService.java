@@ -1,9 +1,7 @@
 package nl.tudelft.sem.template.resourcepool.domain.resourcepool;
 
-import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
-import org.springframework.stereotype.Service;
-
 import java.util.Optional;
+import org.springframework.stereotype.Service;
 
 /**
  * A DDD service for managing the resource pools.
@@ -50,7 +48,7 @@ public class RpManagementService {
      * @throws Exception when the resource pool could not be found
      */
     public Optional<ResourcePool> findById(long resourcePoolId) throws Exception {
-        if(!repo.existsById(resourcePoolId)) {
+        if (!repo.existsById(resourcePoolId)) {
             throw new Exception();
         }
         return repo.findById(resourcePoolId);

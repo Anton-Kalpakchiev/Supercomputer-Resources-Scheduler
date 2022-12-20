@@ -30,10 +30,10 @@ public class DailyScheduleService {
     }
 
     /**
-     * Sets the resources of the daily schedule upon initializing
+     * Sets the resources of the daily schedule upon initializing.
      *
      * @param dailySchedule the daily schedule of which the resources need to be set
-     * @throws Exception
+     * @throws Exception if the saving doesn't work
      */
     public void saveDailyScheduleInit(DailySchedule dailySchedule) throws Exception {
         ResourcePool resourcePool = rpManagementService.findById(dailySchedule.getResourcePoolId()).get();
@@ -49,7 +49,7 @@ public class DailyScheduleService {
      * @param dailySchedule the daily schedule from which the available resources need to be updated
      * @param requestId the id of the request that is scheduled
      * @param token the jwtToken
-     * @throws IOException
+     * @throws IOException if something isn't formatted the right way
      */
     public void updateResources(DailySchedule dailySchedule, long requestId, String token) throws IOException {
         Resources requestedResources = requestService.getRequestedResourcesById(requestId, token);

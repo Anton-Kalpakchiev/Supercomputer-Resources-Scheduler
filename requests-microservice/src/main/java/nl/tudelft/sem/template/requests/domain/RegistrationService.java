@@ -104,13 +104,13 @@ public class RegistrationService {
         Calendar deadline = Calendar.getInstance(); //request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
 
-        boolean freePoolHasEnoughResources = true;
+        frpHasEnoughResources = true;
         if (freePoolResources.getGpu() < resources.getGpu()
                 || freePoolResources.getCpu() < resources.getCpu()
                 || freePoolResources.getMemory() < resources.getMemory()) {
-            freePoolHasEnoughResources = false;
+            frpHasEnoughResources = false;
         }
-        int timePeriod = 1;
+        //int timePeriod = 1;
         /*
         0 when before the 6h deadline,
         1 when after the 6h deadline and before the 5min deadline,
@@ -118,11 +118,11 @@ public class RegistrationService {
         */
 
         //automatic rejection
-        if ((!freePoolHasEnoughResources && isForTomorrow(deadline))) {
+        if ((!frpHasEnoughResources && isForTomorrow(deadline))) {
             System.out.println("To be implemented!");
             //auto reject
             //find request in Repo, update its status
-        } else if (freePoolHasEnoughResources) {
+        } else if (frpHasEnoughResources) {
             System.out.println("To be implemented!");
             //auto approve for tomorrow
             //find request in Repo, update its status
@@ -135,7 +135,7 @@ public class RegistrationService {
         //0 when before the 6h deadline,
         // 1 when after the 6h deadline and before the 5min deadline,
         // 2 when after the 5min deadline
-        timePeriod = 1;
+        // timePeriod = 1;
         //        if ((!FRPHasEnoughResources && isForTomorrow(request.getDeadline())) {
         //            //auto reject
         //            //find request in Repo, update its status
