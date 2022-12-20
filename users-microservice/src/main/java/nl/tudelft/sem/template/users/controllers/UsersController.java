@@ -41,7 +41,7 @@ public class UsersController {
 
     private final transient EmployeeService employeeService;
 
-    private final transient  FacultyAccountService facultyAccountService;
+    private final transient FacultyAccountService facultyAccountService;
 
     /**
      * Adds a new user as an admin if their netId is "admin", else
