@@ -10,9 +10,6 @@ import org.springframework.stereotype.Service;
 public class RegistrationService {
     private final transient RequestRepository requestRepository;
     private final transient ResourcePoolService resourcePoolService;
-    private transient boolean facultyHasEnoughResources;
-    private transient boolean frpHasEnoughResources;
-    private transient int timePeriod;
 
     /**
      * Instantiates a new RegistrationService.
@@ -49,7 +46,7 @@ public class RegistrationService {
                 || availableResources.getCpu() < resources.getCpu()
                 || availableResources.getMemory() < resources.getMemory());
 
-        final boolean freePoolHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
+        final boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
                 || freePoolResources.getCpu() < resources.getCpu()
                 || freePoolResources.getMemory() < resources.getMemory());
 
@@ -105,7 +102,7 @@ public class RegistrationService {
         Calendar deadline = Calendar.getInstance(); //request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
 
-        boolean freePoolHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
+        boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
                 || freePoolResources.getCpu() < resources.getCpu()
                 || freePoolResources.getMemory() < resources.getMemory());
 
