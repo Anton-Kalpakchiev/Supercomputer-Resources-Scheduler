@@ -53,8 +53,8 @@ public class DailySchedule {
     public DailySchedule(Calendar day, long resourcePoolId) {
         this.day = day;
         this.resourcePoolId = resourcePoolId;
-        this.availableResources = null;
-        this.totalResources = null;
+        this.availableResources = new Resources(0,0,0);
+        this.totalResources = new Resources(0,0,0);
         this.list = new ArrayList<>();
     }
 
