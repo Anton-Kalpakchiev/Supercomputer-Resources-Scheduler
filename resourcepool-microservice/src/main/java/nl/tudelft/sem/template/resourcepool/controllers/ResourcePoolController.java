@@ -78,7 +78,7 @@ public class ResourcePoolController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(request.getName() + " was successfully added.");
     }
 
     /**
