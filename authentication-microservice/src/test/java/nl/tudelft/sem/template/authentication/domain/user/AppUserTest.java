@@ -1,11 +1,10 @@
 package nl.tudelft.sem.template.authentication.domain.user;
 
-import java.util.Objects;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Objects;
+import org.junit.jupiter.api.Test;
 
 class AppUserTest {
 
