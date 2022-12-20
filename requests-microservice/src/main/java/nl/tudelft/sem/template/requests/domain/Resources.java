@@ -1,9 +1,8 @@
 package nl.tudelft.sem.template.requests.domain;
 
+import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
-import java.util.Objects;
 
 /**
  * A DDD value object representing a password in our domain.
@@ -46,6 +45,7 @@ public class Resources {
         Resources o = (Resources) other;
         return (this.mem == o.getMem() && this.cpu == o.getCpu() && this.gpu == o.getGpu());
     }
+
     @Override
     public int hashCode() {
         return Objects.hash(this);
