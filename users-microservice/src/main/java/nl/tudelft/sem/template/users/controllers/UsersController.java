@@ -15,8 +15,8 @@ import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.Sysadmin;
 import nl.tudelft.sem.template.users.domain.User;
 import nl.tudelft.sem.template.users.models.CheckAccessResponseModel;
-import nl.tudelft.sem.template.users.models.FacultyCreationRequestModel;
 import nl.tudelft.sem.template.users.models.FacultyAssignmentRequestModel;
+import nl.tudelft.sem.template.users.models.FacultyCreationRequestModel;
 import nl.tudelft.sem.template.users.models.PromotionRequestModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
 
 /**
  * Controller for the user microservice.
@@ -64,14 +63,14 @@ public class UsersController {
      * @param request the request body with a given model
      * @return a HTTP response
      */
-    @PostMapping("/assignFaculty")
+    @PostMapping("/hireEmployee")
     public ResponseEntity<String> assignFacultyToEmployee(@RequestBody FacultyAssignmentRequestModel request) {
-        String employer = request.getNetId();
-        String employee = authentication.getNetId();
+        String employee = request.getNetId();
+        String employer = authentication.getNetId();
         try {
-            Set<Long> facultyIds = employeeService.parseJsonFacultyIds(request.getFacultyIds());
-            Set<Long> assignedFaculties = employeeService
-                    .authenticateEmploymentAssignmentRequest(employer, employee, facultyIds);
+            Set<Long> facultyIds = promotionAndEmploymentService.parseJsonFacultyIds(request.getFacultyIds());
+            Set<Long> assignedFaculties = promotionAndEmploymentService
+                    .authorizeEmploymentAssignmentRequest(employer, employee, facultyIds);
             if (assignedFaculties.size() > 1) {
                 return ResponseEntity.ok("User (" + employer
                         + ") was assigned to the following faculties: " + assignedFaculties);
@@ -94,14 +93,14 @@ public class UsersController {
      * @param request the request body with a given model
      * @return a HTTP response
      */
-    @PostMapping("/removeFaculty")
-    public ResponseEntity<String> removeFacultyEmployee(@RequestBody FacultyAssignmentRequestModel request) {
-        String employer = request.getNetId();
-        String employee = authentication.getNetId();
+    @PostMapping("/terminateEmployee")
+    public ResponseEntity<String> removeFacultyFromEmployee(@RequestBody FacultyAssignmentRequestModel request) {
+        String employee = request.getNetId();
+        String employer = authentication.getNetId();
         try {
-            Set<Long> facultyIds = employeeService.parseJsonFacultyIds(request.getFacultyIds());
-            Set<Long> assignedFaculties = employeeService
-                    .authenticateEmploymentAssignmentRequest(employer, employee, facultyIds);
+            Set<Long> facultyIds = promotionAndEmploymentService.parseJsonFacultyIds(request.getFacultyIds());
+            Set<Long> assignedFaculties = promotionAndEmploymentService
+                    .authorizeEmploymentRemovalRequest(employer, employee, facultyIds);
             if (assignedFaculties.size() > 1) {
                 return ResponseEntity.ok("User (" + employer
                         + ") was removed from the following faculties: " + assignedFaculties);

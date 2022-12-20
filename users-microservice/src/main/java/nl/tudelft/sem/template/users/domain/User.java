@@ -1,16 +1,9 @@
 package nl.tudelft.sem.template.users.domain;
 
-
 import java.util.Objects;
 import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
-import lombok.NoArgsConstructor;
-
-
-
 
 @MappedSuperclass
 public abstract class User {
@@ -18,7 +11,6 @@ public abstract class User {
     @Id
     @Column(name = "net_id")
     protected String netId;
-
 
     /**
      * Constructor for the abstract parent User.

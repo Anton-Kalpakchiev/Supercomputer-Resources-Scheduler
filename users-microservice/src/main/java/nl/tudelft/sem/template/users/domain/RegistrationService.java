@@ -1,8 +1,7 @@
 package nl.tudelft.sem.template.users.domain;
 
-import org.springframework.stereotype.Service;
-
 import java.util.Set;
+import org.springframework.stereotype.Service;
 
 /**
  * A DDD service for registering a new user.

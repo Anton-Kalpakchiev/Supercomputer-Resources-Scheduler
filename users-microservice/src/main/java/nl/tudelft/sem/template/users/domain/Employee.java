@@ -55,12 +55,33 @@ public class Employee extends User {
     }
 
     /**
-     * Setter for the parent faculties.
+     * Adds a faculty to the list of faculties.
      *
-     * @param parentFacultyIds the new parent faculty id.
+     * @param facultyId the given faculty id
+     * @return whether the operation was successful
      */
-    public void setParentFacultyIds(Set<Long> parentFacultyIds) {
-        this.parentFacultyIds = parentFacultyIds;
+    public boolean addFaculty(long facultyId) {
+        if (this.parentFacultyIds.contains(facultyId)) {
+            return false;
+        } else {
+            this.parentFacultyIds.add(facultyId);
+            return true;
+        }
+    }
+
+    /**
+     * Removes a faculty from the list of faculties.
+     *
+     * @param facultyId the given faculty id
+     * @return whether the operation was successful
+     */
+    public boolean removeFaculty(long facultyId) {
+        if (this.parentFacultyIds.contains(facultyId)) {
+            this.parentFacultyIds.remove(facultyId);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

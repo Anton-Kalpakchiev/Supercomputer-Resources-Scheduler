@@ -74,4 +74,23 @@ public class UserControllerTest {
         String response = result.andReturn().getResponse().getContentAsString();
         assertThat(response).isEqualTo("User (employee) was added as an Employee.");
     }
+
+    @Test
+    public void assignFacultyTest() throws Exception {
+        //Arrange
+        when(mockAuthenticationManager.getNetId()).thenReturn("admin");
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn("admin");
+
+        //Act
+        ResultActions result = mockMvc.perform(get("/newUser")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer MockedToken"));
+
+        //Assert
+        result.andExpect(status().isOk());
+
+        String response = result.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo("User (admin) was added as a Sysadmin.");
+    }
 }

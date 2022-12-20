@@ -13,6 +13,7 @@ public class EmployeeAndUserUnitTest {
     private String empty;
     private long parentFacultyId;
     private Employee testSubject;
+    private Employee emptyTestSubject;
 
     @BeforeEach
     void setup() {
@@ -20,6 +21,7 @@ public class EmployeeAndUserUnitTest {
         empty = "";
         parentFacultyId = 5L;
         testSubject = new Employee(netId, Set.of(parentFacultyId));
+        emptyTestSubject = new Employee(netId);
     }
 
     @Test
@@ -46,17 +48,32 @@ public class EmployeeAndUserUnitTest {
     }
 
     @Test
-    public void setParentFacultyIdTest() {
-        testSubject.setParentFacultyIds(Set.of(6L));
-        assertThat(testSubject.getParentFacultyIds()).isEqualTo(Set.of(6L));
+    public void addFacultySuccessful() {
+        assertThat(emptyTestSubject.addFaculty(parentFacultyId)).isTrue();
+    }
+
+    @Test
+    public void addFacultyUnsuccessful() {
+        emptyTestSubject.addFaculty(parentFacultyId);
+        assertThat(emptyTestSubject.addFaculty(parentFacultyId)).isFalse();
+    }
+
+    @Test
+    public void removeFacultySuccessful() {
+        emptyTestSubject.addFaculty(parentFacultyId);
+        assertThat(emptyTestSubject.removeFaculty(parentFacultyId)).isTrue();
+    }
+
+    @Test
+    public void removeFacultyUnsuccessful() {
+        assertThat(emptyTestSubject.removeFaculty(parentFacultyId)).isFalse();
     }
 
     @Test
     public void toStringTest() {
         assertThat(testSubject.toString())
                 .isEqualTo("Employee with netId: " + netId + " -> at faculty [" + parentFacultyId + "]");
-        Employee noFaculty = new Employee(netId);
-        assertThat(noFaculty.toString())
+        assertThat(emptyTestSubject.toString())
                 .isEqualTo("Employee with netId: " + netId + " -> no faculty.");
     }
 

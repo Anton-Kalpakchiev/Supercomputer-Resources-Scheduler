@@ -22,6 +22,7 @@ public class RegistrationService {
      * @param description The description of the request
      * @param resources   The resorces requested
      */
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public AppRequest registerRequest(String description, Resources resources,
                                       String owner, String facultyName, Resources availableResources,
                                       Calendar deadline, Resources freePoolResources) {
@@ -95,6 +96,7 @@ public class RegistrationService {
      * @return the AppRequest returned after processing
      * @throws InvalidResourcesException thrown when resources are invalid
      */
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public AppRequest processRequestInPeriodOne(
             AppRequest request, Resources freePoolResources) throws InvalidResourcesException {
         Calendar deadline = Calendar.getInstance(); //request.getDeadline();
