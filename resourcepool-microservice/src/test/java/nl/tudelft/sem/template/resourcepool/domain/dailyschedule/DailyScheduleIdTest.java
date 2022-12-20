@@ -1,12 +1,10 @@
 package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import java.util.Calendar;
 import java.util.Date;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class DailyScheduleIdTest {
 
@@ -78,7 +76,7 @@ class DailyScheduleIdTest {
         day2.set(Calendar.DAY_OF_MONTH, 1);
         DailyScheduleId dsi1 = new DailyScheduleId(day, 1);
         DailyScheduleId dsi2 = new DailyScheduleId(day2, 1);
-        assertEquals(dsi1, dsi2);
+        assertTrue(dsi1.equals(dsi2));
     }
 
     @Test
