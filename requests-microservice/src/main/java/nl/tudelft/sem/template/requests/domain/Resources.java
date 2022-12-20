@@ -3,6 +3,8 @@ package nl.tudelft.sem.template.requests.domain;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.Objects;
+
 /**
  * A DDD value object representing a password in our domain.
  */
@@ -29,11 +31,7 @@ public class Resources {
         this.cpu = cpu;
         this.gpu = gpu;
 
-        if (mem < 0 || cpu < 0 || gpu < 0) {
-            throw new InvalidResourcesException(this);
-        }
-
-        if (cpu < gpu) {
+        if (mem < 0 || cpu < 0 || gpu < 0 || cpu < gpu) {
             throw new InvalidResourcesException(this);
         }
     }
@@ -41,5 +39,15 @@ public class Resources {
     @Override
     public String toString() {
         return "Memory: " + mem + " CPU: " + cpu + " GPU: " + gpu;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        Resources o = (Resources) other;
+        return (this.mem == o.getMem() && this.cpu == o.getCpu() && this.gpu == o.getGpu());
+    }
+    @Override
+    public int hashCode() {
+        return Objects.hash(this);
     }
 }
