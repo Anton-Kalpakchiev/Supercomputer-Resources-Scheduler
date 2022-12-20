@@ -70,36 +70,38 @@ public class RegistrationService {
         if ((timePeriod == 2 && isForTomorrow) || (!frpHasEnoughResources && timePeriod == 1 && isForTomorrow)) {
             //auto reject
             request.setStatus(2);
+            requestRepository.save(request);
         } else if ((timePeriod == 1 && frpHasEnoughResources) || (isForTomorrow && timePeriod == 0
                 && !facultyHasEnoughResources && frpHasEnoughResources)) {
             //auto approve
             request.setStatus(1);
             requestRepository.save(request);
-            resourcePoolService.automaticApproval(deadline, request.getId(), token);
-            //update RP/Schedule MS os that it can update the schedule for the corresponding faculty for tomorrow
+            resourcePoolService.approval(deadline, request.getId(), token);
+            //update RP/Schedule MS so that it can update the schedule for the corresponding faculty for tomorrow
         } else if (timePeriod == 0 && !facultyHasEnoughResources && !frpHasEnoughResources) {
             //wait for the FRP to get more resources at 6h before end of day and then automatically check again
             request.setStatus(3);
+            requestRepository.save(request);
         } else {
-            //set for manual approval/rejection
+            //set for manual review
             request.setStatus(0);
+            requestRepository.save(request);
         }
 
-        requestRepository.save(request);
         return request;
     }
 
     /**
-     * Processes a request in period one.
+     * Processes a requests that is left pending until the frp gets more resources at 6h before the start of the next day.
+     * Gets called on every request withs status 3 at the aforementioned time.
      *
      * @param request the given request
      * @param freePoolResources the free resources
      * @return the AppRequest returned after processing
      * @throws InvalidResourcesException thrown when resources are invalid
      */
-    public AppRequest processRequestInPeriodOne(
-            AppRequest request, Resources freePoolResources) throws InvalidResourcesException {
-        Calendar deadline = Calendar.getInstance(); //request.getDeadline();
+    public AppRequest processRequestInPeriodOne(AppRequest request, Resources freePoolResources, String token) throws InvalidResourcesException {
+        Calendar deadline = request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
 
         boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
@@ -113,36 +115,24 @@ public class RegistrationService {
         2 when after the 5 min deadline
         */
 
-        //automatic rejection
         if ((!frpHasEnoughResources && isForTomorrow(deadline))) {
-            System.out.println("To be implemented!");
-            //auto reject
+            //rejection
             //find request in Repo, update its status
+            request.setStatus(2);
+            requestRepository.save(request);
         } else if (frpHasEnoughResources) {
-            System.out.println("To be implemented!");
-            //auto approve for tomorrow
+            //approval for tomorrow
+            request.setStatus(1);
             //find request in Repo, update its status
+            requestRepository.save(request);
             //update RP/Schedule MS os that it can update the schedule for the corresponding faculty for tomorrow
+            resourcePoolService.approval(deadline, request.getId(), token);
         } else {
-            System.out.println("To be implemented!");
-            //set for manual approval
+            //set for manual review
             //find request in Repo, update its status
+            request.setStatus(0);
+            requestRepository.save(request);
         }
-        //0 when before the 6h deadline,
-        // 1 when after the 6h deadline and before the 5min deadline,
-        // 2 when after the 5min deadline
-        // timePeriod = 1;
-        //        if ((!FRPHasEnoughResources && isForTomorrow(request.getDeadline())) {
-        //            //auto reject
-        //            //find request in Repo, update its status
-        //        } else if (FRPHasEnoughResources) {
-        //            //auto approve for tomorrow
-        //            //find request in Repo, update its status
-        //            //update RP/Schedule MS os that it can update the schedule for the corresponding faculty for tomorrow
-        //        } else {
-        //            //set for manual approval
-        //            //find request in Repo, update its status
-        //        }
         return request;
     }
 

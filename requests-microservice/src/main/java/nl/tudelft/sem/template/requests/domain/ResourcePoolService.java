@@ -14,14 +14,14 @@ import org.springframework.web.client.RestTemplate;
 public class ResourcePoolService {
 
     /**
-     * Automatically approve the request.
+     * Approves the request. Tells the RP MS to schedule the request for the given day.
      *
      * @param day the day the request has to be scheduled on.
      * @param requestId the id of the to be scheduled request.
      * @param token the jwtToken.
      * @return true when the request is succesfully scheduled.
      */
-    public ResponseEntity<Boolean> automaticApproval(Calendar day, long requestId, String token) {
+    public ResponseEntity<Boolean> approval(Calendar day, long requestId, String token) {
         System.out.println(requestId);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Type", "application/json");

@@ -32,7 +32,7 @@ public class Resources {
         this.gpu = gpu;
         this.memory = memory;
 
-        if (memory < 0 || cpu < 0 || gpu < 0 || cpu < gpu) {
+        if (memory < 0 || cpu < 0 || gpu < 0 || cpu < gpu || cpu < memory) {
             throw new InvalidResourcesException(this);
         }
     }
