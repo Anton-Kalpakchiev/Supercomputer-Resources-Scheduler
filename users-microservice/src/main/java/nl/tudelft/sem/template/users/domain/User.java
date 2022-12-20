@@ -2,8 +2,10 @@ package nl.tudelft.sem.template.users.domain;
 
 import java.util.Objects;
 import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+import org.hibernate.annotations.GenericGenerator;
 
 @MappedSuperclass
 public abstract class User {

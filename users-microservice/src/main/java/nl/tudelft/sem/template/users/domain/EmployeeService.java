@@ -24,13 +24,28 @@ public class EmployeeService {
     private FacultyAccountService facultyAccountService;
 
     /**
-     * Gets the employee if they exist.
+     * Gets the set of parent faculty ids of employee if they exist.
      *
      * @param netId the users netId
      */
     public Set<Long> getParentFacultyId(String netId) throws NoSuchUserException {
         if (employeeRepository.findByNetId(netId).isPresent()) {
             return employeeRepository.findByNetId(netId).get().getParentFacultyIds();
+        } else {
+            throw new NoSuchUserException("No such user was found");
+        }
+    }
+
+    /**
+     * Gets the employee if they exist.
+     *
+     * @param netId the users netId
+     * @return the Employee
+     * @throws NoSuchUserException thrown when user is not found
+     */
+    public Employee getEmployee(String netId) throws NoSuchUserException {
+        if (employeeRepository.findByNetId(netId).isPresent()) {
+            return employeeRepository.findByNetId(netId).get();
         } else {
             throw new NoSuchUserException("No such user was found");
         }

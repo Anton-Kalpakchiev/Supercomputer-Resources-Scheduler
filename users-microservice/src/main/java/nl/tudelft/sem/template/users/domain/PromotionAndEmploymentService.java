@@ -188,7 +188,6 @@ public class PromotionAndEmploymentService {
      */
     public Set<Long> parseJsonFacultyIds(String facultyIds) throws EmploymentException {
         try {
-            facultyIds = facultyIds.split(":")[1];
             return Arrays.stream(facultyIds.split(","))
                     .map(String::trim)
                     .map(Long::parseLong)

@@ -92,19 +92,19 @@ public class PromotionAndEmploymentUnitTest {
 
     @Test
     void jsonParsedCorrectly() throws EmploymentException {
-        String facultyIds = "facultyIds: 6, 7, 8";
+        String facultyIds = "6, 7, 8";
         assertThat(sut.parseJsonFacultyIds(facultyIds)).isEqualTo(Set.of(6L, 7L, 8L));
     }
 
     @Test
     void jsonParsedIncorrectly() {
-        String facultyIds = "facultyIds 6, 7, 8";
+        String facultyIds = "6 7, 8";
         assertThrows(EmploymentException.class, () -> sut.parseJsonFacultyIds(facultyIds));
     }
 
     @Test
     void jsonParsedIncorrectlyNone() {
-        String facultyIds = "facultyIds: None";
+        String facultyIds = "None";
         assertThrows(EmploymentException.class, () -> sut.parseJsonFacultyIds(facultyIds));
     }
 
