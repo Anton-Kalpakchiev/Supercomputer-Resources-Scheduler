@@ -1,5 +1,6 @@
 package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 
+import java.io.IOException;
 import java.util.Calendar;
 import nl.tudelft.sem.template.resourcepool.domain.RequestService;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.ResourcePool;
@@ -8,7 +9,7 @@ import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import org.springframework.stereotype.Service;
 
 /**
- * A DDD service for managing the resource pools.
+ * A DDD service for managing the daily schedules.
  */
 @Service
 public class DailyScheduleService {
@@ -28,6 +29,12 @@ public class DailyScheduleService {
         this.requestService = requestService;
     }
 
+    /**
+     * Sets the resources of the daily schedule upon initializing
+     *
+     * @param dailySchedule the daily schedule of which the resources need to be set
+     * @throws Exception
+     */
     public void saveDailyScheduleInit(DailySchedule dailySchedule) throws Exception {
         ResourcePool resourcePool = rpManagementService.findById(dailySchedule.getResourcePoolId()).get();
         Resources resources = Resources.add(resourcePool.getNodeResources(), resourcePool.getBaseResources());
@@ -36,8 +43,17 @@ public class DailyScheduleService {
         repo.save(dailySchedule);
     }
 
-    public void updateResources(DailySchedule dailySchedule, long requestId) {
-        requestService.getRequestedResourcesById()
+    /**
+     * Updates the available resources.
+     *
+     * @param dailySchedule the daily schedule from which the available resources need to be updated
+     * @param requestId the id of the request that is scheduled
+     * @param token the jwtToken
+     * @throws IOException
+     */
+    public void updateResources(DailySchedule dailySchedule, long requestId, String token) throws IOException {
+        Resources requestedResources = requestService.getRequestedResourcesById(requestId, token);
+        dailySchedule.setAvailableResources(Resources.subtract(dailySchedule.getAvailableResources(), requestedResources));
     }
 
     /**
@@ -52,27 +68,13 @@ public class DailyScheduleService {
         DailyScheduleId id = new DailyScheduleId(day, 1);
         if (!repo.existsById(id)) {
             DailySchedule toSave = new DailySchedule(day, 1);
+            saveDailyScheduleInit(toSave);
             repo.save(toSave);
         }
         DailySchedule dailySchedule = repo.findByDayAndResourcePoolId(day, 1).get();
         dailySchedule.addRequest(requestId);
-        updateResources(dailySchedule, requestId);
+        updateResources(dailySchedule, requestId, token);
         repo.save(dailySchedule);
     }
-
-    /**
-     * Updates the available resources.
-     *
-     * @param resourcePoolId the resource pool id
-     * @param requestId the request that is scheduled
-     * @throws Exception if something fails
-     */
-    public void updateResources(long resourcePoolId, long requestId) throws Exception {
-        //        if(!repo.existsById(resourcePoolId)) {
-        //            throw new Exception();
-        //        }
-
-        System.out.println("Didnt update resources but that's okay");
-
-    }
+    
 }
