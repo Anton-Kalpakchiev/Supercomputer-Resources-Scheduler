@@ -40,14 +40,11 @@ public class PromotionAndEmploymentService {
      */
     public PromotionAndEmploymentService(SysadminRepository sysadminRepository,
                                          EmployeeRepository employeeRepository,
-                                         FacultyAccountRepository facultyAccountRepository,
-                                         RegistrationService registrationService,
-                                         AuthorizationManager authorization,
-                                         RestTemplate restTemplate) {
+                                         FacultyAccountRepository facultyAccountRepository) {
         this.sysadminRepository = sysadminRepository;
         this.employeeRepository = employeeRepository;
         this.facultyAccountRepository = facultyAccountRepository;
-        registrationService = new RegistrationService(sysadminRepository,
+        this.registrationService = new RegistrationService(sysadminRepository,
                 employeeRepository, facultyAccountRepository);
         authorization = new AuthorizationManager(sysadminRepository,
                 employeeRepository, facultyAccountRepository);

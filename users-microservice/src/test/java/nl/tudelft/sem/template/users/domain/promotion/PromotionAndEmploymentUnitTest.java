@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,6 +13,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 import java.util.Optional;
 import java.util.Set;
+import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
 import nl.tudelft.sem.template.users.domain.Employee;
@@ -31,6 +31,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestTemplate;
 
 public class PromotionAndEmploymentUnitTest {
     private SysadminRepository sysadminRepository;
@@ -47,7 +50,6 @@ public class PromotionAndEmploymentUnitTest {
     private FacultyAccount facultyAccount;
     private final String adminNetId = "admin";
     private final String employeeNetId = "ivo";
-    private final String facultyNetId = "math";
     private final long facultyId = 6L;
     private final String facultyNetId = "professor";
     private final String facultyName = "math";
@@ -67,7 +69,7 @@ public class PromotionAndEmploymentUnitTest {
         mockRestServiceServer = MockRestServiceServer.createServer(restTemplate);
 
         sut = new PromotionAndEmploymentService(sysadminRepository, employeeRepository,
-                facultyAccountRepository, registrationService, authorization, restTemplate);
+                facultyAccountRepository);
 
         admin = new Sysadmin(adminNetId);
         employee = new Employee(employeeNetId);
@@ -171,13 +173,13 @@ public class PromotionAndEmploymentUnitTest {
     public void createFacultyNormalFlow() {
         try {
             mockRestServiceServer.expect(requestTo("http://localhost:8085/createFaculty"))
-                    .andRespond(withSuccess("{\"facultyId\": \"" + facultyNumber + "\"}", MediaType.APPLICATION_JSON));
+                    .andRespond(withSuccess("{\"facultyId\": \"" + facultyId + "\"}", MediaType.APPLICATION_JSON));
 
             long expected = sut.createFaculty(adminNetId, employeeNetId, facultyName, sampleToken);
-            assertThat(expected).isEqualTo(facultyNumber);
+            assertThat(expected).isEqualTo(facultyId);
 
             verify(registrationService).dropEmployee(employeeNetId);
-            verify(registrationService).addFacultyAccount(employeeNetId, facultyNumber);
+            verify(registrationService).addFacultyAccount(employeeNetId, facultyId);
         } catch (Exception e) {
             fail("An exception was thrown.");
         }
