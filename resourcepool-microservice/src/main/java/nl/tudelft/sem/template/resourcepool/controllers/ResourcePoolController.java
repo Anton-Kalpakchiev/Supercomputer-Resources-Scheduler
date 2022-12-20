@@ -58,9 +58,8 @@ public class ResourcePoolController {
     @PostMapping("/availableFacultyResources")
     public ResponseEntity<Resources> getAvailableFacultyResources(@RequestBody
                                                                       RequestTomorrowResourcesRequestModel request) {
-        long facultyId = request.getResourcePoolId();
         try {
-            return ResponseEntity.ok(rpManagementService.getAvailableResourcesById(facultyId));
+            return ResponseEntity.ok(rpManagementService.getAvailableResourcesById(request.getResourcePoolId()));
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
