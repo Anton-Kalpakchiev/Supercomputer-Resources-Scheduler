@@ -1,10 +1,12 @@
 package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 
-import java.util.Calendar;
-import java.util.Date;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Calendar;
+import org.junit.jupiter.api.Test;
 
 class DailyScheduleIdTest {
 
