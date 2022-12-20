@@ -35,7 +35,7 @@ class StatusServiceTest {
         final Resources resources;
 
         try {
-            resources = new Resources(30, 50, 50);
+            resources = new Resources(50, 50, 30);
         } catch (InvalidResourcesException e) {
             throw new RuntimeException(e);
         }

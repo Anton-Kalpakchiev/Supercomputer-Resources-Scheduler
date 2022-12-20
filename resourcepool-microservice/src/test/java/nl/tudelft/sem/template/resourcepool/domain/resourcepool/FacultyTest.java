@@ -41,6 +41,6 @@ class FacultyTest {
         Faculty faculty = new Faculty("test", 8L);
         faculty.setNodeResources(new Resources(42, 42, 42));
         assertEquals("Faculty{id=0, name='test', baseResources=0, 0, 0, nodeResources=42, 42, 42,"
-                + " availableResources=0, 0, 0, managerNetId=8}", faculty.toString());
+                + " managerNetId=8}", faculty.toString());
     }
 }

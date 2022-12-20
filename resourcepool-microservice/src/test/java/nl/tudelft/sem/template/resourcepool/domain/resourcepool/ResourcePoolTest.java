@@ -73,6 +73,6 @@ class ResourcePoolTest {
         ResourcePool rp = new ResourcePool("test");
         rp.setNodeResources(new Resources(42, 42, 42));
         assertEquals("ResourcePool{id=0, name='test', baseResources=0, 0, 0,"
-                + " nodeResources=42, 42, 42, availableResources=0, 0, 0}", rp.toString());
+                + " nodeResources=42, 42, 42}", rp.toString());
     }
 }
