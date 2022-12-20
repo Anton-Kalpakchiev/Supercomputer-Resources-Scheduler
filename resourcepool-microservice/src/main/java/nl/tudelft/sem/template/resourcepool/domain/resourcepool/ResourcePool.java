@@ -36,7 +36,7 @@ public class ResourcePool extends HasEvents {
     private Resources nodeResources;
 
     @Column(name = "managerNetId")//this is just here so the repo knows the column exists
-    private long managerNetId;
+    private String managerNetId;
 
     /**
      * Constructs a new ResourcePool with the specified id and name,

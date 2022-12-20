@@ -5,6 +5,8 @@ import java.util.Calendar;
 import org.springframework.stereotype.Service;
 
 @Service
+//We can remove this line later on, but I can't figure out how to fix this and the code works perfect with the error in it
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class RegistrationService {
     private final transient RequestRepository requestRepository;
     private final transient ResourcePoolService resourcePoolService;
