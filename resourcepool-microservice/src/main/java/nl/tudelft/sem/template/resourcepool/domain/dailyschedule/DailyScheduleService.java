@@ -76,5 +76,22 @@ public class DailyScheduleService {
         updateResources(dailySchedule, requestId, token);
         repo.save(dailySchedule);
     }
-    
+
+    /**
+     * Retrieves the available resources of a resource pool.
+     *
+     * @param resourcePoolId the id of the resource pool
+     * @return the available resources
+     * @throws Exception thrown when resources were not found
+     */
+    public Resources getAvailableResourcesById(long resourcePoolId) throws Exception {
+        Calendar tomorrow = Calendar.getInstance();
+        tomorrow.add(Calendar.DATE, 1);
+        if (repo.findByDayAndResourcePoolId(tomorrow, resourcePoolId).isPresent()) {
+            return repo.findByDayAndResourcePoolId(tomorrow, resourcePoolId).get().getAvailableResources();
+        } else {
+            // Proper exception implemented in different brancehs
+            throw new Exception("Resource pool note found");
+        }
+    }
 }

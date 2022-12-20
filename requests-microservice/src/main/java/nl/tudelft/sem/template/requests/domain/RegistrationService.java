@@ -107,7 +107,7 @@ public class RegistrationService {
         boolean freePoolHasEnoughResources = true;
         if (freePoolResources.getGpu() < resources.getGpu()
                 || freePoolResources.getCpu() < resources.getCpu()
-                || freePoolResources.getMem() < resources.getMem()) {
+                || freePoolResources.getMemory() < resources.getMemory()) {
             freePoolHasEnoughResources = false;
         }
         int timePeriod = 1;
@@ -118,7 +118,7 @@ public class RegistrationService {
         */
 
         //automatic rejection
-        if ((!freePoolHasEnoughResources && isForTomorrow)) {
+        if ((!freePoolHasEnoughResources && isForTomorrow(deadline))) {
             System.out.println("To be implemented!");
             //auto reject
             //find request in Repo, update its status

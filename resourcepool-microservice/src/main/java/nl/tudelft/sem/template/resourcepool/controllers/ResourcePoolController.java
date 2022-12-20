@@ -49,24 +49,6 @@ public class ResourcePoolController {
     }
 
     /**
-     * Retrieves the available resources for tomorrow of a given faculty.
-     *
-     * @param request the request body
-     * @return the available resources of that faculty
-     */
-    @PostMapping("/availableFacultyResources")
-    public ResponseEntity<Resources> getAvailableFacultyResources(@RequestBody
-                                                                      RequestTomorrowResourcesRequestModel request) {
-        long facultyId = request.getResourcePoolId();
-        try {
-            return ResponseEntity.ok(rpManagementService.getAvailableResourcesById(facultyId));
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
-    }
-
-    /**
      * Endpoint for creating a faculty.
      *
      * @param request The faculty registration model
@@ -80,23 +62,6 @@ public class ResourcePoolController {
             Faculty newFaculty = rpManagementService.createFaculty(request.getName(), request.getManagerNetId());
             return ResponseEntity.ok(new FacultyCreationResponseModel(newFaculty.getId()));
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
-    }
-
-    /**
-     * Gets the resources of the faculty by name.
-     *
-     * @param facultyName the faculty name
-     * @return the response
-     */
-    @PostMapping("/resources")
-    public ResponseEntity<Resources> getFacultyResourcesByName(@RequestBody ResourceByNameModel request) {
-        String facultyName = request.getFacultyName();
-        try {
-            return ResponseEntity.ok(rpManagementService.findResourcesByName(facultyName));
-        } catch (Exception e) {
-            e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }

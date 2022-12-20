@@ -43,19 +43,12 @@ public class RpManagementService {
     }
 
     /**
-     * Finds the resources of a faculty by faculty name.
+     * Finds the resource pool given the id.
      *
-     * @param name the faculty name
-     * @return the resources of the faculty
-     * @throws Exception when the faculty could not be found
+     * @param resourcePoolId the id
+     * @return the resources pool if found
+     * @throws Exception when the resource pool could not be found
      */
-    public Resources findResourcesByName(String name) throws Exception {
-        if (!repo.existsByName(name)) {
-            throw new Exception();
-        }
-        return repo.findByName(name).get().getAvailableResources();
-    }
-
     public Optional<ResourcePool> findById(long resourcePoolId) throws Exception {
         if(!repo.existsById(resourcePoolId)) {
             throw new Exception();
@@ -73,19 +66,4 @@ public class RpManagementService {
         return repo.findAll().toString();
     }
 
-    /**
-     * Retrieves the available resources of a resource pool.
-     *
-     * @param resourcePoolId the id of the resource pool
-     * @return the available resources
-     * @throws Exception thrown when resources were not found
-     */
-    public Resources getAvailableResourcesById(long resourcePoolId) throws Exception {
-        if (repo.findById(resourcePoolId).isPresent()) {
-            return repo.findById(resourcePoolId).get().getAvailableResources();
-        } else {
-            // Proper exception implemented in different brancehs
-            throw new Exception("Resource pool note found");
-        }
-    }
 }

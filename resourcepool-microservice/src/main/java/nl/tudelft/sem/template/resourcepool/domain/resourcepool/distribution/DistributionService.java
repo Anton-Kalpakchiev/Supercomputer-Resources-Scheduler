@@ -43,7 +43,6 @@ public class DistributionService {
     public void createFreePool() {
         ResourcePool freePool = new ResourcePool("Free pool");
         freePool.setBaseResources(systemResources);
-        freePool.setAvailableResources(systemResources);
         repo.save(freePool);
     }
 
@@ -119,7 +118,6 @@ public class DistributionService {
             double memory = distribution.getPercentageMemory() / 100.0 * systemResources.getMemory();
             Resources resources = new Resources((int) cpu, (int) gpu, (int) memory);
             resourcePool.setBaseResources(resources);
-            resourcePool.setAvailableResources(resources);
             repo.save(resourcePool);
         }
         distributions.clear();

@@ -25,7 +25,6 @@ class FacultyTest {
     void testEquals() {
         Faculty faculty1 = new Faculty("test", 1L);
         Faculty faculty2 = new Faculty("test", 1L);
-        faculty1.setAvailableResources(new Resources(11, 22, 33));
         faculty2.setBaseResources(new Resources(10, 20, 30));
         assertEquals(faculty1, faculty2);
     }

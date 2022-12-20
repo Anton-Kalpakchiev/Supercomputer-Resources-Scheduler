@@ -6,7 +6,9 @@ import java.util.Calendar;
 import javax.servlet.http.HttpServletRequest;
 import nl.tudelft.sem.template.resourcepool.authentication.AuthManager;
 import nl.tudelft.sem.template.resourcepool.domain.dailyschedule.DailyScheduleService;
+import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.models.AutomaticApprovalModel;
+import nl.tudelft.sem.template.resourcepool.models.RequestTomorrowResourcesRequestModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,6 +62,24 @@ public class DailyScheduleController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         return ResponseEntity.ok(true);
+    }
+
+    /**
+     * Retrieves the available resources for tomorrow of a given faculty.
+     *
+     * @param request the request body
+     * @return the available resources of that faculty
+     */
+    @PostMapping("/availableFacultyResources")
+    public ResponseEntity<Resources> getAvailableFacultyResources(@RequestBody
+                                                                          RequestTomorrowResourcesRequestModel request) {
+        long facultyId = request.getResourcePoolId();
+        try {
+            return ResponseEntity.ok(dailyScheduleService.getAvailableResourcesById(facultyId));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
 }
