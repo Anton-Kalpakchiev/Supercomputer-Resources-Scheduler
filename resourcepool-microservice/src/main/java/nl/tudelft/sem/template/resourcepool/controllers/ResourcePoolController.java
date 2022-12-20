@@ -1,10 +1,12 @@
 package nl.tudelft.sem.template.resourcepool.controllers;
 
 import nl.tudelft.sem.template.resourcepool.authentication.AuthManager;
+import nl.tudelft.sem.template.resourcepool.domain.resourcepool.Faculty;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.models.DistributionModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
+import nl.tudelft.sem.template.resourcepool.models.FacultyCreationResponseModel;
 import nl.tudelft.sem.template.resourcepool.models.RequestTomorrowResourcesRequestModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -73,13 +75,14 @@ public class ResourcePoolController {
      * @throws Exception if a faculty with this name already exists
      */
     @PostMapping("/createFaculty")
-    public ResponseEntity createFaculty(@RequestBody FacultyCreationModel request) throws Exception {
+    public ResponseEntity<FacultyCreationResponseModel> createFaculty(@RequestBody FacultyCreationModel request)
+            throws Exception {
         try {
-            rpManagementService.createFaculty(request.getName(), request.getManagerNetId());
+            Faculty newFaculty = rpManagementService.createFaculty(request.getName(), request.getManagerNetId());
+            return ResponseEntity.ok(new FacultyCreationResponseModel(newFaculty.getId()));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-        return ResponseEntity.ok().build();
     }
 
     /**

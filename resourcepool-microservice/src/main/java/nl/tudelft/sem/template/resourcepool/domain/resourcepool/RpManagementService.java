@@ -25,9 +25,10 @@ public class RpManagementService {
      *
      * @param name    The name of the new faculty
      * @param managerNetId The NetId of the faculty manager
+     * @return the newly created faculty
      * @throws Exception if the name or the managerNetId already exists
      */
-    public void createFaculty(String name, long managerNetId) throws Exception {
+    public Faculty createFaculty(String name, long managerNetId) throws Exception {
         if (repo.existsByName(name)) {
             throw new NameAlreadyInUseException(name);
         }
@@ -36,6 +37,7 @@ public class RpManagementService {
         }
         Faculty faculty = new Faculty(name, managerNetId);
         repo.save(faculty);
+        return faculty;
     }
 
     /**
