@@ -2,16 +2,23 @@ package nl.tudelft.sem.template.requests.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Calendar;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.client.RestTemplate;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -26,6 +33,9 @@ class RegistrationServiceTest {
     @Autowired
     private transient RequestRepository requestRepository;
 
+    @MockBean
+    private transient ResourcePoolService mockResourcePoolService;
+
     @Test
     public void createRequest_withValidData_worksCorrectly() throws InvalidResourcesException, IOException {
         // Arrange
@@ -37,6 +47,10 @@ class RegistrationServiceTest {
         final Calendar deadline = Calendar.getInstance();
         final Resources freePoolResources = new Resources(75, 75, 75);
         final String token = "token";
+
+        when(mockResourcePoolService.approval(
+                any(Calendar.class), any(long.class), any(String.class))).thenReturn(
+                ResponseEntity.ok(true));
 
         // Act
         AppRequest returnedRequest = registrationService.registerRequest(description, resources, owner,

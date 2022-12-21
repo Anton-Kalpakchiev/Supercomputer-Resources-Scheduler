@@ -67,8 +67,8 @@ public class RequestController {
             final Resources resources = new Resources(request.getMemory(), request.getCpu(), request.getGpu());
             final String owner = authManager.getNetId();
             final String facultyName = request.getFacultyName();
-            final Resources availableResources = getFacultyResourcesByName(facultyName);
-            final Resources availableFreePoolResources = getFacultyResourcesByName("Free pool");
+            final Resources availableResources = registrationService.getFacultyResourcesByName(facultyName);
+            final Resources availableFreePoolResources = registrationService.getFacultyResourcesByName("Free pool");
 
             String deadlineStr = request.getDeadline(); //convert to Calendar immediately
             Calendar deadline = Calendar.getInstance();
@@ -89,21 +89,6 @@ public class RequestController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * Requests the available resources from the RP MS.
-     *
-     * @param facultyName name of the faculty.
-     *
-     * @return the available resources
-     *
-     * @throws IOException when post for object fails
-     */
-    public Resources getFacultyResourcesByName(String facultyName) throws IOException {
-        RestTemplate restTemplate = new RestTemplate();
-        String request = facultyName;
-        Resources availableResources = restTemplate.postForObject("http://localhost:8085/resources", request, Resources.class);
-        return availableResources;
-    }
 
     /**
      * Gets the status of a request.

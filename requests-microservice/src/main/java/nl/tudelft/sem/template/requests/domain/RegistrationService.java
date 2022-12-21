@@ -2,7 +2,11 @@ package nl.tudelft.sem.template.requests.domain;
 
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 //We can remove this line later on, but I can't figure out how to fix this and the code works perfect with the error in it
@@ -11,10 +15,14 @@ public class RegistrationService {
     private final transient RequestRepository requestRepository;
     private final transient ResourcePoolService resourcePoolService;
 
+    private transient String initialToken = null;
+    //when tokens are not needed anymore, delete this and rework a bit the functions
+
     /**
      * Instantiates a new RegistrationService.
      *
      * @param requestRepository the request repository
+     * @param resourcePoolService the service that communicates with the resource pool
      */
     public RegistrationService(RequestRepository requestRepository, ResourcePoolService resourcePoolService) {
         this.requestRepository = requestRepository;
@@ -29,12 +37,18 @@ public class RegistrationService {
      */
     public AppRequest registerRequest(String description, Resources resources, String owner, String facultyName,
                                   Resources availableResources, Calendar deadline, Resources freePoolResources, String token)
-            throws IOException, InvalidResourcesException {
+            throws InvalidResourcesException {
+
         if (resources.getMemory() < 0 || resources.getCpu() < 0 || resources.getGpu() < 0) {
             throw new InvalidResourcesException("Resource object cannot be created with negative inputs");
         }
         if (resources.getGpu() > resources.getCpu()) {
             throw new InvalidResourcesException("Resource object must provide at least the same amount of CPU as GPU");
+        }
+
+
+        if (initialToken == null) {
+            initialToken = token;
         }
 
         AppRequest request = new AppRequest(description, resources, owner, facultyName, deadline, -1);
@@ -103,12 +117,14 @@ public class RegistrationService {
      * Gets called on every request withs status 3 at the aforementioned time.
      *
      * @param request the given request
-     * @param freePoolResources the free resources
      * @return the AppRequest returned after processing
      */
-    public AppRequest processRequestInPeriodOne(AppRequest request, Resources freePoolResources, String token) {
+
+    public AppRequest processRequestInPeriodOne(AppRequest request, String token) throws IOException {
         Calendar deadline = request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
+
+        final Resources freePoolResources = getFacultyResourcesByName("Free pool");
 
         boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
                 || freePoolResources.getCpu() < resources.getCpu()
@@ -142,6 +158,23 @@ public class RegistrationService {
         return request;
     }
 
+
+    /**
+     * At 18PM every day, all requests that are left pending to be processed when the FRP gets more resources, get processed.
+     * Gets automatically called at the proper time. (5 minute after 18PM,
+     * in order to give time for the resources to be released from all faculties)
+     *
+     * @throws IOException when the request is not in the repository
+     */
+    @Scheduled(cron = "0 5 18 * * *")
+    public void processAllPendingRequests() throws IOException {
+        List<AppRequest> allRequests = requestRepository.findAll().stream()
+                .filter(x -> x.getStatus() == 3).collect(Collectors.toList());
+        for (AppRequest thisRequest : allRequests) {
+            processRequestInPeriodOne(thisRequest, initialToken);
+        }
+    }
+
     /**
      * Check whether the deadline is for tomorrow or not.
      *
@@ -160,6 +193,23 @@ public class RegistrationService {
             return false;
         }
         return true;
+    }
+
+
+    /**
+     * Requests the available resources from the RP MS.
+     *
+     * @param facultyName name of the faculty.
+     *
+     * @return the available resources
+     *
+     * @throws IOException when post for object fails
+     */
+    public Resources getFacultyResourcesByName(String facultyName) throws IOException {
+        RestTemplate restTemplate = new RestTemplate();
+        String request = facultyName;
+        Resources availableResources = restTemplate.postForObject("http://localhost:8085/resources", request, Resources.class);
+        return availableResources;
     }
 
 }
