@@ -86,7 +86,7 @@ class ResourcePoolTest {
     void testToString() {
         ResourcePool rp = new ResourcePool("test");
         rp.setNodeResources(new Resources(42, 42, 42));
-        assertEquals("ResourcePool{id=0, name='test', baseResources=0, 0, 0,"
-                + " nodeResources=42, 42, 42, availableResources=0, 0, 0}", rp.toString());
+        assertEquals("ResourcePool{id=0, name='test', baseResources=(CPU: 0, GPU: 0, Memory: 0), nodeResources="
+                + "(CPU: 42, GPU: 42, Memory: 42), availableResources=(CPU: 0, GPU: 0, Memory: 0)}", rp.toString());
     }
 }
