@@ -24,9 +24,9 @@ public class FacultyVerificationService {
      * @param facultyId the faculty id to be verified
      * @param token the authentication token
      * @return whether a faculty exists
-     * @throws EmploymentException thrown when faculty does not exist
+     * @throws FacultyException thrown when faculty does not exist
      */
-    public boolean verifyFaculty(long facultyId, String token) throws EmploymentException {
+    public boolean verifyFaculty(long facultyId, String token) throws FacultyException {
         String url = "http://localhost:8085/verifyFaculty";
 
         HttpHeaders headers = new HttpHeaders();
@@ -40,7 +40,7 @@ public class FacultyVerificationService {
         if (result.getStatusCode().is2xxSuccessful() && Objects.requireNonNull(result.getBody()).isVerified()) {
             return true;
         } else {
-            throw new EmploymentException("The faculty the user wants to be employed at does not exist");
+            throw new FacultyException("The faculty the user wants to be employed at does not exist");
         }
     }
 }

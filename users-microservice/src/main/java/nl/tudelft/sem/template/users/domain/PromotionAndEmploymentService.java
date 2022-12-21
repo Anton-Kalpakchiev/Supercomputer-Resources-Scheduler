@@ -91,7 +91,8 @@ public class PromotionAndEmploymentService {
      * @return the id of the new faculty
      * @throws Exception if a user is unauthorized or does not exist
      */
-    public long createFaculty(String authorNetId, String managerNetId, String facultyName, String token) throws Exception {
+    public long createFaculty(String authorNetId, String managerNetId, String facultyName, String token)
+            throws FacultyException, NoSuchUserException, UnauthorizedException {
         if (authorization.isOfType(authorNetId, AccountType.SYSADMIN)) {
             if (authorization.isOfType(managerNetId, AccountType.EMPLOYEE)) {
                 String url = "http://localhost:8085/createFaculty";
@@ -112,7 +113,7 @@ public class PromotionAndEmploymentService {
 
                     return result.getBody().getFacultyId();
                 } else {
-                    throw new Exception(result.getStatusCode().getReasonPhrase());
+                    throw new FacultyException(result.getStatusCode().getReasonPhrase());
                 }
             } else {
                 throw new NoSuchUserException("No such employee: " + managerNetId);
@@ -137,9 +138,14 @@ public class PromotionAndEmploymentService {
 
     @SuppressWarnings({"PMD.AvoidLiteralsInIfCondition"})
     public Set<Long> authorizeEmploymentAssignmentRequest(
-            String employerNetId, String employeeNetId, Set<Long> facultyIds, String token) throws Exception {
+            String employerNetId, String employeeNetId, Set<Long> facultyIds, String token)
+                throws EmploymentException, NoSuchUserException, UnauthorizedException {
         for (long facultyId : facultyIds) {
-            facultyVerificationService.verifyFaculty(facultyId, token);
+            try {
+                facultyVerificationService.verifyFaculty(facultyId, token);
+            } catch (FacultyException e) {
+                throw new RuntimeException(e);
+            }
         }
         if (authorization.isOfType(employerNetId, AccountType.SYSADMIN)) {
             for (Long facultyId : facultyIds) {
@@ -175,9 +181,14 @@ public class PromotionAndEmploymentService {
      */
     @SuppressWarnings({"PMD.AvoidLiteralsInIfCondition"})
     public Set<Long> authorizeEmploymentRemovalRequest(
-            String employerNetId, String employeeNetId, Set<Long> facultyIds, String token) throws Exception {
+            String employerNetId, String employeeNetId, Set<Long> facultyIds, String token)
+                throws EmploymentException, UnauthorizedException, NoSuchUserException {
         for (long facultyId : facultyIds) {
-            facultyVerificationService.verifyFaculty(facultyId, token);
+            try {
+                facultyVerificationService.verifyFaculty(facultyId, token);
+            } catch (FacultyException e) {
+                throw new RuntimeException(e);
+            }
         }
         if (authorization.isOfType(employerNetId, AccountType.SYSADMIN)) {
             for (Long facultyId : facultyIds) {
@@ -227,7 +238,8 @@ public class PromotionAndEmploymentService {
      * @param facultyId the faculty to be assigned to
      * @throws EmploymentException thrown when employee is already employed at given faculty
      */
-    public void assignFacultyToEmployee(String netId, long facultyId) throws NoSuchUserException, EmploymentException {
+    public void assignFacultyToEmployee(String netId, long facultyId)
+                throws NoSuchUserException, EmploymentException {
         if (employeeRepository.findByNetId(netId).isPresent()) {
             Employee employee = employeeRepository.findByNetId(netId).get();
             if (employee.getParentFacultyIds().contains(facultyId)) {
@@ -252,7 +264,8 @@ public class PromotionAndEmploymentService {
      * @throws NoSuchUserException thrown when employee is not found
      * @throws EmploymentException thrown when employee is not employed at given faculty
      */
-    public void removeEmployeeFromFaculty(String netId, long facultyId) throws NoSuchUserException, EmploymentException {
+    public void removeEmployeeFromFaculty(String netId, long facultyId)
+                throws NoSuchUserException, EmploymentException {
         if (employeeRepository.findByNetId(netId).isPresent()) {
             Employee employee = employeeRepository.findByNetId(netId).get();
             if (!employee.getParentFacultyIds().contains(facultyId)) {

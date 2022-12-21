@@ -9,7 +9,9 @@ import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
 import nl.tudelft.sem.template.users.domain.Employee;
 import nl.tudelft.sem.template.users.domain.EmployeeService;
+import nl.tudelft.sem.template.users.domain.EmploymentException;
 import nl.tudelft.sem.template.users.domain.FacultyAccountService;
+import nl.tudelft.sem.template.users.domain.FacultyException;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
@@ -115,11 +117,11 @@ public class UsersController {
                 return ResponseEntity.ok("User (" + employee
                         + ") was removed from faculty: " + assignedFaculties);
             } else {
-                throw new Exception("Cannot return an empty set of removed faculties");
+                throw new EmploymentException("Cannot return an empty set of removed faculties");
             }
         } catch (UnauthorizedException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        } catch (Exception e) {
+        } catch (EmploymentException | NoSuchUserException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
@@ -129,11 +131,9 @@ public class UsersController {
      *
      * @param request the promotion request body
      * @return whether the request was successful
-     * @throws Exception if the promoter is unauthorized or such employee does not exist
      */
     @PostMapping("/promoteToSysadmin")
-    public ResponseEntity<String> promoteEmployeeToSysadmin(@RequestBody PromotionRequestModel request)
-            throws Exception {
+    public ResponseEntity<String> promoteEmployeeToSysadmin(@RequestBody PromotionRequestModel request) {
         try {
             String toBePromoted = request.getNetId();
             String promoter = authentication.getNetId();
@@ -150,10 +150,9 @@ public class UsersController {
      * Request for checking the access of a User.
      *
      * @return whether the request was successful
-     * @throws Exception if a user has multiple roles.
      */
     @GetMapping("/checkAccess")
-    public ResponseEntity<CheckAccessResponseModel> checkUserAccess() throws Exception {
+    public ResponseEntity<CheckAccessResponseModel> checkUserAccess() {
         try {
             String netId = authentication.getNetId();
             AccountType result = authorization.checkAccess(netId);
@@ -167,10 +166,9 @@ public class UsersController {
      * Gets the employee from the repository.
      *
      * @return Employee Response
-     * @throws Exception thrown when bad request
      */
     @GetMapping("/getEmployee")
-    public ResponseEntity<EmployeeResponseModel> getEmployee() throws Exception {
+    public ResponseEntity<EmployeeResponseModel> getEmployee() {
         try {
             String netId = authentication.getNetId();
             Employee result = employeeService.getEmployee(netId);
@@ -201,9 +199,11 @@ public class UsersController {
                     + "\", managed by (" + managerNetId + "), was created.");
         } catch (UnauthorizedException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        } catch (Exception e) {
+        } catch (FacultyException e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (NoSuchUserException e) {
+            throw new RuntimeException(e);
         }
     }
 }

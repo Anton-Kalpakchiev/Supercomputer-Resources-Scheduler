@@ -2,12 +2,9 @@ package nl.tudelft.sem.template.users.domain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Arrays;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
-import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.models.ResourcesDto;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -18,15 +15,15 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @AllArgsConstructor
 public class EmployeeService {
-    private EmployeeRepository employeeRepository;
-    private AuthorizationManager authorizationManager;
-
-    private FacultyAccountService facultyAccountService;
+    private transient EmployeeRepository employeeRepository;
+    private transient AuthorizationManager authorizationManager;
+    private transient FacultyAccountService facultyAccountService;
 
     /**
-     * Gets the set of parent faculty ids of employee if they exist.
+     * Gets the set of parent faculty ids of employee if the employee exists.
      *
      * @param netId the users netId
+     * @throws NoSuchUserException when the user is not found
      */
     public Set<Long> getParentFacultyId(String netId) throws NoSuchUserException {
         if (employeeRepository.findByNetId(netId).isPresent()) {
