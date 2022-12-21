@@ -19,7 +19,7 @@ public class ResourcePoolService {
      * @param day the day the request has to be scheduled on.
      * @param requestId the id of the to be scheduled request.
      * @param token the jwtToken.
-     * @return true when the request is succesfully scheduled.
+     * @return true when the request is successfully scheduled.
      */
     public ResponseEntity<Boolean> approval(Calendar day, long requestId, String token) {
         System.out.println(requestId);

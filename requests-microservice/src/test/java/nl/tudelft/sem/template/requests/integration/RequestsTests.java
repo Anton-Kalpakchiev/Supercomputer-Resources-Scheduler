@@ -13,10 +13,7 @@ import java.util.Optional;
 import nl.tudelft.sem.template.requests.authentication.AuthManager;
 import nl.tudelft.sem.template.requests.authentication.JwtTokenVerifier;
 import nl.tudelft.sem.template.requests.controllers.RequestController;
-import nl.tudelft.sem.template.requests.domain.AppRequest;
-import nl.tudelft.sem.template.requests.domain.InvalidResourcesException;
-import nl.tudelft.sem.template.requests.domain.RequestRepository;
-import nl.tudelft.sem.template.requests.domain.Resources;
+import nl.tudelft.sem.template.requests.domain.*;
 import nl.tudelft.sem.template.requests.integration.utils.JsonUtil;
 import nl.tudelft.sem.template.requests.models.RegistrationRequestModel;
 import org.junit.jupiter.api.Test;
@@ -52,6 +49,9 @@ public class RequestsTests {
     @Mock
     private transient RequestRepository requestRepository;
 
+    @Mock
+    private transient RegistrationService mockRegistrationService;
+
     @MockBean
     private transient RequestController mockRequestController;
 
@@ -69,7 +69,7 @@ public class RequestsTests {
                 facultyName, Calendar.getInstance(), -1);
 
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-        when(mockRequestController.getFacultyResourcesByName(anyString())).thenReturn(facultyResources);
+        when(mockRegistrationService.getFacultyResourcesByName(anyString())).thenReturn(facultyResources);
         when(requestRepository.findById(0L)).thenReturn(Optional.of(expected));
 
         RegistrationRequestModel model = new RegistrationRequestModel();
@@ -114,7 +114,7 @@ public class RequestsTests {
                 facultyName, Calendar.getInstance(), -1);
 
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-        when(mockRequestController.getFacultyResourcesByName(anyString())).thenReturn(facultyResources);
+        when(mockRegistrationService.getFacultyResourcesByName(anyString())).thenReturn(facultyResources);
         when(requestRepository.findById(0L)).thenReturn(Optional.of(expected));
 
         RegistrationRequestModel model = new RegistrationRequestModel();
@@ -157,7 +157,7 @@ public class RequestsTests {
                 facultyName, Calendar.getInstance(), -1);
 
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-        when(mockRequestController.getFacultyResourcesByName(anyString())).thenReturn(facultyResources);
+        when(mockRegistrationService.getFacultyResourcesByName(anyString())).thenReturn(facultyResources);
         when(requestRepository.findById(0L)).thenReturn(Optional.of(expected));
 
         RegistrationRequestModel model = new RegistrationRequestModel();

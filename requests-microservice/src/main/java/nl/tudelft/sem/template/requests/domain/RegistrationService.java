@@ -5,10 +5,10 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import nl.tudelft.sem.template.requests.controllers.RequestController;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import static nl.tudelft.sem.template.requests.controllers.RequestController.getFacultyResourcesByName;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 //We can remove this line later on, but I can't figure out how to fix this and the code works perfect with the error in it
@@ -23,6 +23,7 @@ public class RegistrationService {
      * Instantiates a new RegistrationService.
      *
      * @param requestRepository the request repository
+     * @param resourcePoolService the service that communicates with the resource pool
      */
     public RegistrationService(RequestRepository requestRepository, ResourcePoolService resourcePoolService) {
         this.requestRepository = requestRepository;
@@ -147,7 +148,12 @@ public class RegistrationService {
     }
 
 
-
+    /**
+     * At 18PM everyday, all requests that are left pending to be processed when the FRP gets more resources, get processed.
+     * Gets automatically called at the proper time.
+     * @throws IOException when the request is not in the repository
+     * @throws InvalidResourcesException this exception will be removed further on in the development period
+     */
     @Scheduled(cron = "0 0 18 * * *")
     public void processAllPendingRequests() throws IOException, InvalidResourcesException {
         List<AppRequest> allRequests = requestRepository.findAll().stream().filter(x -> x.getStatus() == 3).collect(Collectors.toList());
@@ -174,6 +180,23 @@ public class RegistrationService {
             return false;
         }
         return true;
+    }
+
+
+    /**
+     * Requests the available resources from the RP MS.
+     *
+     * @param facultyName name of the faculty.
+     *
+     * @return the available resources
+     *
+     * @throws IOException when post for object fails
+     */
+    public Resources getFacultyResourcesByName(String facultyName) throws IOException {
+        RestTemplate restTemplate = new RestTemplate();
+        String request = facultyName;
+        Resources availableResources = restTemplate.postForObject("http://localhost:8085/resources", request, Resources.class);
+        return availableResources;
     }
 
 }
