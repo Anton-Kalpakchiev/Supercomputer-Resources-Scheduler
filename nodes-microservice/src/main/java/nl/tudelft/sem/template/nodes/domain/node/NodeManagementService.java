@@ -70,7 +70,10 @@ public class NodeManagementService {
      * @return the boolean
      */
     public boolean checkResourceRequirements(Resources resource) {
-        return resource.getCpu() >= resource.getGpu() && resource.getCpu() >= resource.getMemory();
+        int cpu = resource.getCpu();
+        int gpu = resource.getGpu();
+        int memory = resource.getMemory();
+        return gpu >= 0 && memory >= 0  && cpu >= gpu && cpu >= memory;
     }
 
     /**

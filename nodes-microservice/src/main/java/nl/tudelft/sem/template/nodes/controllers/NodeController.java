@@ -17,27 +17,20 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Hello World nodes controller.
- * <p>
- * This controller shows how you can extract information from the JWT token.
- * </p>
+ * Controller for endpoints related to nodes.
  */
 @RestController
 public class NodeController {
-
-    private final transient AuthManager authManager;
 
     private final transient NodeManagementService nodeManagementService;
 
     /**
      * Instantiates a new controller.
      *
-     * @param authManager Spring Security component used to authenticate and authorize the user
      * @param nodeManagementService The service which will handle the business logic for node management
      */
     @Autowired
-    public NodeController(AuthManager authManager, NodeManagementService nodeManagementService) {
-        this.authManager = authManager;
+    public NodeController(NodeManagementService nodeManagementService) {
         this.nodeManagementService = nodeManagementService;
     }
 
