@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ContributeToFacultyModel {
+public class NodeInformationToFacultyModel {
 
     private long facultyId;
 
