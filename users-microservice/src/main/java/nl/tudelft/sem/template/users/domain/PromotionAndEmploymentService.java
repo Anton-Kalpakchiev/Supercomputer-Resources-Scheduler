@@ -2,15 +2,13 @@ package nl.tudelft.sem.template.users.domain;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.models.FacultyCreationResponseModel;
 import nl.tudelft.sem.template.users.models.TemporaryRequestModel;
-import nl.tudelft.sem.template.users.models.VerifyFacultyRequestModel;
-import nl.tudelft.sem.template.users.models.VerifyFacultyResponseModel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -33,7 +31,9 @@ public class PromotionAndEmploymentService {
     private final transient FacultyAccountService facultyAccountService;
     private final transient AuthorizationManager authorization;
 
-    private final transient RestTemplate restTemplate;
+    private final transient FacultyVerificationService facultyVerificationService;
+
+    private transient RestTemplate restTemplate;
 
     /**
      * Constructor for the Promotions and Employment Service.
@@ -47,15 +47,17 @@ public class PromotionAndEmploymentService {
                                          FacultyAccountRepository facultyAccountRepository,
                                          RegistrationService registrationService,
                                          AuthorizationManager authorization,
-                                         RestTemplate restTemplate,
-                                         FacultyAccountService facultyAccountService) {
+                                         FacultyAccountService facultyAccountService,
+                                         FacultyVerificationService facultyVerificationService,
+                                         RestTemplate restTemplate) {
         this.sysadminRepository = sysadminRepository;
         this.employeeRepository = employeeRepository;
         this.facultyAccountRepository = facultyAccountRepository;
         this.registrationService = registrationService;
         this.authorization = authorization;
-        this.restTemplate = restTemplate;
         this.facultyAccountService = facultyAccountService;
+        this.facultyVerificationService = facultyVerificationService;
+        this.restTemplate = restTemplate;
     }
 
     /**
@@ -120,32 +122,7 @@ public class PromotionAndEmploymentService {
         }
     }
 
-    /**
-     * Verifies whether a faculty actually exists.
-     *
-     * @param facultyId the faculty id to be verified
-     * @param token the authentication token
-     * @return whether a faculty exists
-     * @throws EmploymentException thrown when faculty does not exist
-     */
-    public boolean verifyFaculty(long facultyId, String token) throws EmploymentException {
-        String url = "http://localhost:8085/verifyFaculty";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(token);
-        HttpEntity<VerifyFacultyRequestModel> entity = new HttpEntity<>(new VerifyFacultyRequestModel(facultyId), headers);
-
-        ResponseEntity<VerifyFacultyResponseModel> result = restTemplate.postForEntity(url, entity,
-                VerifyFacultyResponseModel.class);
-
-        if (result.getStatusCode().is2xxSuccessful() && Objects.requireNonNull(result.getBody()).isVerified()) {
-            return true;
-        } else {
-            throw new EmploymentException("The faculty the user wants to be employed at does not exist");
-
-        }
-    }
 
     /**
      * Authorizes an employee assignment request from a user.
@@ -162,7 +139,7 @@ public class PromotionAndEmploymentService {
     public Set<Long> authorizeEmploymentAssignmentRequest(
             String employerNetId, String employeeNetId, Set<Long> facultyIds, String token) throws Exception {
         for (long facultyId : facultyIds) {
-            verifyFaculty(facultyId, token);
+            facultyVerificationService.verifyFaculty(facultyId, token);
         }
         if (authorization.isOfType(employerNetId, AccountType.SYSADMIN)) {
             for (Long facultyId : facultyIds) {
@@ -200,7 +177,7 @@ public class PromotionAndEmploymentService {
     public Set<Long> authorizeEmploymentRemovalRequest(
             String employerNetId, String employeeNetId, Set<Long> facultyIds, String token) throws Exception {
         for (long facultyId : facultyIds) {
-            verifyFaculty(facultyId, token);
+            facultyVerificationService.verifyFaculty(facultyId, token);
         }
         if (authorization.isOfType(employerNetId, AccountType.SYSADMIN)) {
             for (Long facultyId : facultyIds) {

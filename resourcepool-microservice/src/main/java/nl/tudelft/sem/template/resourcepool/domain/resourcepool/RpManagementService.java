@@ -57,9 +57,9 @@ public class RpManagementService {
      * @return the resources of the faculty
      * @throws Exception when the faculty could not be found
      */
-    public Resources findResourcesByName(String name) throws Exception {
+    public Resources findResourcesByName(String name) throws FacultyNotFoundException {
         if (!repo.existsByName(name)) {
-            throw new Exception();
+            throw new FacultyNotFoundException(name);
         }
         return repo.findByName(name).get().getAvailableResources();
     }
@@ -84,8 +84,8 @@ public class RpManagementService {
         if (repo.findById(resourcePoolId).isPresent()) {
             return repo.findById(resourcePoolId).get().getAvailableResources();
         } else {
-            // Proper exception implemented in different brancehs
-            throw new Exception("Resource pool note found");
+            // Proper exception implemented in different branches
+            throw new Exception("Resource pool does not exist");
         }
     }
 }

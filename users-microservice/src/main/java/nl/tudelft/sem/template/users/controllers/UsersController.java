@@ -50,6 +50,7 @@ public class UsersController {
      *
      * @return whether the request was successful
      */
+    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     @GetMapping("/newUser")
     public ResponseEntity<String> newUserCreated() {
         User added = registrationService.registerUser(authentication.getNetId());

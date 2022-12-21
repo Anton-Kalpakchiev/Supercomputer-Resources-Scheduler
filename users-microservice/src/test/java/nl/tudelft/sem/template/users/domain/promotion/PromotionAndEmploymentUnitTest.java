@@ -22,6 +22,7 @@ import nl.tudelft.sem.template.users.domain.EmploymentException;
 import nl.tudelft.sem.template.users.domain.FacultyAccount;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
 import nl.tudelft.sem.template.users.domain.FacultyAccountService;
+import nl.tudelft.sem.template.users.domain.FacultyVerificationService;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
@@ -56,6 +58,9 @@ public class PromotionAndEmploymentUnitTest {
     private final String facultyName = "math";
     private final long facultyId = 6L;
 
+    @Autowired
+    private FacultyVerificationService facultyVerificationService;
+
     private final String sampleToken = "1234567";
 
     @Captor
@@ -72,7 +77,8 @@ public class PromotionAndEmploymentUnitTest {
         mockRestServiceServer = MockRestServiceServer.createServer(restTemplate);
 
         sut = new PromotionAndEmploymentService(sysadminRepository, employeeRepository,
-                facultyAccountRepository, registrationService, authorization, restTemplate, facultyAccountService);
+                facultyAccountRepository, registrationService, authorization,
+                facultyAccountService, facultyVerificationService, restTemplate);
 
         admin = new Sysadmin(adminNetId);
         employee = new Employee(employeeNetId);
