@@ -1,6 +1,7 @@
 package nl.tudelft.sem.template.resourcepool.domain.resourcepool;
 
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
+import nl.tudelft.sem.template.resourcepool.models.ContributeToFacultyModel;
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,6 +49,28 @@ public class RpManagementService {
      */
     public boolean verifyFaculty(long facultyId) {
         return repo.existsById(facultyId);
+    }
+
+    /**
+     * Contributes a node to a faculty.
+     *
+     * @param nodeInfo The node contribution model
+     * @return true if the contribution succeeded
+     * @throws Exception if a faculty with the given id can't be found
+     */
+    public boolean contributeNode(ContributeToFacultyModel nodeInfo) throws Exception {
+        long facultyId = nodeInfo.getFacultyId();
+        if (!repo.existsById(facultyId)) {
+            throw new FacultyIdNotFoundException(facultyId);
+        }
+        ResourcePool faculty = repo.findById(facultyId).get();
+        Resources currentNodeResources = faculty.getNodeResources();
+        int cpu = currentNodeResources.getCpu() + nodeInfo.getCpu();
+        int gpu = currentNodeResources.getGpu() + nodeInfo.getGpu();
+        int memory = currentNodeResources.getMemory() + nodeInfo.getMemory();
+        faculty.setNodeResources(new Resources(cpu, gpu, memory));
+        repo.save(faculty);
+        return true;
     }
 
     /**

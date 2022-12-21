@@ -4,8 +4,10 @@ import nl.tudelft.sem.template.resourcepool.authentication.AuthManager;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.Faculty;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
+import nl.tudelft.sem.template.resourcepool.models.ContributeToFacultyModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationResponseModel;
+import nl.tudelft.sem.template.resourcepool.models.NodeContributionResponseModel;
 import nl.tudelft.sem.template.resourcepool.models.RequestTomorrowResourcesRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.VerifyFacultyRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.VerifyFacultyResponseModel;
@@ -98,6 +100,23 @@ public class ResourcePoolController {
         try {
             boolean result = rpManagementService.verifyFaculty(request.getFacultyId());
             return ResponseEntity.ok(new VerifyFacultyResponseModel(result));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
+     * Endpoint for contributing a node.
+     *
+     * @param nodeInfo The node contribution model
+     * @return 200 OK if the contribution is successful
+     * @throws Exception if a faculty with the given id can't be found
+     */
+    @PostMapping("/contributeNode")
+    public ResponseEntity<NodeContributionResponseModel> contributeNode(@RequestBody ContributeToFacultyModel nodeInfo)
+            throws Exception {
+        try {
+            return ResponseEntity.ok(new NodeContributionResponseModel(rpManagementService.contributeNode(nodeInfo)));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
