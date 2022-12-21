@@ -71,7 +71,8 @@ public class DailyScheduleController {
      * @return the available resources of that faculty
      */
     @PostMapping("/availableFacultyResources")
-    public ResponseEntity<Resources> getAvailableFacultyResources(@RequestBody RequestTomorrowResourcesRequestModel request) {
+    public ResponseEntity<Resources> getAvailableFacultyResources(
+            @RequestBody RequestTomorrowResourcesRequestModel request) {
         long facultyId = request.getResourcePoolId();
         try {
             return ResponseEntity.ok(dailyScheduleService.getAvailableResourcesById(facultyId));
