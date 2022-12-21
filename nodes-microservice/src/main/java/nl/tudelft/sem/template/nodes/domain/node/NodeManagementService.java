@@ -2,8 +2,8 @@ package nl.tudelft.sem.template.nodes.domain.node;
 
 import nl.tudelft.sem.template.nodes.authentication.JwtRequestFilter;
 import nl.tudelft.sem.template.nodes.domain.resources.Resources;
+import nl.tudelft.sem.template.nodes.models.FacultyInteractionRequestModel;
 import nl.tudelft.sem.template.nodes.models.FacultyInteractionResponseModel;
-import nl.tudelft.sem.template.nodes.models.NodeInformationToFacultyModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -112,7 +112,7 @@ public class NodeManagementService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(JwtRequestFilter.token);
 
-        HttpEntity<NodeInformationToFacultyModel> entity = new HttpEntity<>(new NodeInformationToFacultyModel(facultyId,
+        HttpEntity<FacultyInteractionRequestModel> entity = new HttpEntity<>(new FacultyInteractionRequestModel(facultyId,
                                     resources.getCpu(), resources.getGpu(), resources.getMemory()), headers);
 
         ResponseEntity<FacultyInteractionResponseModel> result = restTemplate.postForEntity(
