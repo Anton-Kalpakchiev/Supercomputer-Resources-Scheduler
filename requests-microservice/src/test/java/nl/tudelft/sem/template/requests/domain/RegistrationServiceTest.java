@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.Random;
 
 import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,8 +50,13 @@ class RegistrationServiceTest {
     Resources freePoolResources;
     String token;
 
+    int timePeriod;
+    boolean isForTomorrow;
+    boolean frpHasEnoughResources;
+    boolean facHasEnoughResources;
+
     @BeforeEach
-    void setup(){
+    void setupRegister(){
         description = "give me resources";
         resources = new Resources(50, 50, 50);
         owner = "The Boss";
@@ -199,5 +205,67 @@ class RegistrationServiceTest {
         afterTomorrow.set(Calendar.DAY_OF_MONTH, afterTomorrow.get(Calendar.DAY_OF_MONTH) + 2);
         assertFalse(registrationService.isForTomorrow(afterTomorrow));
     }
+
+    @Test
+    void decideStatusZero(){
+        timePeriod = 0;
+        isForTomorrow = new Random().nextInt(2) == 1;
+        frpHasEnoughResources = false;
+        facHasEnoughResources = true;
+
+        assertEquals(0, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
+                frpHasEnoughResources, facHasEnoughResources));
+
+    }
+
+    @Test
+    void decideStatusOne(){
+        timePeriod = 1;
+        isForTomorrow = new Random().nextInt(2) == 1;
+        frpHasEnoughResources = true;
+        facHasEnoughResources = new Random().nextInt(2) == 1;
+
+        assertEquals(1, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
+                frpHasEnoughResources, facHasEnoughResources));
+
+        timePeriod = 0;
+        isForTomorrow = true;
+        frpHasEnoughResources = true;
+        facHasEnoughResources = false;
+
+        assertEquals(1, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
+                frpHasEnoughResources, facHasEnoughResources));
+    }
+
+    @Test
+    void decideStatusTwo(){
+        timePeriod = 2;
+        isForTomorrow = true;
+        frpHasEnoughResources = true;
+        facHasEnoughResources = true;
+
+        assertEquals(2, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
+                frpHasEnoughResources, facHasEnoughResources));
+
+        timePeriod = 1;
+        isForTomorrow = true;
+        frpHasEnoughResources = false;
+        facHasEnoughResources = true;
+
+        assertEquals(2, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
+                frpHasEnoughResources, facHasEnoughResources));
+    }
+
+    @Test
+    void decideStatusThree(){
+        timePeriod = 0;
+        isForTomorrow = new Random().nextInt(2) == 1;
+        frpHasEnoughResources = false;
+        facHasEnoughResources = false;
+
+        assertEquals(3, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
+                frpHasEnoughResources, facHasEnoughResources));
+    }
+
 
 }
