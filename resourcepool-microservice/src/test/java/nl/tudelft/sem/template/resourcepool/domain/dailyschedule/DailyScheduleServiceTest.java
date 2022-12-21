@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import java.util.Calendar;
 import java.util.Optional;
 import nl.tudelft.sem.template.resourcepool.domain.RequestService;
+import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpFacultyRepository;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,7 @@ public class DailyScheduleServiceTest {
     private DailyScheduleService dailyScheduleService;
     private RpManagementService rpManagementService;
     private RequestService requestService;
+    private RpFacultyRepository mockResourcePoolRepo;
     private Calendar day;
 
     private long resourcePoolId;
@@ -32,7 +34,8 @@ public class DailyScheduleServiceTest {
     void setup() {
         argumentCaptor = ArgumentCaptor.forClass(DailySchedule.class);
         mockScheduleRepository = mock(ScheduleRepository.class);
-        dailyScheduleService = new DailyScheduleService(mockScheduleRepository, rpManagementService, requestService);
+        mockResourcePoolRepo = mock(RpFacultyRepository.class);
+        dailyScheduleService = new DailyScheduleService(mockScheduleRepository, rpManagementService, requestService, mockResourcePoolRepo);
         day = Calendar.getInstance();
         resourcePoolId = 6L;
     }

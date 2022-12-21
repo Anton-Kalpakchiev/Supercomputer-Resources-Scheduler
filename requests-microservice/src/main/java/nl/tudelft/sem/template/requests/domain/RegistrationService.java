@@ -150,11 +150,11 @@ public class RegistrationService {
 
     /**
      * At 18PM everyday, all requests that are left pending to be processed when the FRP gets more resources, get processed.
-     * Gets automatically called at the proper time.
+     * Gets automatically called at the proper time. (5 minute after 18PM, in order to give time for the resources to be released from all faculties)
      * @throws IOException when the request is not in the repository
      * @throws InvalidResourcesException this exception will be removed further on in the development period
      */
-    @Scheduled(cron = "0 0 18 * * *")
+    @Scheduled(cron = "0 5 18 * * *")
     public void processAllPendingRequests() throws IOException, InvalidResourcesException {
         List<AppRequest> allRequests = requestRepository.findAll().stream().filter(x -> x.getStatus() == 3).collect(Collectors.toList());
         for(AppRequest thisRequest : allRequests){
