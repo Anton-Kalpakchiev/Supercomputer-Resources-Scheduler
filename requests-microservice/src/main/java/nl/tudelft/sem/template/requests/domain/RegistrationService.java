@@ -2,7 +2,13 @@ package nl.tudelft.sem.template.requests.domain;
 
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import static nl.tudelft.sem.template.requests.controllers.RequestController.getFacultyResourcesByName;
 
 @Service
 //We can remove this line later on, but I can't figure out how to fix this and the code works perfect with the error in it
@@ -10,6 +16,8 @@ import org.springframework.stereotype.Service;
 public class RegistrationService {
     private final transient RequestRepository requestRepository;
     private final transient ResourcePoolService resourcePoolService;
+
+    String initialToken = null;//when tokens are not needed anymore, delete this and rework a bit the functions
 
     /**
      * Instantiates a new RegistrationService.
@@ -30,6 +38,7 @@ public class RegistrationService {
     public AppRequest registerRequest(String description, Resources resources, String owner, String facultyName,
                                   Resources availableResources, Calendar deadline, Resources freePoolResources, String token)
             throws IOException, InvalidResourcesException {
+        if(initialToken == null) initialToken = token;
         AppRequest request = new AppRequest(description, resources, owner, facultyName, deadline, -1);
 
         Calendar deadlineSixHoursBeforeEnd = Calendar.getInstance();
@@ -96,13 +105,14 @@ public class RegistrationService {
      * Gets called on every request withs status 3 at the aforementioned time.
      *
      * @param request the given request
-     * @param freePoolResources the free resources
      * @return the AppRequest returned after processing
      * @throws InvalidResourcesException thrown when resources are invalid
      */
-    public AppRequest processRequestInPeriodOne(AppRequest request, Resources freePoolResources, String token) throws InvalidResourcesException {
+    public AppRequest processRequestInPeriodOne(AppRequest request, String token) throws InvalidResourcesException, IOException {
         Calendar deadline = request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
+
+        final Resources freePoolResources = getFacultyResourcesByName("Free pool");
 
         boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
                 || freePoolResources.getCpu() < resources.getCpu()
@@ -134,6 +144,16 @@ public class RegistrationService {
             requestRepository.save(request);
         }
         return request;
+    }
+
+
+
+    @Scheduled(cron = "0 0 18 * * *")
+    public void processAllPendingRequests() throws IOException, InvalidResourcesException {
+        List<AppRequest> allRequests = requestRepository.findAll().stream().filter(x -> x.getStatus() == 3).collect(Collectors.toList());
+        for(AppRequest thisRequest : allRequests){
+            processRequestInPeriodOne(thisRequest, initialToken);
+        }
     }
 
     /**

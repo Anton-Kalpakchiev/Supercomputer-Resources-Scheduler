@@ -98,7 +98,7 @@ public class RequestController {
      *
      * @throws IOException when post for object fails
      */
-    public Resources getFacultyResourcesByName(String facultyName) throws IOException {
+    public static Resources getFacultyResourcesByName(String facultyName) throws IOException {
         RestTemplate restTemplate = new RestTemplate();
         String request = facultyName;
         Resources availableResources = restTemplate.postForObject("http://localhost:8085/resources", request, Resources.class);
