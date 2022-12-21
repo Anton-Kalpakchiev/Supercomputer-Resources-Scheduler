@@ -31,14 +31,14 @@ public class Node {
     @Column(name = "url", nullable = false, unique = true)
     @Convert(converter = NodeUrlAttributeConverter.class)
     private NodeUrl url;
-    @Column(name = "owner_netid", nullable = false, unique = true)
+    @Column(name = "owner_netid", nullable = false)
     private String ownerNetId;
-    @Column(name = "faculty_id", nullable = false, unique = true)
+    @Column(name = "faculty_id", nullable = false)
     private long facultyId;
     @Column(name = "token", nullable = false, unique = true)
     @Convert(converter = TokenAttributeConverter.class)
     private Token token;
-    @Column(name = "resource", nullable = false, unique = false)
+    @Column(name = "resource", nullable = false)
     @Convert(converter = ResourcesAttributeConverter.class)
     private Resources resource;
 
