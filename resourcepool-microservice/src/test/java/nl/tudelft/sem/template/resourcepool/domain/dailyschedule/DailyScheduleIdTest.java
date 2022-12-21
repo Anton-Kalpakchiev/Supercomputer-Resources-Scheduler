@@ -92,11 +92,12 @@ class DailyScheduleIdTest {
         assertNotEquals(dsi1, dsi2);
     }
 
-    // Makes the pipeline fail because the Date() method with 3 parameters is deprecated and doesn't pass on gitlab
-    // because it doesn't know how to convert the date to a string, this test does work locally
-    // @Test
-    // void testToString() {
-    //    DailyScheduleId dsi = new DailyScheduleId(new Date(2022, 12, 31), 1);
-    //    assertEquals(dsi.toString(), "DailyScheduleId{day=Wed Jan 31 00:00:00 CET 3923, resourcePoolId=1}");
-    // }
+    @Test
+    void testToString(){
+        Calendar day = Calendar.getInstance();
+        long facId = 5l;
+        DailyScheduleId dsId = new DailyScheduleId(day, facId);
+        assertEquals(dsId.toString(), "DailyScheduleId{day=" + day.toString()
+                + ", resourcePoolId=5}");
+    }
 }
