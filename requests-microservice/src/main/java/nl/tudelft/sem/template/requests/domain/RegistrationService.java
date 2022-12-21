@@ -99,29 +99,32 @@ public class RegistrationService {
     public AppRequest processRequestInPeriodOne(AppRequest request, String token) {
         Calendar deadline = request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
-
         final Resources freePoolResources = getFacultyResourcesByName("Free pool");
 
         boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
                 || freePoolResources.getCpu() < resources.getCpu()
                 || freePoolResources.getMemory() < resources.getMemory());
+        int timePeriod = 1;
+        boolean isForTomorrow = isForTomorrow(deadline);
+        boolean facHasEnoughResources = false;
+        int status = decideStatusOfRequest(timePeriod, isForTomorrow, frpHasEnoughResources, facHasEnoughResources);
 
-        if ((!frpHasEnoughResources && isForTomorrow(deadline))) {
-            //rejection
+        if (status == 0) {
+            //set for manual review
             //find request in Repo, update its status
-            request.setStatus(2);
+            request.setStatus(0);
             requestRepository.save(request);
-        } else if (frpHasEnoughResources) {
+        } else if (status == 1) {
             //approval for tomorrow
             request.setStatus(1);
             //find request in Repo, update its status
             requestRepository.save(request);
-            //update RP/Schedule MS os that it can update the schedule for the corresponding faculty for tomorrow
+            //update RP/Schedule MS so that it can update the schedule for the corresponding faculty for tomorrow
             resourcePoolService.approval(deadline, request.getId(), token);
         } else {
-            //set for manual review
+            //rejection
             //find request in Repo, update its status
-            request.setStatus(0);
+            request.setStatus(2);
             requestRepository.save(request);
         }
         return request;
@@ -183,10 +186,7 @@ public class RegistrationService {
         startOfTomorrow.set(Calendar.MILLISECOND, 0);
         startOfTomorrow.add(Calendar.DAY_OF_YEAR, 1);
 
-        if (deadline.after(endOfTomorrow) || deadline.before(startOfTomorrow)) {
-            return false;
-        }
-        return true;
+        return !deadline.after(endOfTomorrow) && !deadline.before(startOfTomorrow);
     }
 
     /**
@@ -232,7 +232,6 @@ public class RegistrationService {
      */
     public int decideStatusOfRequest(int timePeriod, boolean isForTomorrow, boolean frpHasEnoughResources,
                                      boolean facultyHasEnoughResources) {
-        //automatic rejection
         if ((timePeriod == 2 && isForTomorrow) || (!frpHasEnoughResources && timePeriod == 1 && isForTomorrow)) {
             //auto reject
             return 2;
