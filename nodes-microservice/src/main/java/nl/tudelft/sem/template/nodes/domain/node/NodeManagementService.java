@@ -37,14 +37,16 @@ public class NodeManagementService {
      * Register a node in the repository.
      *
      * @param name     the name of the node
-     * @param facultyId the id of the faculty the node should be contributed to
      * @param url      the url of the node
+     * @param ownerNetId the netId of the owner of the node
+     * @param facultyId the id of the faculty the node should be contributed to
      * @param token    the token of the node
      * @param resources the resources of the node
      * @return the node that has been registered
      * @throws Exception an exception
      */
-    public Node registerNode(long facultyId, Name name, NodeUrl url, Token token, Resources resources) throws Exception {
+    public Node registerNode(Name name, NodeUrl url, String ownerNetId,
+                             long facultyId, Token token, Resources resources) throws Exception {
         if (repo.existsByName(name)) {
             throw new NameAlreadyInUseException(name);
         }
