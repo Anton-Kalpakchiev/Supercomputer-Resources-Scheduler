@@ -17,8 +17,8 @@ class ResourcesTest {
 
     @Test
     public void testToString() throws Exception {
-        Resources resources = new Resources(2, 1, 3);
-        String expected = "Memory: 3 CPU: 2 GPU: 1";
+        Resources resources = new Resources(2, 1, 1);
+        String expected = "Memory: 1 CPU: 2 GPU: 1";
         assertEquals(resources.toString(), expected);
     }
 

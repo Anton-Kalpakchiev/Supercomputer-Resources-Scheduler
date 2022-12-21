@@ -100,7 +100,8 @@ public class RegistrationService {
      * @return the AppRequest returned after processing
      * @throws InvalidResourcesException thrown when resources are invalid
      */
-    public AppRequest processRequestInPeriodOne(AppRequest request, Resources freePoolResources, String token) throws InvalidResourcesException {
+    public AppRequest processRequestInPeriodOne(AppRequest request, Resources freePoolResources, String token)
+            throws InvalidResourcesException {
         Calendar deadline = request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
 
