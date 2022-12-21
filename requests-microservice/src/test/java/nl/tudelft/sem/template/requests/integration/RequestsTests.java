@@ -2,6 +2,7 @@ package nl.tudelft.sem.template.requests.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,6 +20,7 @@ import nl.tudelft.sem.template.requests.domain.RequestRepository;
 import nl.tudelft.sem.template.requests.domain.Resources;
 import nl.tudelft.sem.template.requests.integration.utils.JsonUtil;
 import nl.tudelft.sem.template.requests.models.RegistrationRequestModel;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -32,6 +34,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.util.NestedServletException;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
@@ -102,87 +105,58 @@ public class RequestsTests {
     @Test
     public void register_withNegativeResources_throwsException() throws Exception {
         // Arrange
-        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
         final String description = "give me resources";
-        final Resources resources = new Resources(50, 30, 50);
-        final String owner = "User";
+        final Resources resources = new Resources(-50, -50, -50);
         final String facultyName = "CSE";
         final String deadline = "01-01-2023";
-        final Resources facultyResources = new Resources(100, 100, 100);
-
-        AppRequest expected = new AppRequest(description, resources, owner,
-                facultyName, Calendar.getInstance(), -1);
 
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-        when(mockRequestController.getFacultyResourcesByName(anyString())).thenReturn(facultyResources);
-        when(requestRepository.findById(0L)).thenReturn(Optional.of(expected));
+        when(mockRequestController.register(any(), any())).thenThrow(new InvalidResourcesException(
+                "Resource object cannot be created with negative inputs"));
 
         RegistrationRequestModel model = new RegistrationRequestModel();
         model.setDescription(description);
-        model.setMemory(-1);
-        model.setCpu(-2);
-        model.setGpu(-3);
+        model.setMemory(resources.getMemory());
+        model.setCpu(resources.getCpu());
+        model.setGpu(resources.getGpu());
         model.setFacultyName(facultyName);
         model.setDeadline(deadline);
 
-        // Act
-        ResultActions resultActions = mockMvc.perform(post("/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer MockedToken")
-                .content(JsonUtil.serialize(model)));
-
-        // Assert
-        //resultActions.andExpect(status().isBadRequest());
-
-        assertThrows(NoSuchElementException.class, () -> {
-            AppRequest savedRequest = requestRepository.findById(1L).orElseThrow();
-        });
-
-        assertThrows(InvalidResourcesException.class, () -> {
-            Resources temp = new Resources(-1, -2, -3);
+        // Act and Assert
+        assertThrows(NestedServletException.class, () -> {
+            ResultActions resultActions = mockMvc.perform(post("/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer MockedToken")
+                    .content(JsonUtil.serialize(model)));
         });
     }
 
     @Test
-    public void register_withNotEnoughCpu_throwsException() throws Exception {
+    public void register_withInsufficentCpu_throwsException() throws Exception {
         // Arrange
         final String description = "give me resources";
-        final Resources resources = new Resources(50, 30, 50);
-        final String owner = "User";
+        final Resources resources = new Resources(49, 50, 50);
         final String facultyName = "CSE";
         final String deadline = "01-01-2023";
-        final Resources facultyResources = new Resources(100, 100, 100);
-
-        AppRequest expected = new AppRequest(description, resources, owner,
-                facultyName, Calendar.getInstance(), -1);
 
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-        when(mockRequestController.getFacultyResourcesByName(anyString())).thenReturn(facultyResources);
-        when(requestRepository.findById(0L)).thenReturn(Optional.of(expected));
+        when(mockRequestController.register(any(), any())).thenThrow(new InvalidResourcesException(
+                "Resource object must provide at least the same amount of CPU as GPU"));
 
         RegistrationRequestModel model = new RegistrationRequestModel();
         model.setDescription(description);
-        model.setMemory(60);
-        model.setCpu(99);
-        model.setGpu(100);
+        model.setMemory(resources.getMemory());
+        model.setCpu(resources.getCpu());
+        model.setGpu(resources.getGpu());
         model.setFacultyName(facultyName);
         model.setDeadline(deadline);
 
-        // Act
-        ResultActions resultActions = mockMvc.perform(post("/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer MockedToken")
-                .content(JsonUtil.serialize(model)));
-
-        // Assert
-        //resultActions.andExpect(status().isBadRequest());
-
-        assertThrows(NoSuchElementException.class, () -> {
-            AppRequest savedRequest = requestRepository.findById(1L).orElseThrow();
-        });
-
-        assertThrows(InvalidResourcesException.class, () -> {
-            Resources temp = new Resources(60, 99, 100);
+        // Act and Assert
+        assertThrows(NestedServletException.class, () -> {
+            ResultActions resultActions = mockMvc.perform(post("/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer MockedToken")
+                    .content(JsonUtil.serialize(model)));
         });
     }
 }

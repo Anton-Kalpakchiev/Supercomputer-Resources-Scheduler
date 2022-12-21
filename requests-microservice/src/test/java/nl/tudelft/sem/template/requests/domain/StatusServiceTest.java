@@ -26,16 +26,9 @@ class StatusServiceTest {
     private transient RequestRepository requestRepository;
 
     @Test
-    public void getStatusOnExistingRequestTest() throws Exception {
+    public void getStatusOnExistingRequestTest() {
         final String description = "give me resources";
-        final Resources resources;
-
-        try {
-            resources = new Resources(50, 50, 30);
-        } catch (InvalidResourcesException e) {
-            throw new RuntimeException(e);
-        }
-
+        final Resources resources = new Resources(50, 50, 30);
         final String owner = "The Boss";
         final String facultyName = "CSE";
         final Calendar deadline = Calendar.getInstance();
@@ -50,16 +43,9 @@ class StatusServiceTest {
     }
 
     @Test
-    public void getStatusOnNonExistentRequestTest() throws Exception {
+    public void getStatusOnNonExistentRequestTest() {
         final String description = "give me resources";
-        final Resources resources;
-
-        try {
-            resources = new Resources(50, 30, 50);
-        } catch (InvalidResourcesException e) {
-            throw new RuntimeException(e);
-        }
-
+        final Resources resources = new Resources(50, 30, 50);
         final String owner = "The Boss";
         final String facultyName = "CSE";
         final Calendar deadline = Calendar.getInstance();
@@ -75,16 +61,9 @@ class StatusServiceTest {
     }
 
     @Test
-    public void setStatusOnExistingRequestTest() throws Exception {
+    public void setStatusOnExistingRequestTest() {
         final String description = "give me resources";
-        final Resources resources;
-
-        try {
-            resources = new Resources(50, 30, 50);
-        } catch (InvalidResourcesException e) {
-            throw new RuntimeException(e);
-        }
-
+        final Resources resources = new Resources(50, 30, 50);
         final String owner = "The Boss";
         final String facultyName = "CSE";
         final Calendar deadline = Calendar.getInstance();
@@ -100,16 +79,9 @@ class StatusServiceTest {
     }
 
     @Test
-    public void setStatusOnNonExistentRequestTest() throws Exception {
+    public void setStatusOnNonExistentRequestTest() {
         final String description = "give me resources";
-        final Resources resources;
-
-        try {
-            resources = new Resources(50, 30, 50);
-        } catch (InvalidResourcesException e) {
-            throw new RuntimeException(e);
-        }
-
+        final Resources resources = new Resources(50, 30, 50);
         final String owner = "The Boss";
         final String facultyName = "CSE";
         final Calendar deadline = Calendar.getInstance();

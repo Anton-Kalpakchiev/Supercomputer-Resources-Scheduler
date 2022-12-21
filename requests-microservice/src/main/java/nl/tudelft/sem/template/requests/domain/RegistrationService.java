@@ -30,6 +30,13 @@ public class RegistrationService {
     public AppRequest registerRequest(String description, Resources resources, String owner, String facultyName,
                                   Resources availableResources, Calendar deadline, Resources freePoolResources, String token)
             throws IOException, InvalidResourcesException {
+        if (resources.getMemory() < 0 || resources.getCpu() < 0 || resources.getGpu() < 0) {
+            throw new InvalidResourcesException("Resource object cannot be created with negative inputs");
+        }
+        if (resources.getGpu() > resources.getCpu()) {
+            throw new InvalidResourcesException("Resource object must provide at least the same amount of CPU as GPU");
+        }
+
         AppRequest request = new AppRequest(description, resources, owner, facultyName, deadline, -1);
 
         Calendar deadlineSixHoursBeforeEnd = Calendar.getInstance();
@@ -98,9 +105,8 @@ public class RegistrationService {
      * @param request the given request
      * @param freePoolResources the free resources
      * @return the AppRequest returned after processing
-     * @throws InvalidResourcesException thrown when resources are invalid
      */
-    public AppRequest processRequestInPeriodOne(AppRequest request, Resources freePoolResources, String token) throws InvalidResourcesException {
+    public AppRequest processRequestInPeriodOne(AppRequest request, Resources freePoolResources, String token) {
         Calendar deadline = request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
 

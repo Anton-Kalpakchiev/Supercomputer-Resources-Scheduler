@@ -27,14 +27,10 @@ public class Resources {
      * @param gpu The number of GPU resources.
      * @param memory The number of memory resources.
      */
-    public Resources(int cpu, int gpu, int memory) throws InvalidResourcesException {
+    public Resources(int cpu, int gpu, int memory) {
         this.cpu = cpu;
         this.gpu = gpu;
         this.memory = memory;
-
-        if (memory < 0 || cpu < 0 || gpu < 0 || cpu < gpu || cpu < memory) {
-            throw new InvalidResourcesException(this);
-        }
     }
 
     @Override
@@ -50,6 +46,6 @@ public class Resources {
 
     @Override
     public int hashCode() {
-        return Objects.hash(this);
+        return Objects.hash(memory, cpu, gpu);
     }
 }
