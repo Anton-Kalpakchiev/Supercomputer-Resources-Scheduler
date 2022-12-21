@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.users.controllers;
+package nl.tudelft.sem.template.users.facade;
 
 import lombok.AllArgsConstructor;
 import nl.tudelft.sem.template.users.authentication.AuthManager;
@@ -9,7 +9,6 @@ import nl.tudelft.sem.template.users.domain.EmployeeService;
 import nl.tudelft.sem.template.users.domain.FacultyAccountService;
 import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
-import nl.tudelft.sem.template.users.domain.RequestSenderService;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,8 +41,9 @@ public class FacadeController {
     @GetMapping("/distribution/current")
     public ResponseEntity<String> getCurrentDistribution() {
         try {
+            String url = "http://localhost:8085/distribution/current";
             String response = requestSenderService
-                    .getCurrentDistributionRequest(authentication.getNetId(), JwtRequestFilter.token);
+                    .getRequestFromSysadmin(url, authentication.getNetId(), JwtRequestFilter.token);
             return ResponseEntity.ok(response);
         } catch (UnauthorizedException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
@@ -62,7 +62,8 @@ public class FacadeController {
     @PostMapping("/distribution/add")
     public ResponseEntity<String> addDistribution(@RequestBody DistributionModel distribution) {
         try {
-            requestSenderService.addDistributionRequest(authentication.getNetId(), JwtRequestFilter.token,
+            String url = "http://localhost:8085/distribution/add";
+            requestSenderService.addDistributionRequest(url, authentication.getNetId(), JwtRequestFilter.token,
                     distribution);
             return ResponseEntity.ok("Distribution was added.");
         } catch (UnauthorizedException e) {
@@ -81,13 +82,52 @@ public class FacadeController {
     @GetMapping("/distribution/status")
     public ResponseEntity<String> statusDistribution() {
         try {
-            String result = requestSenderService.statusDistributionRequest(
+            String url = "http://localhost:8085/distribution/status";
+            String result = requestSenderService.getRequestFromSysadmin(url,
                     authentication.getNetId(), JwtRequestFilter.token);
             return ResponseEntity.ok(result);
         } catch (UnauthorizedException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
+     * Saves all the current faculty distributions in the queue to the full system.
+     * Only accessible for a SYSADMIN
+     *
+     * @return 200 OK if the saving is successful
+     */
+    @PostMapping("/distribution/save")
+    public ResponseEntity<String> saveDistribution() {
+        try {
+            String url = "http://localhost:8085/distribution/save";
+            requestSenderService.postRequestFromSysadmin(url, authentication.getNetId(), JwtRequestFilter.token);
+            return ResponseEntity.ok("Distribution was saved.");
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
+        }
+    }
+
+    /**
+     * Clears the queue with all the current faculty distributions.
+     * Only accessible for a SYSADMIN.
+     *
+     * @return 200 OK if the clearing is successful
+     */
+    @PostMapping("/distribution/clear")
+    public ResponseEntity<String> clearDistribution() {
+        try {
+            String url = "http://localhost:8085/distribution/clear";
+            requestSenderService.postRequestFromSysadmin(url, authentication.getNetId(), JwtRequestFilter.token);
+            return ResponseEntity.ok("Distribution was cleared.");
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
         }
     }
 }
