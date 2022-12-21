@@ -163,22 +163,6 @@ public class UsersController {
     }
 
     /**
-     * Gets the employee from the repository.
-     *
-     * @return Employee Response
-     */
-    @GetMapping("/getEmployee")
-    public ResponseEntity<EmployeeResponseModel> getEmployee() {
-        try {
-            String netId = authentication.getNetId();
-            Employee result = employeeService.getEmployee(netId);
-            return ResponseEntity.ok(new EmployeeResponseModel(result.getNetId(), result.getParentFacultyIds().toString()));
-        } catch (NoSuchUserException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
-    }
-
-    /**
      * Request for creating a new faculty.
      *
      * @param request the faculty creation request

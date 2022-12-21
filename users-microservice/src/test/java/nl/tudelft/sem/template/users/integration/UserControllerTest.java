@@ -108,27 +108,6 @@ public class UserControllerTest {
     }
 
     @Test
-    public void getEmployeeTest() throws Exception {
-        //Arrange
-        when(mockAuthenticationManager.getNetId()).thenReturn(netId);
-        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn(netId);
-        when(employeeRepository.findByNetId(netId)).thenReturn(Optional.of(new Employee(netId)));
-
-        //Act
-        ResultActions result = mockMvc.perform(get("/getEmployee")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer MockedToken"));
-
-        //Assert
-        result.andExpect(status().isOk());
-
-        String response = result.andReturn().getResponse().getContentAsString();
-        assertThat(response).isEqualTo(objectMapper.writeValueAsString(new EmployeeResponseModel(netId, "[]")));
-    }
-
-
-    @Test
     public void assignFacultyTest() throws Exception {
         //Arrange
         when(mockAuthenticationManager.getNetId()).thenReturn("admin");
