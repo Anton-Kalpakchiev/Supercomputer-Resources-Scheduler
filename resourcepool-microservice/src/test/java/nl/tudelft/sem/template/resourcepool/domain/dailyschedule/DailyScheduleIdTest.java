@@ -93,9 +93,9 @@ class DailyScheduleIdTest {
     }
 
     @Test
-    void testToString(){
+    void testToString() {
         Calendar day = Calendar.getInstance();
-        long facId = 5l;
+        long facId = 5L;
         DailyScheduleId dsId = new DailyScheduleId(day, facId);
         assertEquals(dsId.toString(), "DailyScheduleId{day=" + day.toString()
                 + ", resourcePoolId=5}");

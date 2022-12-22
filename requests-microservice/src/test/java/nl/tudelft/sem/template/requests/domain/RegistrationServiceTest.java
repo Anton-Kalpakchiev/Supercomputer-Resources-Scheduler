@@ -1,21 +1,18 @@
 package nl.tudelft.sem.template.requests.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
 import java.util.Calendar;
 import java.util.Random;
-
-import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -23,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.web.client.RestTemplate;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -56,7 +52,7 @@ class RegistrationServiceTest {
     boolean facHasEnoughResources;
 
     @BeforeEach
-    void setupRegister(){
+    void setupRegister() {
         description = "give me resources";
         resources = new Resources(50, 50, 50);
         owner = "The Boss";
@@ -68,7 +64,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    public void createRequest_withValidData_worksCorrectly() throws InvalidResourcesException, IOException {
+    public void createRequest_withValidData_worksCorrectly() throws InvalidResourcesException {
         // Arrange
 
         when(mockResourcePoolService.approval(
@@ -92,19 +88,19 @@ class RegistrationServiceTest {
     }
 
     @Test
-    public void createRequest_withNegativeMemory_throwsException() throws InvalidResourcesException, IOException {
+    public void createRequest_withNegativeMemory_throwsException() {
         // Arrange
         resources = new Resources(50, 50, -50);
 
         // Act and Assert
         assertThrows(InvalidResourcesException.class, () -> {
-            AppRequest returnedRequest = registrationService.registerRequest(description, resources, owner,
+            registrationService.registerRequest(description, resources, owner,
                     facultyName, availableResources, deadline, freePoolResources, token);
         });
     }
 
     @Test
-    public void createRequest_withNegativeCpu_throwsException() throws InvalidResourcesException, IOException {
+    public void createRequest_withNegativeCpu_throwsException() {
         // Arrange
         resources = new Resources(-50, 50, 50);
 
@@ -116,7 +112,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    public void createRequest_withNegativeGpu_throwsException() throws InvalidResourcesException, IOException {
+    public void createRequest_withNegativeGpu_throwsException() {
         // Arrange
         final Resources resources = new Resources(50, -50, 50);
 
@@ -128,7 +124,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    public void createRequest_withInsufficientCpu_throwsException() throws InvalidResourcesException, IOException {
+    public void createRequest_withInsufficientCpu_throwsException() {
         // Arrange
         resources = new Resources(49, 50, 50);
 
@@ -159,7 +155,7 @@ class RegistrationServiceTest {
         periodOneBorderDown.set(Calendar.HOUR_OF_DAY, 18);
         periodOneBorderDown.set(Calendar.MINUTE, 0);
         periodOneBorderDown.set(Calendar.SECOND, 1);
-        assertEquals(1, registrationService.getTimePeriod(periodOneBorderDown));//fails
+        assertEquals(1, registrationService.getTimePeriod(periodOneBorderDown)); //fails
 
         Calendar periodOneBorderUp = Calendar.getInstance();
         periodOneBorderUp.set(Calendar.HOUR_OF_DAY, 23);
@@ -207,7 +203,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void decideStatusZero(){
+    void decideStatusZero() {
         timePeriod = 0;
         isForTomorrow = new Random().nextInt(2) == 1;
         frpHasEnoughResources = false;
@@ -219,7 +215,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void decideStatusOne(){
+    void decideStatusOne() {
         timePeriod = 1;
         isForTomorrow = new Random().nextInt(2) == 1;
         frpHasEnoughResources = true;
@@ -238,7 +234,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void decideStatusTwo(){
+    void decideStatusTwo() {
         timePeriod = 2;
         isForTomorrow = true;
         frpHasEnoughResources = true;
@@ -257,7 +253,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void decideStatusThree(){
+    void decideStatusThree() {
         timePeriod = 0;
         isForTomorrow = new Random().nextInt(2) == 1;
         frpHasEnoughResources = false;

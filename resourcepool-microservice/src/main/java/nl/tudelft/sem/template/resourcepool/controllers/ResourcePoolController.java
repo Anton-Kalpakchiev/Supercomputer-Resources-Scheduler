@@ -3,10 +3,10 @@ package nl.tudelft.sem.template.resourcepool.controllers;
 import nl.tudelft.sem.template.resourcepool.authentication.AuthManager;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.Faculty;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
-import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationResponseModel;
-import nl.tudelft.sem.template.resourcepool.models.RequestTomorrowResourcesRequestModel;
+import nl.tudelft.sem.template.resourcepool.models.VerifyFacultyRequestModel;
+import nl.tudelft.sem.template.resourcepool.models.VerifyFacultyResponseModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,6 +65,40 @@ public class ResourcePoolController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
+
+    /**
+     * Verifies whether a faculty exists or not.
+     *
+     * @param request the request to verify a faculty
+     * @return a response indicating whether it exists
+     * @throws Exception when request is incorrectly formatted
+     */
+    @PostMapping("/verifyFaculty")
+    public ResponseEntity<VerifyFacultyResponseModel> verifyFaculty(@RequestBody VerifyFacultyRequestModel request)
+            throws Exception {
+        try {
+            boolean result = rpManagementService.verifyFaculty(request.getFacultyId());
+            return ResponseEntity.ok(new VerifyFacultyResponseModel(result));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    //    /**
+    //     * Gets the resources of the faculty by name.
+    //     *
+    //     * @param facultyName the faculty name
+    //     * @return the response
+    //     */
+    //    @PostMapping("/resources")
+    //    public ResponseEntity<Resources> getFacultyResourcesByName(String facultyName) {
+    //        try {
+    //            return ResponseEntity.ok(rpManagementService.findResourcesByName(facultyName));
+    //        } catch (Exception e) {
+    //            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    //        }
+    //    }
+
 
     /**
      * Returns a string-representation of all the resource pools in the database.

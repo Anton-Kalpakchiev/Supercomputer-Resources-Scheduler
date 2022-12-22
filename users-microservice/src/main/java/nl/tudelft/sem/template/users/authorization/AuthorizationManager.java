@@ -66,9 +66,10 @@ public class AuthorizationManager {
      *
      * @param netId the netId of the user.
      * @return the role of the user as a string.
-     * @throws Exception if user is not found or a user has multiple roles.
+     * @throws IllegalArgumentException if user has multiple roles
+     * @throws NoSuchUserException if user was not found
      */
-    public AccountType checkAccess(String netId) throws Exception {
+    public AccountType checkAccess(String netId) throws IllegalArgumentException, NoSuchUserException {
         boolean isEmployee = isEmployee(netId);
         boolean isFacultyAccount = isFacultyAccount(netId);
         boolean isSysadmin = isSysadmin(netId);
@@ -76,7 +77,7 @@ public class AuthorizationManager {
         if (!isEmployee && !isFacultyAccount && !isSysadmin) {
             throw new NoSuchUserException("User (" + netId + ") was not registered.");
         } else if (atLeastTwo(isEmployee, isFacultyAccount, isSysadmin)) {
-            throw new Exception("User with multiple roles!!!");
+            throw new IllegalArgumentException("User with multiple roles!!!");
         }
 
         if (isEmployee) {
@@ -107,9 +108,9 @@ public class AuthorizationManager {
      * @param netId the netId of the user
      * @param expected the expected account type
      * @return whether the user is of the expected account type
-     * @throws Exception if the user does not exist or has multiple roles
+     * @throws NoSuchUserException if the user does not exist or has multiple roles
      */
-    public boolean isOfType(String netId, AccountType expected) throws Exception {
+    public boolean isOfType(String netId, AccountType expected) throws NoSuchUserException {
         return checkAccess(netId).equals(expected);
     }
 }

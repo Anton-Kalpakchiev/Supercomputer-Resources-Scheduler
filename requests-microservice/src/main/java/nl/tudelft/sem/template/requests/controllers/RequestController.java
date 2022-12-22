@@ -2,7 +2,6 @@ package nl.tudelft.sem.template.requests.controllers;
 
 import static nl.tudelft.sem.template.requests.authentication.JwtRequestFilter.AUTHORIZATION_HEADER;
 
-import java.io.IOException;
 import java.util.Calendar;
 import javax.servlet.http.HttpServletRequest;
 import nl.tudelft.sem.template.requests.authentication.AuthManager;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 /**

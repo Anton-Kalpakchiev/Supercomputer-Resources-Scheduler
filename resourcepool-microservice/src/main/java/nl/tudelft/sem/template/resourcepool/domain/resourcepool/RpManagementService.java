@@ -64,4 +64,44 @@ public class RpManagementService {
         return repo.findAll().toString();
     }
 
+    /**
+     * Check whether a faculty exists in the repository.
+     *
+     * @param facultyId the faculty to be verified
+     * @return whether it exists
+     */
+    public boolean verifyFaculty(long facultyId) {
+        return repo.existsById(facultyId);
+    }
+
+    //    /**
+    //     * Finds the resources of a faculty by faculty name.
+    //     *
+    //     * @param name the faculty name
+    //     * @return the resources of the faculty
+    //     * @throws Exception when the faculty could not be found
+    //     */
+    //    public Resources findResourcesByName(String name) throws FacultyNotFoundException {
+    //        if (!repo.existsByName(name)) {
+    //            throw new FacultyNotFoundException(name);
+    //        }
+    //        return repo.findByName(name).get().getAvailableResources();
+    //    }
+
+    //    /**
+    //     * Retrieves the available resources of a resource pool.
+    //     *
+    //     * @param resourcePoolId the id of the resource pool
+    //     * @return the available resources
+    //     * @throws Exception thrown when resources were not found
+    //     */
+    //    public Resources getAvailableResourcesById(long resourcePoolId) throws Exception {
+    //        if (repo.findById(resourcePoolId).isPresent()) {
+    //            return repo.findById(resourcePoolId).get().getAvailableResources();
+    //        } else {
+    //            // Proper exception implemented in different branches
+    //            throw new Exception("Resource pool does not exist");
+    //        }
+    //    }
+
 }

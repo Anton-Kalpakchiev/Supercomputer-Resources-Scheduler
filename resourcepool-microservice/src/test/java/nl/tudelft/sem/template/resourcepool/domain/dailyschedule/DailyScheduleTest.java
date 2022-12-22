@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -98,12 +97,12 @@ class DailyScheduleTest {
     }
 
     @Test
-    void testToString(){
+    void testToString() {
         Calendar cal = Calendar.getInstance();
-        long facId = 1l;
+        long facId = 1L;
 
         DailySchedule ds = new DailySchedule(cal, facId);
-        ds.addRequest(50l);
+        ds.addRequest(50L);
         assertEquals(ds.toString(), "DailySchedule{day=" + cal.toString()
                 + ", resourcePoolId=1, list=[50]}");
     }
