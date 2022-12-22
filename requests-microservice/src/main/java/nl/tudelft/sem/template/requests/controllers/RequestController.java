@@ -128,7 +128,7 @@ public class RequestController {
      * @return whether the request is properly accepted/rejected
      * @throws ResponseStatusException if request does not exist
      */
-    @PostMapping("/manual")
+    @PostMapping("/manualSchedule")
     public ResponseEntity<Boolean> approveRejectRequest(@RequestBody ManualApprovalModel model, HttpServletRequest requested)
             throws ResponseStatusException {
         //TODO could check if the facultyManager is the manager of the faculty that the request is sent to

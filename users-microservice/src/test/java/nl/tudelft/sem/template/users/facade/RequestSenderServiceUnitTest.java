@@ -16,6 +16,7 @@ import nl.tudelft.sem.template.users.domain.Employee;
 import nl.tudelft.sem.template.users.domain.EmployeeRepository;
 import nl.tudelft.sem.template.users.domain.FacultyAccount;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
+import nl.tudelft.sem.template.users.domain.FacultyAccountService;
 import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.Sysadmin;
@@ -36,6 +37,7 @@ public class RequestSenderServiceUnitTest {
     private AuthorizationManager authorization;
     private MockRestServiceServer mockRestServiceServer;
     private RequestSenderService sut;
+    private FacultyAccountService facultyAccountService;
 
     private Sysadmin admin;
     private Employee employee;
@@ -51,6 +53,7 @@ public class RequestSenderServiceUnitTest {
 
     @BeforeEach
     void setup() throws Exception {
+        facultyAccountService = mock(FacultyAccountService.class);
         sysadminRepository = mock(SysadminRepository.class);
         employeeRepository = mock(EmployeeRepository.class);
         facultyAccountRepository = mock(FacultyAccountRepository.class);
@@ -61,7 +64,7 @@ public class RequestSenderServiceUnitTest {
 
         sut = new RequestSenderService(sysadminRepository, employeeRepository,
                 facultyAccountRepository, registrationService,
-                authorization, restTemplate);
+                authorization, restTemplate, facultyAccountService);
 
         admin = new Sysadmin(adminNetId);
         employee = new Employee(employeeNetId);

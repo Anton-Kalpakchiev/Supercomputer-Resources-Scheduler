@@ -141,7 +141,7 @@ public class FacadeController {
      *                      and if accepted, its day of execution
      * @return a message to the user informing them the request is successfully approved/rejected
      */
-    @PostMapping("/request/manual")
+    @PostMapping("/manualSchedule")
     public ResponseEntity<String> approveRejectRequest(@RequestBody ManualApprovalModel approvalModel) {
         try {
             boolean approved = approvalModel.isApproved();
@@ -156,12 +156,9 @@ public class FacadeController {
                 dayOfExecution.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dayOfExecutionArr[0]));
             }
 
-            String url = "http://localhost:8084/manual";
+            String url = "http://localhost:8084/manualSchedule";
             requestSenderService.approveRejectRequest(url, authentication.getNetId(), approvalModel, JwtRequestFilter.token);
-            String answer = "Request was successfully approved";
-            if (!approved) {
-                answer = "Request was successfully rejected";
-            }
+            String answer = requestSenderService.getRequestAnswer(approved);
             return ResponseEntity.ok(answer);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());

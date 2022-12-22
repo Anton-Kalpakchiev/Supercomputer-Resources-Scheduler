@@ -5,6 +5,7 @@ import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
 import nl.tudelft.sem.template.users.domain.EmployeeRepository;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
+import nl.tudelft.sem.template.users.domain.FacultyAccountService;
 import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
@@ -27,6 +28,8 @@ public class RequestSenderService {
     private final transient SysadminRepository sysadminRepository;
     private final transient EmployeeRepository employeeRepository;
     private final transient FacultyAccountRepository facultyAccountRepository;
+    private final transient FacultyAccountService facultyAccountService;
+
 
     private final transient RegistrationService registrationService;
     private final transient AuthorizationManager authorization;
@@ -49,13 +52,15 @@ public class RequestSenderService {
                                 FacultyAccountRepository facultyAccountRepository,
                                 RegistrationService registrationService,
                                 AuthorizationManager authorization,
-                                RestTemplate restTemplate) {
+                                RestTemplate restTemplate,
+                                FacultyAccountService facultyAccountService) {
         this.sysadminRepository = sysadminRepository;
         this.employeeRepository = employeeRepository;
         this.facultyAccountRepository = facultyAccountRepository;
         this.registrationService = registrationService;
         this.authorization = authorization;
         this.restTemplate = restTemplate;
+        this.facultyAccountService = facultyAccountService;
     }
 
     /**
@@ -151,7 +156,8 @@ public class RequestSenderService {
      */
     public boolean approveRejectRequest(String url, String authorNetId, ManualApprovalModel model, String token)
             throws NoSuchUserException, InnerRequestFailedException, UnauthorizedException {
-        if (authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) {
+        if (authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)
+                && facultyAccountService.getFacultyAssignedId(authorNetId) == model.getRequestId()) {
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
 
@@ -164,7 +170,20 @@ public class RequestSenderService {
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId
-                    + ") is not a Faculty Manager => can notapprove or reject requests.");
+                    + ") is not a Faculty Manager => can not approve or reject requests.");
+        }
+    }
+
+    /** Returns the correct message to show the user when a request is successfully approved/rejected.
+     *
+     * @param approved whether the request is approved
+     * @return the correct message to show the user when the request is approved/rejected
+     */
+    public String getRequestAnswer(boolean approved) {
+        if (approved) {
+            return "Request was successfully approved";
+        } else {
+            return "Request was successfully rejected";
         }
     }
 }
