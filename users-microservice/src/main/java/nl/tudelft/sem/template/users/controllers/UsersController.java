@@ -1,30 +1,33 @@
 package nl.tudelft.sem.template.users.controllers;
 
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import nl.tudelft.sem.template.users.authentication.AuthManager;
 import nl.tudelft.sem.template.users.authentication.JwtRequestFilter;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
+import nl.tudelft.sem.template.users.domain.Employee;
 import nl.tudelft.sem.template.users.domain.EmployeeService;
+import nl.tudelft.sem.template.users.domain.EmploymentException;
 import nl.tudelft.sem.template.users.domain.FacultyAccountService;
+import nl.tudelft.sem.template.users.domain.FacultyException;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.Sysadmin;
 import nl.tudelft.sem.template.users.domain.User;
 import nl.tudelft.sem.template.users.models.CheckAccessResponseModel;
+import nl.tudelft.sem.template.users.models.EmployeeResponseModel;
+import nl.tudelft.sem.template.users.models.FacultyAssignmentRequestModel;
 import nl.tudelft.sem.template.users.models.FacultyCreationRequestModel;
 import nl.tudelft.sem.template.users.models.PromotionRequestModel;
-import nl.tudelft.sem.template.users.models.RequestScheduleModel;
-import nl.tudelft.sem.template.users.models.ScheduleResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -49,6 +52,7 @@ public class UsersController {
      *
      * @return whether the request was successful
      */
+    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     @GetMapping("/newUser")
     public ResponseEntity<String> newUserCreated() {
         User added = registrationService.registerUser(authentication.getNetId());
@@ -59,15 +63,77 @@ public class UsersController {
     }
 
     /**
+     * Assign a user to a faculty.
+     *
+     * @param request the request body with a given model
+     * @return a HTTP response
+     */
+    @SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.AvoidLiteralsInIfCondition"})
+    @PostMapping("/hireEmployee")
+    public ResponseEntity<String> assignFacultyToEmployee(@RequestBody FacultyAssignmentRequestModel request) {
+        String employee = request.getNetId();
+        String employer = authentication.getNetId();
+        String token = JwtRequestFilter.token;
+        try {
+            Set<Long> facultyIds = promotionAndEmploymentService.parseJsonFacultyIds(request.getFacultyIds());
+            Set<Long> assignedFaculties = promotionAndEmploymentService
+                    .authorizeEmploymentAssignmentRequest(employer, employee, facultyIds, token);
+            if (assignedFaculties.size() > 1) {
+                return ResponseEntity.ok("User (" + employee
+                        + ") was assigned to the following faculties: " + assignedFaculties);
+            } else if (assignedFaculties.size() == 1) {
+                return ResponseEntity.ok("User (" + employee
+                        + ") was assigned to faculty: " + assignedFaculties);
+            } else {
+                throw new Exception("Cannot return an empty set of assigned faculties");
+            }
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
+     * Remove a user from a faculty.
+     *
+     * @param request the request body with a given model
+     * @return a HTTP response
+     */
+    @SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.AvoidLiteralsInIfCondition"})
+    @PostMapping("/terminateEmployee")
+    public ResponseEntity<String> removeFacultyFromEmployee(@RequestBody FacultyAssignmentRequestModel request) {
+        String employee = request.getNetId();
+        String employer = authentication.getNetId();
+        String token = JwtRequestFilter.token;
+        try {
+            Set<Long> facultyIds = promotionAndEmploymentService.parseJsonFacultyIds(request.getFacultyIds());
+            Set<Long> assignedFaculties = promotionAndEmploymentService
+                    .authorizeEmploymentRemovalRequest(employer, employee, facultyIds, token);
+            if (assignedFaculties.size() > 1) {
+                return ResponseEntity.ok("User (" + employee
+                        + ") was removed from the following faculties: " + assignedFaculties);
+            } else if (assignedFaculties.size() == 1) {
+                return ResponseEntity.ok("User (" + employee
+                        + ") was removed from faculty: " + assignedFaculties);
+            } else {
+                throw new EmploymentException("Cannot return an empty set of removed faculties");
+            }
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (EmploymentException | NoSuchUserException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
      * Promotes an Employee to a Sysadmin.
      *
      * @param request the promotion request body
      * @return whether the request was successful
-     * @throws Exception if the promoter is unauthorized or such employee does not exist
      */
     @PostMapping("/promoteToSysadmin")
-    public ResponseEntity<String> promoteEmployeeToSysadmin(@RequestBody PromotionRequestModel request)
-            throws Exception {
+    public ResponseEntity<String> promoteEmployeeToSysadmin(@RequestBody PromotionRequestModel request) {
         try {
             String toBePromoted = request.getNetId();
             String promoter = authentication.getNetId();
@@ -84,10 +150,9 @@ public class UsersController {
      * Request for checking the access of a User.
      *
      * @return whether the request was successful
-     * @throws Exception if a user has multiple roles.
      */
     @GetMapping("/checkAccess")
-    public ResponseEntity<CheckAccessResponseModel> checkUserAccess() throws Exception {
+    public ResponseEntity<CheckAccessResponseModel> checkUserAccess() {
         try {
             String netId = authentication.getNetId();
             AccountType result = authorization.checkAccess(netId);
@@ -118,9 +183,11 @@ public class UsersController {
                     + "\", managed by (" + managerNetId + "), was created.");
         } catch (UnauthorizedException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        } catch (Exception e) {
+        } catch (FacultyException e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (NoSuchUserException e) {
+            throw new RuntimeException(e);
         }
     }
 }
