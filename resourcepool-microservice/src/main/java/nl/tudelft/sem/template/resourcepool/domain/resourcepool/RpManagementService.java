@@ -1,8 +1,8 @@
 package nl.tudelft.sem.template.resourcepool.domain.resourcepool;
 
+import java.util.Optional;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.models.NodeInteractionRequestModel;
-import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 /**
@@ -45,7 +45,7 @@ public class RpManagementService {
     /**
      * Finds the resource pool given the id.
      *
-     * @param resourcePoolId the id
+     * @param facultyId the id
      * @return the resources pool if found
      * @throws Exception when the resource pool could not be found
      */
@@ -100,13 +100,19 @@ public class RpManagementService {
         return true;
     }
 
+    /**
+     * Finds the resourcePool given the id.
+     *
+     * @param resourcePoolId the id
+     * @return the resourcePool if it exists
+     * @throws Exception if the resourcePool can't be found
+     */
     public Optional<ResourcePool> findById(long resourcePoolId) throws Exception {
         if (!repo.existsById(resourcePoolId)) {
             throw new Exception();
         }
         return repo.findById(resourcePoolId);
     }
-
 
     /**
      * Returns a string with all resource pools in the database.
@@ -115,16 +121,6 @@ public class RpManagementService {
      */
     public String printDatabase() {
         return repo.findAll().toString();
-    }
-
-    /**
-     * Check whether a faculty exists in the repository.
-     *
-     * @param facultyId the faculty to be verified
-     * @return whether it exists
-     */
-    public boolean verifyFaculty(long facultyId) {
-        return repo.existsById(facultyId);
     }
 
     //    /**
