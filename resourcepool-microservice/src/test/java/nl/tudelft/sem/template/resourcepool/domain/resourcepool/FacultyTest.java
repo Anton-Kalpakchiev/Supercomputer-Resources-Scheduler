@@ -25,7 +25,6 @@ class FacultyTest {
     void testEquals() {
         Faculty faculty1 = new Faculty("test", "EEMCS");
         Faculty faculty2 = new Faculty("test", "EEMCS");
-        faculty1.setAvailableResources(new Resources(11, 22, 33));
         faculty2.setBaseResources(new Resources(10, 20, 30));
         assertEquals(faculty1, faculty2);
     }
@@ -42,6 +41,6 @@ class FacultyTest {
         Faculty faculty = new Faculty("test", "EEMCS");
         faculty.setNodeResources(new Resources(42, 42, 42));
         assertEquals("Faculty{id=0, name='test', baseResources=(CPU: 0, GPU: 0, Memory: 0), nodeResources=(CPU: 42, GPU:"
-            + " 42, Memory: 42), availableResources=(CPU: 0, GPU: 0, Memory: 0), managerNetId=EEMCS}", faculty.toString());
+            + " 42, Memory: 42), managerNetId=EEMCS}", faculty.toString());
     }
 }

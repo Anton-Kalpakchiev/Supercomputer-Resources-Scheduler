@@ -3,7 +3,6 @@ package nl.tudelft.sem.template.resourcepool.controllers;
 import nl.tudelft.sem.template.resourcepool.authentication.AuthManager;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.Faculty;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
-import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationResponseModel;
 import nl.tudelft.sem.template.resourcepool.models.NodeInteractionRequestModel;
@@ -53,23 +52,6 @@ public class ResourcePoolController {
     }
 
     /**
-     * Retrieves the available resources for tomorrow of a given faculty.
-     *
-     * @param request the request body
-     * @return the available resources of that faculty
-     */
-    @PostMapping("/availableFacultyResources")
-    public ResponseEntity<Resources> getAvailableFacultyResources(@RequestBody
-                                                                      RequestTomorrowResourcesRequestModel request) {
-        try {
-            return ResponseEntity.ok(rpManagementService.getAvailableResourcesById(request.getResourcePoolId()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
-    }
-
-    /**
      * Endpoint for creating a faculty.
      *
      * @param request The faculty registration model
@@ -105,6 +87,20 @@ public class ResourcePoolController {
         }
     }
 
+    //    /**
+    //     * Gets the resources of the faculty by name.
+    //     *
+    //     * @param facultyName the faculty name
+    //     * @return the response
+    //     */
+    //    @PostMapping("/resources")
+    //    public ResponseEntity<Resources> getFacultyResourcesByName(String facultyName) {
+    //        try {
+    //            return ResponseEntity.ok(rpManagementService.findResourcesByName(facultyName));
+    //        } catch (Exception e) {
+    //            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    //        }
+    //    }
     /**
      * Endpoint for contributing a node.
      *
@@ -138,22 +134,6 @@ public class ResourcePoolController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
-
-    /**
-     * Gets the resources of the faculty by name.
-     *
-     * @param facultyName the faculty name
-     * @return the response
-     */
-    @PostMapping("/resources")
-    public ResponseEntity<Resources> getFacultyResourcesByName(String facultyName) {
-        try {
-            return ResponseEntity.ok(rpManagementService.findResourcesByName(facultyName));
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
-    }
-
 
     /**
      * Returns a string-representation of all the resource pools in the database.
