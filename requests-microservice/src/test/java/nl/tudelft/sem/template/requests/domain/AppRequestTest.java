@@ -20,7 +20,7 @@ class AppRequestTest {
                 facultyName, deadline, -1);
 
         assertEquals(appRequest.getDescription(), description);
-        assertEquals(appRequest.getMem(), resources.getMem());
+        assertEquals(appRequest.getMem(), resources.getMemory());
         assertEquals(appRequest.getCpu(), resources.getCpu());
         assertEquals(appRequest.getGpu(), resources.getGpu());
         assertEquals(appRequest.getOwner(), owner);
