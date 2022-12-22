@@ -1,14 +1,11 @@
 package nl.tudelft.sem.template.users.facade;
 
+import lombok.AllArgsConstructor;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
-import nl.tudelft.sem.template.users.domain.AccountType;
-import nl.tudelft.sem.template.users.domain.EmployeeRepository;
-import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
-import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
-import nl.tudelft.sem.template.users.domain.RegistrationService;
-import nl.tudelft.sem.template.users.domain.SysadminRepository;
+import nl.tudelft.sem.template.users.domain.*;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
+import nl.tudelft.sem.template.users.models.facade.ScheduleModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -20,38 +17,16 @@ import org.springframework.web.client.RestTemplate;
  * A DDD for sending requests to other microservice.
  */
 @Service
+@AllArgsConstructor
 public class RequestSenderService {
     private final transient SysadminRepository sysadminRepository;
-    private final transient EmployeeRepository employeeRepository;
-    private final transient FacultyAccountRepository facultyAccountRepository;
+    private final transient EmployeeService employeeService;
+    private final transient FacultyAccountService facultyAccountService;
 
     private final transient RegistrationService registrationService;
     private final transient AuthorizationManager authorization;
 
     private final transient RestTemplate restTemplate;
-
-    /**
-     * Constructor for the request sender service.
-     *
-     * @param sysadminRepository the injected sysadmin repository
-     * @param employeeRepository the injected employee repository.
-     * @param facultyAccountRepository the injected faculty account repo.
-     * @param registrationService the injected registration service
-     * @param authorization the authorization manager
-     * @param restTemplate the provided rest template.
-     */
-    public RequestSenderService(SysadminRepository sysadminRepository, EmployeeRepository employeeRepository,
-                                FacultyAccountRepository facultyAccountRepository,
-                                RegistrationService registrationService,
-                                AuthorizationManager authorization,
-                                RestTemplate restTemplate) {
-        this.sysadminRepository = sysadminRepository;
-        this.employeeRepository = employeeRepository;
-        this.facultyAccountRepository = facultyAccountRepository;
-        this.registrationService = registrationService;
-        this.authorization = authorization;
-        this.restTemplate = restTemplate;
-    }
 
     /**
      * Sends a request to the specified url in the Resource pool microservice.
@@ -128,6 +103,77 @@ public class RequestSenderService {
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not a Sysadmin => can not check the status.");
+        }
+    }
+
+    /**
+     * Routes the request to the correct method.
+     *
+     * @param url - the url to send the request to
+     * @param authorNetId - the netId of the sender.
+     * @param token - the token with which the user is authenticated.
+     * @return the response
+     * @throws NoSuchUserException if the user cannot be found
+     * @throws InnerRequestFailedException if the request fails
+     * @throws UnauthorizedException if the user is unauthorized
+     */
+    public String getScheduleRequestRouter(String authorNetId, String token)
+            throws NoSuchUserException, UnauthorizedException, InnerRequestFailedException {
+        String sysadminUrl = "http://localhost:8085/viewAllSchedules";
+        String facManagerUrl = "http://localhost:8085/viewFacultySchedules";
+
+        if (authorization.isOfType(authorNetId, AccountType.SYSADMIN)) {
+            return getScheduleSysadmin(sysadminUrl, authorNetId, token);
+        } else if (authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) {
+            return getScheduleFacultyManager(facManagerUrl, authorNetId, token);
+        } else if (authorization.isOfType(authorNetId, AccountType.EMPLOYEE)) {
+            throw new UnauthorizedException("Employees cannot view schedules");
+        } else {
+            throw new UnauthorizedException("Request to view schedules failed.");
+        }
+    }
+
+    /**
+     * Gets all available schedules on all days for all faculties.
+     *
+     * @param url - the url of the end point
+     * @param authorNetId - the netId of the user that made the request
+     * @param token - the authentication token of the user
+     * @return the response
+     */
+    public String getScheduleSysadmin(String url, String authorNetId, String token) throws InnerRequestFailedException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            return response.getBody();
+        } catch (Exception e) {
+            throw new InnerRequestFailedException("Request to " + url + " failed.");
+        }
+    }
+
+    /**
+     * Gets all available schedules on all days for a given faculty.
+     *
+     * @param url - the url of the end point
+     * @param authorNetId - the netId of the user that made the request
+     * @param token - the authentication token of the user
+     * @return the response
+     */
+    public String getScheduleFacultyManager(String url, String authorNetId, String token) throws NoSuchUserException, InnerRequestFailedException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        long facultyId = facultyAccountService.getFacultyAssignedId(authorNetId);
+
+        HttpEntity<ScheduleModel> entity = new HttpEntity<>(new ScheduleModel(facultyId), headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            return response.getBody();
+        } catch (Exception e) {
+            throw new InnerRequestFailedException("Request to " + url + " failed.");
         }
     }
 }

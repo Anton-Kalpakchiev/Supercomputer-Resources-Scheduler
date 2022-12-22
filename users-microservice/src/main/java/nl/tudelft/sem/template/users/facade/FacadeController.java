@@ -5,10 +5,7 @@ import nl.tudelft.sem.template.users.authentication.AuthManager;
 import nl.tudelft.sem.template.users.authentication.JwtRequestFilter;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
-import nl.tudelft.sem.template.users.domain.EmployeeService;
-import nl.tudelft.sem.template.users.domain.FacultyAccountService;
-import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
-import nl.tudelft.sem.template.users.domain.RegistrationService;
+import nl.tudelft.sem.template.users.domain.*;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -128,6 +125,27 @@ public class FacadeController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
+        }
+    }
+
+    /**
+     * Allows the user to view the schedules they are authorized to view.
+     * SYSADMINS - all schedules for all available days per faculty.
+     * Faculty Managers - all schedules for all available days of their faculty.
+     * Employees cannot view the schedules of any faculties.
+     *
+     * @return the schedules of the authorized faculties.
+     */
+    @GetMapping("/schedules/viewSchedules")
+    public ResponseEntity<String> viewSchedule() {
+        try {
+            String response = requestSenderService.getScheduleRequestRouter(
+                    authentication.getNetId(), JwtRequestFilter.token);
+            return ResponseEntity.ok(response);
+        } catch (InnerRequestFailedException | NoSuchUserException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
 }
