@@ -17,7 +17,7 @@ public class ResourcesConverterTests {
     @Test
     public void testConvertToDatabaseColumn() {
         Resources resource = new Resources(400, 300, 300);
-        assertThat(resource.toString()).isEqualTo(converter.convertToDatabaseColumn(resource));
+        assertThat(converter.convertToDatabaseColumn(resource)).isEqualTo("400,300,300");
     }
 
     @Test

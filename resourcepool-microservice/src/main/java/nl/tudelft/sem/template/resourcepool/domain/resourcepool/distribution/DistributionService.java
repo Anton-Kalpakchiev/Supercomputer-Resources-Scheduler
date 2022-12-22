@@ -43,7 +43,6 @@ public class DistributionService {
     public void createFreePool() {
         ResourcePool freePool = new ResourcePool("Free pool");
         freePool.setBaseResources(systemResources);
-        freePool.setAvailableResources(systemResources);
         repo.save(freePool);
     }
 

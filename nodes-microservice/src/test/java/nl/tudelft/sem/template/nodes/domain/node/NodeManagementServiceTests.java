@@ -21,10 +21,10 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootTest
 @ActiveProfiles({"test"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class NodeCreationServiceTests {
+public class NodeManagementServiceTests {
 
     @Autowired
-    private transient NodeManagementService nodeCreationService;
+    private transient NodeManagementService nodeManagementService;
     @Autowired
     private transient NodeRepository nodeRepository;
     @Autowired
@@ -34,19 +34,20 @@ public class NodeCreationServiceTests {
     void setUp() {
         nodeRepository = mock(NodeRepository.class);
         restTemplate = mock(RestTemplate.class);
-        nodeCreationService = new NodeManagementService(nodeRepository, restTemplate);
+        nodeManagementService = new NodeManagementService(nodeRepository, restTemplate);
     }
 
     @Test
     public void createNode_withValidData_worksCorrectly() throws Exception {
-        final long facultyId = 1L;
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
+        final String ownerNetId = "test";
+        final long facultyId = 1L;
         final Token token = new Token("Token");
         final Resources resources = new Resources(420, 400, 400);
-        Node node = new Node(name, url, token, resources);
+        Node node = new Node(name, url, ownerNetId, facultyId, token, resources);
         when(nodeRepository.save(node)).thenReturn(node);
-        Node createdNode = nodeCreationService.registerNode(facultyId, name, url, token, resources);
+        Node createdNode = nodeManagementService.registerNode(name, url, ownerNetId, facultyId, token, resources);
 
         assertThat(createdNode.getNodeName()).isEqualTo(name);
         assertThat(createdNode.getResource()).isEqualTo(resources);
@@ -57,58 +58,65 @@ public class NodeCreationServiceTests {
     @Test
     public void createNodeResourceException() {
         // Arrange
-        final long facultyId = 1L;
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
+        final String ownerNetId = "test";
+        final long facultyId = 1L;
         final Token token = new Token("Token");
         final Resources resources = new Resources(420, 500, 400);
 
         assertThrows(ResourcesInvalidException.class, () ->
-                nodeCreationService.registerNode(facultyId, name, url, token, resources));
+                nodeManagementService.registerNode(name, url, ownerNetId, facultyId, token, resources));
     }
 
     @Test
     public void createNodeNameException() throws Exception {
         // Arrange
-        final long facultyId = 1L;
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
+        final String ownerNetId = "test";
+        final long facultyId = 1L;
         final Token token = new Token("Token");
         final Resources resources = new Resources(420, 400, 400);
-        nodeCreationService.registerNode(facultyId, name, url, token, resources);
+        nodeManagementService.registerNode(name, url, ownerNetId, facultyId, token, resources);
         when(nodeRepository.existsByName(name)).thenReturn(true);
 
         assertThrows(NameAlreadyInUseException.class, () ->
-                nodeCreationService.registerNode(facultyId, name, new NodeUrl("url2"), new Token("token2"), resources));
+                nodeManagementService.registerNode(name, new NodeUrl("url2"), ownerNetId,
+                                    facultyId, new Token("token2"), resources));
     }
 
     @Test
     public void createNodeUrlException() throws Exception {
         // Arrange
-        final long facultyId = 1L;
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
+        final String ownerNetId = "test";
+        final long facultyId = 1L;
         final Token token = new Token("token");
         final Resources resources = new Resources(420, 400, 400);
-        nodeCreationService.registerNode(facultyId, name, url, token, resources);
+        nodeManagementService.registerNode(name, url, ownerNetId, facultyId, token, resources);
         when(nodeRepository.existsByUrl(url)).thenReturn(true);
 
         assertThrows(UrlAlreadyInUseException.class, () ->
-                nodeCreationService.registerNode(facultyId, new Name("Ivo"), url, new Token("token2"), resources));
+                nodeManagementService.registerNode(new Name("Ivo"), url, ownerNetId, facultyId,
+                                                    new Token("token2"), resources));
     }
 
     @Test
     public void createNodeTokenException() throws Exception {
         // Arrange
-        final long facultyId = 1L;
         final Name name = new Name("Mayte");
         final NodeUrl url = new NodeUrl("url");
+        final String ownerNetId = "test";
+        final long facultyId = 1L;
         final Token token = new Token("Token");
         final Resources resources = new Resources(420, 400, 400);
-        nodeCreationService.registerNode(facultyId, name, url, token, resources);
+        nodeManagementService.registerNode(name, url, ownerNetId, facultyId, token, resources);
         when(nodeRepository.existsByToken(token)).thenReturn(true);
 
         assertThrows(TokenAlreadyInUseException.class, () ->
-                nodeCreationService.registerNode(facultyId, new Name("Ivo"), new NodeUrl("url2"), token, resources));
+                nodeManagementService.registerNode(new Name("Ivo"), new NodeUrl("url2"),
+                                                    ownerNetId, facultyId, token, resources));
     }
 }

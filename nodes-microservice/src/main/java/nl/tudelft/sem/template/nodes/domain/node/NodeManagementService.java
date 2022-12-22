@@ -2,8 +2,8 @@ package nl.tudelft.sem.template.nodes.domain.node;
 
 import nl.tudelft.sem.template.nodes.authentication.JwtRequestFilter;
 import nl.tudelft.sem.template.nodes.domain.resources.Resources;
-import nl.tudelft.sem.template.nodes.models.ContributeToFacultyModel;
-import nl.tudelft.sem.template.nodes.models.NodeContributionModel;
+import nl.tudelft.sem.template.nodes.models.FacultyInteractionRequestModel;
+import nl.tudelft.sem.template.nodes.models.FacultyInteractionResponseModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -37,14 +37,16 @@ public class NodeManagementService {
      * Register a node in the repository.
      *
      * @param name     the name of the node
-     * @param facultyId the id of the faculty the node should be contributed to
      * @param url      the url of the node
+     * @param ownerNetId the netId of the owner of the node
+     * @param facultyId the id of the faculty the node should be contributed to
      * @param token    the token of the node
      * @param resources the resources of the node
      * @return the node that has been registered
      * @throws Exception an exception
      */
-    public Node registerNode(long facultyId, Name name, NodeUrl url, Token token, Resources resources) throws Exception {
+    public Node registerNode(Name name, NodeUrl url, String ownerNetId,
+                             long facultyId, Token token, Resources resources) throws Exception {
         if (repo.existsByName(name)) {
             throw new NameAlreadyInUseException(name);
         }
@@ -57,10 +59,29 @@ public class NodeManagementService {
         if (!checkResourceRequirements(resources)) {
             throw new ResourcesInvalidException(resources);
         }
-        contributeNodeToFaculty(facultyId, resources);
-        Node node = new Node(name, url, token, resources);
+        interactWithFaculty("contributeNode", facultyId, resources);
+        Node node = new Node(name, url, ownerNetId, facultyId, token, resources);
         repo.save(node);
         return node;
+    }
+
+    /**
+     * Delete a node from the repository.
+     *
+     * @param nodeId the id of the node to be deleted
+     * @param ownerNetId the id of the owner of the node
+     * @throws Exception if the node id can't be found or the requester isn't the owner of the node
+     */
+    public void deleteNode(long nodeId, String ownerNetId) throws Exception {
+        if (!repo.existsById(nodeId)) {
+            throw new NodeIdNotFoundException(nodeId);
+        }
+        Node node = repo.findById(nodeId).get();
+        if (!node.getOwnerNetId().equals(ownerNetId)) {
+            throw new InvalidOwnerException(ownerNetId);
+        }
+        interactWithFaculty("deleteNode", node.getFacultyId(), node.getResource());
+        repo.deleteById(nodeId);
     }
 
     /**
@@ -77,23 +98,25 @@ public class NodeManagementService {
     }
 
     /**
-     * Sends an API-request to the resource pool microservice to contribute a node to a faculty.
+     * Sends an API-request to the resource pool microservice to either contribute or delete a node to/from a faculty.
      *
+     * @param method the last part of the url to indicate the required action
      * @param facultyId the id of the faculty the node should be contributed to
      * @param resources the amount of resources the node contains
      * @throws Exception if the request has failed because the faculty id was invalid
      */
-    public void contributeNodeToFaculty(long facultyId, Resources resources) throws Exception {
-        String url = "http://localhost:8085/contributeNode";
+    public void interactWithFaculty(String method, long facultyId, Resources resources) throws Exception {
+        String url = "http://localhost:8085/" + method;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(JwtRequestFilter.token);
 
-        HttpEntity<ContributeToFacultyModel> entity = new HttpEntity<>(new ContributeToFacultyModel(facultyId,
+        HttpEntity<FacultyInteractionRequestModel> entity = new HttpEntity<>(new FacultyInteractionRequestModel(facultyId,
                                     resources.getCpu(), resources.getGpu(), resources.getMemory()), headers);
 
-        ResponseEntity<NodeContributionModel> result = restTemplate.postForEntity(url, entity, NodeContributionModel.class);
+        ResponseEntity<FacultyInteractionResponseModel> result = restTemplate.postForEntity(
+                                                                url, entity, FacultyInteractionResponseModel.class);
         if (result == null) {
             return;
         }

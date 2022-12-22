@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 public class NodeUnitTests {
     private Name name;
     private NodeUrl url;
+    private String ownerNetId;
+    private long facultyId;
     private Token token;
     private Resources resource;
 
@@ -19,14 +21,16 @@ public class NodeUnitTests {
     void setup() {
         name = new Name("Mayte");
         url = new NodeUrl("url");
+        ownerNetId = "test";
+        facultyId = 1L;
         token = new Token("token");
         resource = new Resources(500, 400, 400);
-        node = new Node(name, url, token, resource);
+        node = new Node(name, url, ownerNetId, facultyId, token, resource);
     }
 
     @Test
     public void constructorTestNode() {
-        Node node = new Node(name, url, token, resource);
+        Node node = new Node(name, url, ownerNetId, facultyId, token, resource);
         assertThat(node).isNotNull();
     }
 
@@ -36,13 +40,18 @@ public class NodeUnitTests {
     }
 
     @Test
-    public void getTokenTest() {
-        assertThat(node.getToken()).isEqualTo(token);
+    public void getUrlTest() {
+        assertThat(node.getUrl()).isEqualTo(url);
     }
 
     @Test
-    public void getUrlTest() {
-        assertThat(node.getUrl()).isEqualTo(url);
+    public void getOwnerNetIdTest() {
+        assertThat(node.getOwnerNetId()).isEqualTo(ownerNetId);
+    }
+
+    @Test
+    public void getTokenTest() {
+        assertThat(node.getToken()).isEqualTo(token);
     }
 
     @Test
@@ -59,37 +68,43 @@ public class NodeUnitTests {
 
     @Test
     public void toStringNodeTest() {
-        String nodeString = "Node Mayte {url:url, token:token, resource:[CPU: 500, GPU: 400, Memory: 400]}";
+        String nodeString = "Node Mayte {url:url, ownerNetId:test, facultyId:1, "
+                + "token:token, resource:[CPU: 500, GPU: 400, Memory: 400]}";
         assertThat(node.toString()).isEqualTo(nodeString);
     }
 
     @Test
     public void testNodeEqualsTrue() {
-        Node node2 = new Node(new Name("Mayte"), new NodeUrl("url"), new Token("token"), new Resources(500, 400, 400));
+        Node node2 = new Node(new Name("Mayte"), new NodeUrl("url"), "test",
+                1L, new Token("token"), new Resources(500, 400, 400));
         assertThat(node).isEqualTo(node2);
     }
 
     @Test
     public void testNodeEqualsFalseToken() {
-        Node node2 = new Node(new Name("Mayte"), new NodeUrl("url"), new Token("tokenwrong"), new Resources(500, 400, 400));
+        Node node2 = new Node(new Name("Mayte"), new NodeUrl("url"), "test",
+                1L, new Token("tokenwrong"), new Resources(500, 400, 400));
         assertThat(node).isNotEqualTo(node2);
     }
 
     @Test
     public void testNodeNameEqualsFalse() {
-        Node node2 = new Node(new Name("Ivo"), new NodeUrl("url"), new Token("token"), new Resources(500, 400, 400));
+        Node node2 = new Node(new Name("Ivo"), new NodeUrl("url"), "test",
+                1L, new Token("token"), new Resources(500, 400, 400));
         assertThat(node).isNotEqualTo(node2);
     }
 
     @Test
     public void testNodeEqualsFalseUrl() {
-        Node node2 = new Node(new Name("Mayte"), new NodeUrl("urlwrong"), new Token("token"), new Resources(500, 400, 400));
+        Node node2 = new Node(new Name("Mayte"), new NodeUrl("urlwrong"), "test",
+                1L, new Token("token"), new Resources(500, 400, 400));
         assertThat(node).isNotEqualTo(node2);
     }
 
     @Test
     public void testNodeEqualsFalseResource() {
-        Node node2 = new Node(new Name("Mayte"), new NodeUrl("url"), new Token("token"), new Resources(400, 400, 400));
+        Node node2 = new Node(new Name("Mayte"), new NodeUrl("url"), "test",
+                1L, new Token("token"), new Resources(400, 400, 400));
         assertThat(node).isNotEqualTo(node2);
     }
 
@@ -106,6 +121,7 @@ public class NodeUnitTests {
     @Test
     public void hashTest() {
         assertThat(node.hashCode())
-                .isEqualTo(Objects.hash(node.getNodeName(), node.getUrl(), node.getToken(), node.getResource()));
+                    .isEqualTo(Objects.hash(node.getNodeName(), node.getUrl(), node.getOwnerNetId(),
+                            node.getFacultyId(), node.getToken(), node.getResource()));
     }
 }

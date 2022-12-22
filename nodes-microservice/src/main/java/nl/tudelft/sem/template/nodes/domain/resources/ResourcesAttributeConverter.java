@@ -18,7 +18,7 @@ public class ResourcesAttributeConverter implements AttributeConverter<Resources
      */
     @Override
     public String convertToDatabaseColumn(Resources attribute) {
-        return attribute.toString();
+        return attribute.getCpu() + "," + attribute.getGpu() + "," + attribute.getMemory();
     }
 
     /**
