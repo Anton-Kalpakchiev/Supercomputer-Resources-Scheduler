@@ -32,6 +32,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final transient JwtTokenVerifier jwtTokenVerifier;
 
+    public static String token;
+
     @Autowired
     public JwtRequestFilter(JwtTokenVerifier jwtTokenVerifier) {
         this.jwtTokenVerifier = jwtTokenVerifier;
@@ -60,6 +62,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             // Check for the correct auth scheme
             if (directives.length == 2 && directives[0].equals(AUTHORIZATION_AUTH_SCHEME)) {
                 String token = directives[1];
+                this.token = token;
 
                 try {
                     if (jwtTokenVerifier.validateToken(token)) {
@@ -83,7 +86,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     System.err.println("Unable to parse JWT token");
                 }
             }
-            System.err.println("Invalid authorization header");
+            //System.err.println("Invalid authorization header");
         }
 
         filterChain.doFilter(request, response);

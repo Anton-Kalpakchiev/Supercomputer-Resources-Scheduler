@@ -59,7 +59,7 @@ public class NodeUnitTests {
 
     @Test
     public void toStringNodeTest() {
-        String nodeString = "Node Mayte {url:url, token:token, resource:[500, 400, 400]}";
+        String nodeString = "Node Mayte {url:url, token:token, resource:[CPU: 500, GPU: 400, Memory: 400]}";
         assertThat(node.toString()).isEqualTo(nodeString);
     }
 
