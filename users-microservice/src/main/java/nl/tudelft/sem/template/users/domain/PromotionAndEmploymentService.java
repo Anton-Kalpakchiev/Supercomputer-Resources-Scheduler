@@ -95,8 +95,6 @@ public class PromotionAndEmploymentService {
             throws FacultyException, NoSuchUserException, UnauthorizedException {
         if (authorization.isOfType(authorNetId, AccountType.SYSADMIN)) {
             if (authorization.isOfType(managerNetId, AccountType.EMPLOYEE)) {
-                String url = "http://localhost:8085/createFaculty";
-
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
                 headers.setBearerAuth(token);
@@ -104,7 +102,7 @@ public class PromotionAndEmploymentService {
                         //TODO: change to string
                         new TemporaryRequestModel(facultyName, managerNetId), headers);
 
-                System.out.println(entity.getBody());
+                String url = "http://localhost:8085/createFaculty";
                 ResponseEntity<FacultyCreationResponseModel> result = restTemplate.postForEntity(url, entity,
                         FacultyCreationResponseModel.class);
 

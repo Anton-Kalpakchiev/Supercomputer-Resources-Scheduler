@@ -9,10 +9,16 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class UserService {
 
-    public UserService(){
+    public UserService() {
         
     }
-    
+
+    /**
+     * Gets the facultyId for the manager.
+     *
+     * @param token the jwtToken
+     * @return the facultyId
+     */
     public Long getFacultyIdForManager(String token) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Type", "application/json");
@@ -25,4 +31,4 @@ public class UserService {
         return response.getBody();
     }
 
-    }
+}

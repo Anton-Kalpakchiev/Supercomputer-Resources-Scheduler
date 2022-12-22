@@ -102,7 +102,6 @@ public class DailyScheduleService {
             saveDailyScheduleInit(toSave);
             scheduleRepository.save(toSave);
             return toSave.getAvailableResources();
-//            throw new Exception("Resource pool not found.");
         }
     }
 

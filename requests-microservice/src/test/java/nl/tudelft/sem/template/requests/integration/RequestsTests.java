@@ -3,6 +3,7 @@ package nl.tudelft.sem.template.requests.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -74,7 +75,7 @@ public class RequestsTests {
                 facultyName, Calendar.getInstance(), -1);
 
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-        when(mockRegistrationService.getFacultyResourcesByName(anyString())).thenReturn(facultyResources);
+        when(mockRegistrationService.getResourcesForId(anyLong())).thenReturn(facultyResources);
         when(requestRepository.findById(0L)).thenReturn(Optional.of(expected));
 
         RegistrationRequestModel model = new RegistrationRequestModel();
