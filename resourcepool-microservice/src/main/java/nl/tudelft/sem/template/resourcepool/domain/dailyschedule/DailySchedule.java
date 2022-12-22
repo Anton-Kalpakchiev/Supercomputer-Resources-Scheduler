@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -12,6 +13,7 @@ import javax.persistence.IdClass;
 import javax.persistence.Table;
 import lombok.NoArgsConstructor;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
+import nl.tudelft.sem.template.resourcepool.domain.resources.ResourcesAttributeConverter;
 
 /**
  * A DDD entity representing an application user in our domain.
@@ -38,9 +40,11 @@ public class DailySchedule {
     @Column(name = "list_request_id", nullable = false)
     private List<Long> list;
 
+    @Convert(converter = ResourcesAttributeConverter.class)
     @Column(name = "available_resources", nullable = true)
     private Resources availableResources;
 
+    @Convert(converter = ResourcesAttributeConverter.class)
     @Column(name = "total_resources", nullable = true)
     private Resources totalResources;
 

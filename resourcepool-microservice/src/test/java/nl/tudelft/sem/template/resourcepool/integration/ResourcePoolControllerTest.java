@@ -60,47 +60,47 @@ public class ResourcePoolControllerTest {
         facultyId = 6L;
     }
 
-    //    @Test
-    //    public void verifyFaculty() throws Exception {
-    //        // Arrange
-    //        // Notice how some custom parts of authorisation need to be mocked.
-    //        // Otherwise, the integration test would never be able to authorise as the authorisation server is offline.
-    //        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-    //        when(rpFacultyRepository.existsById(facultyId)).thenReturn(true);
-    //
-    //        // Act
-    //        ResultActions result = mockMvc.perform(post("/verifyFaculty")
-    //                .contentType(MediaType.APPLICATION_JSON)
-    //                .header("Authorization", "Bearer MockedToken")
-    //                .content(objectMapper.writeValueAsString(new VerifyFacultyRequestModel(facultyId))));
-    //
-    //        // Assert
-    //        result.andExpect(status().isOk());
-    //
-    //        String response = result.andReturn().getResponse().getContentAsString();
-    //
-    //        assertThat(response).isEqualTo(objectMapper.writeValueAsString(new VerifyFacultyResponseModel(true)));
-    //    }
+    @Test
+    public void verifyFaculty() throws Exception {
+        // Arrange
+        // Notice how some custom parts of authorisation need to be mocked.
+        // Otherwise, the integration test would never be able to authorise as the authorisation server is offline.
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(rpFacultyRepository.existsById(facultyId)).thenReturn(true);
 
-    //    @Test
-    //    public void verifyFacultyNotFound() throws Exception {
-    //        // Arrange
-    //        // Notice how some custom parts of authorisation need to be mocked.
-    //        // Otherwise, the integration test would never be able to authorise as the authorisation server is offline.
-    //        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-    //        when(rpFacultyRepository.existsById(facultyId)).thenReturn(false);
-    //
-    //        // Act
-    //        ResultActions result = mockMvc.perform(post("/verifyFaculty")
-    //                .contentType(MediaType.APPLICATION_JSON)
-    //                .header("Authorization", "Bearer MockedToken")
-    //                .content(objectMapper.writeValueAsString(new VerifyFacultyRequestModel(facultyId))));
-    //
-    //        // Assert
-    //        result.andExpect(status().isOk());
-    //
-    //        String response = result.andReturn().getResponse().getContentAsString();
-    //
-    //        assertThat(response).isEqualTo(objectMapper.writeValueAsString(new VerifyFacultyResponseModel(false)));
-    //    }
+        // Act
+        ResultActions result = mockMvc.perform(post("/verifyFaculty")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer MockedToken")
+                .content(objectMapper.writeValueAsString(new VerifyFacultyRequestModel(facultyId))));
+
+        // Assert
+        result.andExpect(status().isOk());
+
+        String response = result.andReturn().getResponse().getContentAsString();
+
+        assertThat(response).isEqualTo(objectMapper.writeValueAsString(new VerifyFacultyResponseModel(true)));
+    }
+
+    @Test
+    public void verifyFacultyNotFound() throws Exception {
+        // Arrange
+        // Notice how some custom parts of authorisation need to be mocked.
+        // Otherwise, the integration test would never be able to authorise as the authorisation server is offline.
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(rpFacultyRepository.existsById(facultyId)).thenReturn(false);
+
+        // Act
+        ResultActions result = mockMvc.perform(post("/verifyFaculty")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer MockedToken")
+                .content(objectMapper.writeValueAsString(new VerifyFacultyRequestModel(facultyId))));
+
+        // Assert
+        result.andExpect(status().isOk());
+
+        String response = result.andReturn().getResponse().getContentAsString();
+
+        assertThat(response).isEqualTo(objectMapper.writeValueAsString(new VerifyFacultyResponseModel(false)));
+    }
 }
