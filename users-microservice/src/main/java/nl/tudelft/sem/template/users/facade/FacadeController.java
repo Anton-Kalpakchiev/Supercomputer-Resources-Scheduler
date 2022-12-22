@@ -1,5 +1,6 @@
 package nl.tudelft.sem.template.users.facade;
 
+import java.util.Calendar;
 import lombok.AllArgsConstructor;
 import nl.tudelft.sem.template.users.authentication.AuthManager;
 import nl.tudelft.sem.template.users.authentication.JwtRequestFilter;
@@ -12,6 +13,7 @@ import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
 import nl.tudelft.sem.template.users.models.facade.NodeContributionRequestModel;
 import nl.tudelft.sem.template.users.models.facade.NodeDeletionRequestModel;
+import nl.tudelft.sem.template.users.models.facade.ManualApprovalModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 /**
  * Controller for the requests towards other microservices.
  */
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 @RestController
 @AllArgsConstructor
 public class FacadeController {
@@ -128,6 +131,37 @@ public class FacadeController {
             return ResponseEntity.ok("Distribution was cleared.");
         } catch (UnauthorizedException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
+        }
+    }
+
+    /**
+     * Post request from a faculty manager to manually approve/reject a request.
+     *
+     * @param approvalModel containts the requestID, whether it is accepted or rejected,
+     *                      and if accepted, its day of execution
+     * @return a message to the user informing them the request is successfully approved/rejected
+     */
+    @PostMapping("/manualSchedule")
+    public ResponseEntity<String> approveRejectRequest(@RequestBody ManualApprovalModel approvalModel) {
+        try {
+            boolean approved = approvalModel.isApproved();
+            long requestId = approvalModel.getRequestId();
+            //if request is getting rejected, this field does not matter
+            Calendar dayOfExecution = Calendar.getInstance();
+            if (approvalModel.getDayOfExecution().contains("/")) {
+                String[] dayOfExecutionArr = approvalModel.getDayOfExecution().split("/");
+                dayOfExecution = Calendar.getInstance();
+                dayOfExecution.set(Calendar.YEAR, Integer.parseInt(dayOfExecutionArr[2]));
+                dayOfExecution.set(Calendar.MONTH, Integer.parseInt(dayOfExecutionArr[1]));
+                dayOfExecution.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dayOfExecutionArr[0]));
+            }
+
+            String url = "http://localhost:8084/manualSchedule";
+            requestSenderService.approveRejectRequest(url, authentication.getNetId(), approvalModel, JwtRequestFilter.token);
+            String answer = requestSenderService.getRequestAnswer(approved);
+            return ResponseEntity.ok(answer);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
         }

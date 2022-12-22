@@ -6,10 +6,13 @@ import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
 import nl.tudelft.sem.template.users.domain.EmployeeRepository;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
+import nl.tudelft.sem.template.users.domain.FacultyAccountService;
 import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
+import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.SysadminRepository;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
+import nl.tudelft.sem.template.users.models.facade.ManualApprovalModel;
 import nl.tudelft.sem.template.users.models.facade.NodeContributionRequestModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,6 +20,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
 
 /**
  * A DDD for sending requests to other microservice.
@@ -26,11 +30,15 @@ public class RequestSenderService {
     private final transient SysadminRepository sysadminRepository;
     private final transient EmployeeRepository employeeRepository;
     private final transient FacultyAccountRepository facultyAccountRepository;
+    private final transient FacultyAccountService facultyAccountService;
+
 
     private final transient RegistrationService registrationService;
     private final transient AuthorizationManager authorization;
 
     private final transient RestTemplate restTemplate;
+    private final transient String requestTo = "Request to ";
+    private final transient String failed = " failed";
 
     /**
      * Constructor for the request sender service.
@@ -46,13 +54,15 @@ public class RequestSenderService {
                                 FacultyAccountRepository facultyAccountRepository,
                                 RegistrationService registrationService,
                                 AuthorizationManager authorization,
-                                RestTemplate restTemplate) {
+                                RestTemplate restTemplate,
+                                FacultyAccountService facultyAccountService) {
         this.sysadminRepository = sysadminRepository;
         this.employeeRepository = employeeRepository;
         this.facultyAccountRepository = facultyAccountRepository;
         this.registrationService = registrationService;
         this.authorization = authorization;
         this.restTemplate = restTemplate;
+        this.facultyAccountService = facultyAccountService;
     }
 
     /**
@@ -75,7 +85,7 @@ public class RequestSenderService {
             try {
                 restTemplate.postForEntity(url, entity, Void.class);
             } catch (Exception e) {
-                throw new InnerRequestFailedException("Request to " + url + " failed.");
+                throw new InnerRequestFailedException(requestTo + url + failed);
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not a Sysadmin => can not add a distribution");
@@ -99,7 +109,7 @@ public class RequestSenderService {
             try {
                 restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
             } catch (Exception e) {
-                throw new InnerRequestFailedException("Request to " + url + " failed.");
+                throw new InnerRequestFailedException(requestTo + url + failed);
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not a Sysadmin");
@@ -126,10 +136,56 @@ public class RequestSenderService {
                 ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
                 return response.getBody();
             } catch (Exception e) {
-                throw new InnerRequestFailedException("Request to " + url + " failed.");
+                throw new InnerRequestFailedException(requestTo + url + failed);
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not a Sysadmin => can not check the status.");
+        }
+    }
+
+    /**
+     * Send a request to the Request MS to manually approve/reject a request.
+     *
+     * @param url the respective URL to the Request MS
+     * @param authorNetId the netID of the facManager
+     * @param model model containing the scheduled day of execution if approved,
+     *              the id of the request and whether it is approved or rejected
+     * @param token the user token
+     * @return whether the approval/rejection went through
+     * @throws NoSuchUserException when no such user exists
+     * @throws InnerRequestFailedException when the Request MS is not responding
+     * @throws UnauthorizedException when the user submitting this request is not a faculty manager
+     */
+    public boolean approveRejectRequest(String url, String authorNetId, ManualApprovalModel model, String token)
+            throws NoSuchUserException, InnerRequestFailedException, UnauthorizedException {
+        if (authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)
+                && facultyAccountService.getFacultyAssignedId(authorNetId) == model.getRequestId()) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+
+            HttpEntity<ManualApprovalModel> entity = new HttpEntity<>(model, headers);
+            try {
+                ResponseEntity<Boolean> response = restTemplate.exchange(url, HttpMethod.POST, entity, Boolean.class);
+                return response.getBody();
+            } catch (Exception e) {
+                throw new InnerRequestFailedException(requestTo + url + failed);
+            }
+        } else {
+            throw new UnauthorizedException("(" + authorNetId
+                    + ") is not a Faculty Manager => can not approve or reject requests.");
+        }
+    }
+
+    /** Returns the correct message to show the user when a request is successfully approved/rejected.
+     *
+     * @param approved whether the request is approved
+     * @return the correct message to show the user when the request is approved/rejected
+     */
+    public String getRequestAnswer(boolean approved) {
+        if (approved) {
+            return "Request was successfully approved";
+        } else {
+            return "Request was successfully rejected";
         }
     }
 
