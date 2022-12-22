@@ -51,8 +51,6 @@ public class DailyScheduleController {
         day.set(Calendar.YEAR, Integer.parseInt(dayArr[2]));
         day.set(Calendar.MONTH, Integer.parseInt(dayArr[1]));
         day.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dayArr[0]));
-        System.out.println("Pretty far: " + day.get(Calendar.DAY_OF_MONTH) + "-" + day.get(Calendar.MONTH) + "-"
-                + day.get(Calendar.YEAR));
         String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
         String token = authorizationHeader.split(" ")[1];
         try {
@@ -72,10 +70,9 @@ public class DailyScheduleController {
      */
     @PostMapping("/availableFacultyResources")
     public ResponseEntity<Resources> getAvailableFacultyResources(
-            @RequestBody RequestTomorrowResourcesRequestModel request) {
-        long facultyId = request.getResourcePoolId();
+            @RequestBody long request) {
         try {
-            return ResponseEntity.ok(dailyScheduleService.getAvailableResourcesById(facultyId));
+            return ResponseEntity.ok(dailyScheduleService.getAvailableResourcesById(request));
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());

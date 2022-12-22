@@ -3,6 +3,7 @@ package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import nl.tudelft.sem.template.resourcepool.domain.RequestService;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.ResourcePool;
@@ -92,12 +93,16 @@ public class DailyScheduleService {
      */
     public Resources getAvailableResourcesById(long resourcePoolId) throws Exception {
         Calendar tomorrow = Calendar.getInstance();
-        tomorrow.add(Calendar.DATE, 1);
-        if (scheduleRepository.findByDayAndResourcePoolId(tomorrow, resourcePoolId).isPresent()) {
-            return scheduleRepository.findByDayAndResourcePoolId(tomorrow, resourcePoolId).get().getAvailableResources();
+        tomorrow.add(Calendar.DAY_OF_MONTH, 1);
+        Optional<DailySchedule> optional = scheduleRepository.findByDayAndResourcePoolId(tomorrow, resourcePoolId);
+        if (optional.isPresent()) {
+            return optional.get().getAvailableResources();
         } else {
-            // Proper exception implemented in different branches
-            throw new Exception("Resource pool note found");
+            DailySchedule toSave = new DailySchedule(tomorrow, resourcePoolId);
+            saveDailyScheduleInit(toSave);
+            scheduleRepository.save(toSave);
+            return toSave.getAvailableResources();
+//            throw new Exception("Resource pool not found.");
         }
     }
 

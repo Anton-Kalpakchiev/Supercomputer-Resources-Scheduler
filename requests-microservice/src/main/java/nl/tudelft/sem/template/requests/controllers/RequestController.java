@@ -33,6 +33,7 @@ public class RequestController {
     private final transient RegistrationService registrationService;
     private final transient StatusService statusService;
     private final transient ResourcePoolService resourcePoolService;
+    private final transient UserService userService;
 
     /**
      * Instantiates a new controller.
@@ -42,11 +43,13 @@ public class RequestController {
      */
     @Autowired
     public RequestController(AuthManager authManager, RegistrationService registrationService,
-                             StatusService statusService, ResourcePoolService resourcePoolService) {
+                             StatusService statusService, ResourcePoolService resourcePoolService,
+                             UserService userService) {
         this.authManager = authManager;
         this.registrationService = registrationService;
         this.statusService = statusService;
         this.resourcePoolService = resourcePoolService;
+        this.userService = userService;
     }
 
     /**
@@ -59,28 +62,29 @@ public class RequestController {
      */
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody RegistrationRequestModel request, HttpServletRequest requested)
-            throws Exception {
+             {
         try {
+            String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
+            String token = authorizationHeader.split(" ")[1];
             final String description = request.getDescription();
-            final Resources resources = new Resources(request.getMemory(), request.getCpu(), request.getGpu());
+            final Resources resources = new Resources(request.getCpu(), request.getGpu(), request.getMemory());
             final String owner = authManager.getNetId();
             final String facultyName = request.getFacultyName();
-            final Resources availableResources = registrationService.getFacultyResourcesByName(facultyName);
-            final Resources availableFreePoolResources = registrationService.getFacultyResourcesByName("Free pool");
+            final long facultyId = resourcePoolService.getIdByName(facultyName, token);
+            final Resources availableResources = resourcePoolService.getFacultyResourcesById(facultyId, token);
+            final Resources availableFreePoolResources = resourcePoolService.getFacultyResourcesById(1L, token);
 
             String deadlineStr = request.getDeadline(); //convert to Calendar immediately
             Calendar deadline = Calendar.getInstance();
             deadline.set(Calendar.YEAR, Integer.parseInt(deadlineStr.split("-")[2]));
-            deadline.set(Calendar.MONTH, Integer.parseInt(deadlineStr.split("-")[1]));
+            deadline.set(Calendar.MONTH, Integer.parseInt(deadlineStr.split("-")[1])-1);
             deadline.set(Calendar.DAY_OF_MONTH, Integer.parseInt(deadlineStr.split("-")[0]));
-
-            String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
-            String token = authorizationHeader.split(" ")[1];
 
             registrationService.registerRequest(description, resources, owner,
                     facultyName, availableResources, deadline, availableFreePoolResources, token);
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
@@ -117,5 +121,18 @@ public class RequestController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/pending-requests")
+    public ResponseEntity<List<AppRequest>> getPendingRequests(HttpServletRequest requested) {
+        String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
+        String token = authorizationHeader.split(" ")[1];
+        Long facultyId = userService.getFacultyIdForManager(token);
+        String facultyName = resou  rcePoolService.getFacultyNameForFacultyId(facultyId, token);
+        return ResponseEntity.ok(registrationService.getPendingRequestsForFacultyName(facultyName));
+    }
 
+    @PostMapping("/resourcesById")
+    public ResponseEntity<Resources> getResourcesById(@RequestBody long requestId){
+        System.out.println(requestId);
+        return ResponseEntity.ok(registrationService.getResourcesForId(requestId));
+    }
 }

@@ -163,6 +163,23 @@ public class UsersController {
     }
 
     /**
+     * Request for checking the access of a User.
+     *
+     * @return whether the request was successful
+     */
+    @PostMapping("/get-faculty-id-for-manager")
+    public ResponseEntity<Long> getFacultyIdForManager() {
+        try {
+            String netId = authentication.getNetId();
+            Long result = facultyAccountService.getFacultyAssignedId(netId);
+            return ResponseEntity.ok(result);
+        } catch (NoSuchUserException e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
      * Request for creating a new faculty.
      *
      * @param request the faculty creation request

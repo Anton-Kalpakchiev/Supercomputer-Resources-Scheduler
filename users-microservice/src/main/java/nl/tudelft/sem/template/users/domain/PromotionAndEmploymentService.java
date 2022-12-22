@@ -102,8 +102,9 @@ public class PromotionAndEmploymentService {
                 headers.setBearerAuth(token);
                 HttpEntity<TemporaryRequestModel> entity = new HttpEntity<>(
                         //TODO: change to string
-                        new TemporaryRequestModel(facultyName, managerNetId.hashCode()), headers);
+                        new TemporaryRequestModel(facultyName, managerNetId), headers);
 
+                System.out.println(entity.getBody());
                 ResponseEntity<FacultyCreationResponseModel> result = restTemplate.postForEntity(url, entity,
                         FacultyCreationResponseModel.class);
 

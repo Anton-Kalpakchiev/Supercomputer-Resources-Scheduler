@@ -2,12 +2,7 @@ package nl.tudelft.sem.template.users.facade;
 
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
-import nl.tudelft.sem.template.users.domain.AccountType;
-import nl.tudelft.sem.template.users.domain.EmployeeRepository;
-import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
-import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
-import nl.tudelft.sem.template.users.domain.RegistrationService;
-import nl.tudelft.sem.template.users.domain.SysadminRepository;
+import nl.tudelft.sem.template.users.domain.*;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -128,6 +123,36 @@ public class RequestSenderService {
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not a Sysadmin => can not check the status.");
+        }
+    }
+
+    /**
+     * Sends a get request to the specified url and checks if the author is a faculty account.
+     *
+     * @param url the url to send the request to.
+     * @param authorNetId the netId of the author
+     * @param token the token of the author.
+     * @return the request response.
+     * @throws NoSuchUserException if the user is non-existing
+     * @throws UnauthorizedException if the user is unauthorized
+     * @throws InnerRequestFailedException if the inner request failed
+     */
+    public String getRequestFromFacultyAccount(String url, String authorNetId, String token) throws NoSuchUserException, UnauthorizedException, InnerRequestFailedException {
+        if(authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            try {
+                System.out.println("Kinda far");
+                ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+                return response.getBody();
+            } catch (Exception e) {
+                throw new InnerRequestFailedException("Request to " + url + " failed.");
+            }
+        } else {
+            throw new UnauthorizedException("(" + authorNetId + ") is not a Faculty account.");
         }
     }
 }

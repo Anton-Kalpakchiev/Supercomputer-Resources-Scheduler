@@ -2,10 +2,15 @@ package nl.tudelft.sem.template.requests.domain;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.swing.text.html.Option;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
+
 
 @Service
 //We can remove this line later on, but I can't figure out how to fix this and the code works perfect with the error in it
@@ -29,6 +34,15 @@ public class RegistrationService {
         this.resourcePoolService = resourcePoolService;
     }
 
+    public Resources getResourcesForId(long requestId){
+        Optional<AppRequest> optional = requestRepository.findById(requestId);
+        if(optional.isPresent()){
+            AppRequest request = optional.get();
+            Resources resources = new Resources(request.getCpu(), request.getGpu(), request.getMem());
+            return resources;
+        }else throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
+
     /**
      * Register a new request.
      *
@@ -38,7 +52,7 @@ public class RegistrationService {
     public AppRequest registerRequest(String description, Resources resources, String owner, String facultyName,
                                   Resources availableResources, Calendar deadline, Resources freePoolResources, String token)
             throws InvalidResourcesException {
-
+        System.out.println(resources);
         if (resources.getMemory() < 0 || resources.getCpu() < 0 || resources.getGpu() < 0) {
             throw new InvalidResourcesException("Resource object cannot be created with negative inputs");
         }
@@ -67,16 +81,18 @@ public class RegistrationService {
 
         int status = decideStatusOfRequest(timePeriod, isForTomorrow, frpHasEnoughResources, facultyHasEnoughResources);
 
-        if (status == 0) {
+        if (status == 0 || status == 1) {
             //pending for manual review
             request.setStatus(0);
             requestRepository.save(request);
-        } else if (status == 1) {
-            //auto approve
-            request.setStatus(1);
-            requestRepository.save(request);
-            resourcePoolService.approval(deadline, request.getId(), token);
-        } else if (status == 2) {
+        }
+//        } else if (status == 1) {
+//            //auto approve
+//            request.setStatus(1);
+//            requestRepository.save(request);
+//            resourcePoolService.approval(deadline, request.getId(), token);
+//        }
+        else if (status == 2) {
             //auto reject
             request.setStatus(2);
             requestRepository.save(request);
@@ -100,7 +116,7 @@ public class RegistrationService {
     public AppRequest processRequestInPeriodOne(AppRequest request, String token) {
         Calendar deadline = request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
-        final Resources freePoolResources = getFacultyResourcesByName("Free pool");
+        final Resources freePoolResources = resourcePoolService.getFacultyResourcesById(1L, token);
 
         boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
                 || freePoolResources.getCpu() < resources.getCpu()
@@ -249,19 +265,8 @@ public class RegistrationService {
         }
     }
 
-
-    /**
-     * Requests the available resources from the RP MS.
-     *
-     * @param facultyName name of the faculty.
-     *
-     * @return the available resources
-     */
-    public Resources getFacultyResourcesByName(String facultyName) {
-        RestTemplate restTemplate = new RestTemplate();
-        String request = facultyName;
-        Resources availableResources = restTemplate.postForObject("http://localhost:8085/resources", request, Resources.class);
-        return availableResources;
+    public List<AppRequest> getPendingRequestsForFacultyName(String facultyName) {
+        return requestRepository.findAll().stream().filter(x -> x.getFacultyName().equals(facultyName) && x.getStatus() == 0).collect(Collectors.toList());
     }
 
 }
