@@ -50,6 +50,16 @@ public class Resources {
         return memory;
     }
 
+    public static Resources add(Resources resources1, Resources resources2) {
+        return new Resources(resources1.getCpu() + resources2.getCpu(),
+                resources1.getGpu() + resources2.getCpu(), resources1.getMemory() + resources2.getMemory());
+    }
+
+    public static Resources subtract(Resources resources1, Resources resources2) {
+        return new Resources(resources1.getCpu() - resources2.getCpu(),
+                resources1.getGpu() - resources2.getCpu(), resources1.getMemory() - resources2.getMemory());
+    }
+
     /**
      * Equality is based on all fields.
      *
@@ -84,6 +94,6 @@ public class Resources {
      */
     @Override
     public String toString() {
-        return getCpu() + ", " + getGpu() + ", " + getMemory();
+        return "CPU: " + cpu + ", GPU: " + gpu + ", Memory: " + memory;
     }
 }

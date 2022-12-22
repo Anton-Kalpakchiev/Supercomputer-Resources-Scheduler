@@ -31,10 +31,14 @@ public class Node {
     @Column(name = "url", nullable = false, unique = true)
     @Convert(converter = NodeUrlAttributeConverter.class)
     private NodeUrl url;
+    @Column(name = "owner_netid", nullable = false)
+    private String ownerNetId;
+    @Column(name = "faculty_id", nullable = false)
+    private long facultyId;
     @Column(name = "token", nullable = false, unique = true)
     @Convert(converter = TokenAttributeConverter.class)
     private Token token;
-    @Column(name = "resource", nullable = false, unique = false)
+    @Column(name = "resource", nullable = false)
     @Convert(converter = ResourcesAttributeConverter.class)
     private Resources resource;
 
@@ -43,12 +47,16 @@ public class Node {
      *
      * @param nodeName     the name
      * @param nodeUrl      the url
+     * @param ownerNetId   the netid of the owner
+     * @param facultyId    the id of the faculty
      * @param nodeToken    the token
      * @param nodeResource the resource
      */
-    public Node(Name nodeName, NodeUrl nodeUrl, Token nodeToken, Resources nodeResource) {
+    public Node(Name nodeName, NodeUrl nodeUrl, String ownerNetId, long facultyId, Token nodeToken, Resources nodeResource) {
         this.name = nodeName;
         this.url = nodeUrl;
+        this.ownerNetId = ownerNetId;
+        this.facultyId = facultyId;
         this.token = nodeToken;
         this.resource = nodeResource;
     }
@@ -78,6 +86,24 @@ public class Node {
      */
     public NodeUrl getUrl() {
         return url;
+    }
+
+    /**
+     * Gets the netId of the owner.
+     *
+     * @return the netId of the owner
+     */
+    public String getOwnerNetId() {
+        return ownerNetId;
+    }
+
+    /**
+     * Gets the id of the faculty.
+     *
+     * @return the id of the faculty
+     */
+    public long getFacultyId() {
+        return facultyId;
     }
 
     /**
@@ -120,6 +146,8 @@ public class Node {
         return id == node.id
                 && name.equals(node.name)
                 && url.equals(node.url)
+                && ownerNetId.equals(node.ownerNetId)
+                && facultyId == node.getFacultyId()
                 && token.equals(node.token)
                 && resource.equals(node.resource);
     }
@@ -131,7 +159,8 @@ public class Node {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(this.getNodeName(), this.getUrl(), this.getToken(), this.getResource());
+        return Objects.hash(this.getNodeName(), this.getUrl(), this.getOwnerNetId(),
+                            this.getFacultyId(), this.getToken(), this.getResource());
     }
 
     /**
@@ -141,7 +170,7 @@ public class Node {
      */
     @Override
     public String toString() {
-        return "Node " + name + " {url:"
-                + url + ", token:" + token + ", resource:[" + resource + "]}";
+        return "Node " + name + " {url:" + url + ", ownerNetId:" + ownerNetId + ", facultyId:"
+                + facultyId + ", token:" + token + ", resource:[" + resource + "]}";
     }
 }
