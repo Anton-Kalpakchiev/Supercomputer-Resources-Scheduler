@@ -1,6 +1,7 @@
 package nl.tudelft.sem.template.resourcepool.domain.resourcepool.distribution;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -93,5 +94,100 @@ class DistributionServiceTest {
 
         // Assert
         assertEquals(expected.toString(), distributionService.getCurrentDistribution());
+
+        model.setName("wrong name");
+        assertThrows(FacultyNameNotValidException.class, () -> {
+            distributionService.addDistribution(model);
+        });
+    }
+
+    @Test
+    void validateDistributionTest() throws Exception {
+        // Arrange
+        DistributionModel notEnoughCpu = new DistributionModel();
+        notEnoughCpu.setName("name");
+        notEnoughCpu.setMemory(100);
+        notEnoughCpu.setCpu(99);
+        notEnoughCpu.setGpu(100);
+
+        DistributionModel notEnoughGpu = new DistributionModel();
+        notEnoughGpu.setName("name");
+        notEnoughGpu.setMemory(100);
+        notEnoughGpu.setCpu(100);
+        notEnoughGpu.setGpu(99);
+
+        DistributionModel notEnoughMemory = new DistributionModel();
+        notEnoughMemory.setName("name");
+        notEnoughMemory.setMemory(99);
+        notEnoughMemory.setCpu(100);
+        notEnoughMemory.setGpu(100);
+
+        List<ResourceDistribution> expected = new ArrayList<>();
+        Resources resources = new Resources(20, 20, 20);
+        ResourceDistribution resourceDistribution = new ResourceDistribution("name",
+                resources, 100, 100, 100);
+        expected.add(resourceDistribution);
+
+        ResourcePool resourcePool = new ResourcePool("name");
+        resourcePool.setBaseResources(resources);
+        List<ResourcePool> resourcePools = new ArrayList<>();
+        resourcePools.add(resourcePool);
+
+        when(mockRepo.existsByName("name")).thenReturn(true);
+        when(mockRepo.findAll()).thenReturn(resourcePools);
+
+        // Act and Assert
+
+        assertThrows(WrongAmountOfFacultiesSubmittedException.class, () -> {
+            distributionService.validateDistribution();
+        });
+
+        distributionService.addDistribution(notEnoughCpu);
+        Throwable exceptionCpu = assertThrows(ResourceSumNotCorrectException.class, () -> {
+            distributionService.validateDistribution();
+        });
+        assertEquals("cpu", exceptionCpu.getMessage());
+
+        distributionService.clearDistribution();
+        distributionService.addDistribution(notEnoughGpu);
+        Throwable exceptionGpu = assertThrows(ResourceSumNotCorrectException.class, () -> {
+            distributionService.validateDistribution();
+        });
+        assertEquals("gpu", exceptionGpu.getMessage());
+
+        distributionService.clearDistribution();
+        distributionService.addDistribution(notEnoughMemory);
+        Throwable exceptionMemory = assertThrows(ResourceSumNotCorrectException.class, () -> {
+            distributionService.validateDistribution();
+        });
+        assertEquals("memory", exceptionMemory.getMessage());
+    }
+
+    @Test
+    void saveDistributionTest() throws Exception {
+        // Arrange
+        DistributionModel model = new DistributionModel();
+        model.setName("name");
+        model.setMemory(100);
+        model.setCpu(100);
+        model.setGpu(100);
+
+        Resources resources = new Resources(20, 20, 20);
+        ResourcePool resourcePool = new ResourcePool("name");
+        resourcePool.setBaseResources(resources);
+        List<ResourcePool> resourcePools = new ArrayList<>();
+        resourcePools.add(resourcePool);
+
+        when(mockRepo.existsByName("name")).thenReturn(true);
+        when(mockRepo.findAll()).thenReturn(resourcePools);
+
+        // Act
+        distributionService.addDistribution(model);
+        distributionService.saveDistribution();
+
+        // Assert
+        assertEquals("[]", distributionService.statusDistribution());
+        verify(mockRepo, times(1)).save(any(ResourcePool.class));
+
     }
 }
