@@ -41,6 +41,31 @@ class DistributionServiceTest {
     }
 
     @Test
+    void calculateTotalDistributionTest() throws Exception {
+        // Arrange
+        ResourcePool rp1 = new ResourcePool("rp1");
+        ResourcePool rp2 = new ResourcePool("rp2");
+
+        Resources resources1 = new Resources(10, 25, 30);
+        Resources resources2 = new Resources(12, 5, 17);
+
+        rp1.setBaseResources(resources1);
+        rp2.setBaseResources(resources2);
+
+        List<ResourcePool> resourcePools = new ArrayList<>();
+        resourcePools.add(rp1);
+        resourcePools.add(rp2);
+
+        Resources expected = new Resources(22, 30, 47);
+
+        // Act
+        Resources result = distributionService.calculateTotalResources(resourcePools);
+
+        // Assert
+        assertEquals(expected, result);
+    }
+
+    @Test
     void addDistributionTest() throws Exception {
         // Arrange
         DistributionModel model = new DistributionModel();
@@ -52,10 +77,16 @@ class DistributionServiceTest {
         List<ResourceDistribution> expected = new ArrayList<>();
         Resources resources = new Resources(20, 20, 20);
         ResourceDistribution resourceDistribution = new ResourceDistribution("name",
-                resources, 10, 10, 10);
+                resources, 100, 100, 100);
         expected.add(resourceDistribution);
 
+        ResourcePool resourcePool = new ResourcePool("name");
+        resourcePool.setBaseResources(resources);
+        List<ResourcePool> resourcePools = new ArrayList<>();
+        resourcePools.add(resourcePool);
+
         when(mockRepo.existsByName("name")).thenReturn(true);
+        when(mockRepo.findAll()).thenReturn(resourcePools);
 
         // Act
         distributionService.addDistribution(model);
