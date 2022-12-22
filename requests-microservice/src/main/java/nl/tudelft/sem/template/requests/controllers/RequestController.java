@@ -9,6 +9,7 @@ import nl.tudelft.sem.template.requests.domain.RegistrationService;
 import nl.tudelft.sem.template.requests.domain.ResourcePoolService;
 import nl.tudelft.sem.template.requests.domain.Resources;
 import nl.tudelft.sem.template.requests.domain.StatusService;
+import nl.tudelft.sem.template.requests.models.ManualApprovalModel;
 import nl.tudelft.sem.template.requests.models.RegistrationRequestModel;
 import nl.tudelft.sem.template.requests.models.SetStatusModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import org.springframework.web.server.ResponseStatusException;
  * This controller shows how you can extract information from the JWT token.
  * </p>
  */
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 @RestController
 public class RequestController {
 
@@ -99,9 +101,9 @@ public class RequestController {
     }
 
     /**
-     * Gets the status of a request.
+     * Sets the status of a request.
      *
-     * @return the status of the request found in the database with the given id
+     * @return whether the status was successfully set
      */
     @PostMapping("/status")
     public ResponseEntity setStatus(@RequestBody SetStatusModel setStatusModel) throws ResponseStatusException {
@@ -115,6 +117,48 @@ public class RequestController {
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * The faculty manager manually accepts or rejects a request left for manual approval/rejection.
+     *
+     * @param model the manualApprovalModel that contains the requestID,
+     *              whether it is approved or rejected, and the scheduled day of execution
+     * @param requested to get the token
+     * @return whether the request is properly accepted/rejected
+     * @throws ResponseStatusException if request does not exist
+     */
+    @PostMapping("/manual")
+    public ResponseEntity<Boolean> approveRejectRequest(@RequestBody ManualApprovalModel model, HttpServletRequest requested)
+            throws ResponseStatusException {
+        //TODO could check if the facultyManager is the manager of the faculty that the request is sent to
+        long id = model.getRequestId();
+        boolean approved = model.isApproved();
+        Calendar dayOfExecution;
+        if (model.getDayOfExecution().contains("/")) {
+            String[] dayOfExecutionArr = model.getDayOfExecution().split("/");
+            dayOfExecution = Calendar.getInstance();
+            dayOfExecution.set(Calendar.YEAR, Integer.parseInt(dayOfExecutionArr[2]));
+            dayOfExecution.set(Calendar.MONTH, Integer.parseInt(dayOfExecutionArr[1]));
+            dayOfExecution.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dayOfExecutionArr[0]));
+        } else {
+            dayOfExecution = Calendar.getInstance();
+        }
+
+        String token = requested.getHeader(AUTHORIZATION_HEADER).split(" ")[1];
+
+        try {
+            if (approved) {
+                statusService.setStatus(id, 1);
+                resourcePoolService.approval(dayOfExecution, id, token);
+            } else {
+                statusService.setStatus(id, 2);
+            }
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+
+        return ResponseEntity.ok(true);
     }
 
 
