@@ -12,7 +12,16 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
-import nl.tudelft.sem.template.users.domain.*;
+import nl.tudelft.sem.template.users.domain.AccountType;
+import nl.tudelft.sem.template.users.domain.Employee;
+import nl.tudelft.sem.template.users.domain.EmployeeRepository;
+import nl.tudelft.sem.template.users.domain.FacultyAccount;
+import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
+import nl.tudelft.sem.template.users.domain.FacultyAccountService;
+import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
+import nl.tudelft.sem.template.users.domain.RegistrationService;
+import nl.tudelft.sem.template.users.domain.Sysadmin;
+import nl.tudelft.sem.template.users.domain.SysadminRepository;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +40,7 @@ public class RequestSenderServiceUnitTest {
     private AuthorizationManager authorization;
     private MockRestServiceServer mockRestServiceServer;
     private RequestSenderService sut;
+    private FacultyAccountService facultyAccountService;
 
     private FacultyAccountService facultyAccountService;
 
@@ -48,6 +58,7 @@ public class RequestSenderServiceUnitTest {
 
     @BeforeEach
     void setup() throws Exception {
+        facultyAccountService = mock(FacultyAccountService.class);
         sysadminRepository = mock(SysadminRepository.class);
         employeeRepository = mock(EmployeeRepository.class);
         facultyAccountRepository = mock(FacultyAccountRepository.class);
@@ -57,7 +68,8 @@ public class RequestSenderServiceUnitTest {
         authorization = mock(AuthorizationManager.class);
         mockRestServiceServer = MockRestServiceServer.createServer(restTemplate);
 
-        sut = new RequestSenderService(facultyAccountService,
+        sut = new RequestSenderService(sysadminRepository, employeeRepository,
+                facultyAccountRepository, registrationService,
                 authorization, restTemplate);
 
         admin = new Sysadmin(adminNetId);
