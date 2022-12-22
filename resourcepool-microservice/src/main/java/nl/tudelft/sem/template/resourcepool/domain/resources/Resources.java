@@ -94,6 +94,6 @@ public class Resources {
      */
     @Override
     public String toString() {
-        return getCpu() + ", " + getGpu() + ", " + getMemory();
+        return "CPU: " + cpu + ", GPU: " + gpu + ", Memory: " + memory;
     }
 }

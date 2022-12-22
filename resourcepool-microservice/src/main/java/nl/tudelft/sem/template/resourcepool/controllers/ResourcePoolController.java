@@ -5,6 +5,9 @@ import nl.tudelft.sem.template.resourcepool.domain.resourcepool.Faculty;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationResponseModel;
+import nl.tudelft.sem.template.resourcepool.models.NodeInteractionRequestModel;
+import nl.tudelft.sem.template.resourcepool.models.NodeInteractionResponseModel;
+import nl.tudelft.sem.template.resourcepool.models.RequestTomorrowResourcesRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.VerifyFacultyRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.VerifyFacultyResponseModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +101,54 @@ public class ResourcePoolController {
     //            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     //        }
     //    }
+    /**
+     * Endpoint for contributing a node.
+     *
+     * @param nodeInfo The information needed to add the resources of the node
+     * @return 200 OK if the contribution is successful
+     * @throws Exception if a faculty with the given id can't be found
+     */
+    @PostMapping("/contributeNode")
+    public ResponseEntity<NodeInteractionResponseModel> contributeNode(@RequestBody NodeInteractionRequestModel nodeInfo)
+            throws Exception {
+        try {
+            return ResponseEntity.ok(new NodeInteractionResponseModel(rpManagementService.contributeNode(nodeInfo)));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
+     * Endpoint for deleting a node.
+     *
+     * @param nodeInfo The information needed to delete the resources of the node
+     * @return 200 OK if the deletion is successful
+     * @throws Exception if a faculty with the given id can't be found or doesn't have enough resources
+     */
+    @PostMapping("/deleteNode")
+    public ResponseEntity<NodeInteractionResponseModel> deleteNode(@RequestBody NodeInteractionRequestModel nodeInfo)
+            throws Exception {
+        try {
+            return ResponseEntity.ok(new NodeInteractionResponseModel(rpManagementService.deleteNode(nodeInfo)));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
+     * Gets the resources of the faculty by name.
+     *
+     * @param facultyName the faculty name
+     * @return the response
+     */
+    @PostMapping("/resources")
+    public ResponseEntity<Resources> getFacultyResourcesByName(String facultyName) {
+        try {
+            return ResponseEntity.ok(rpManagementService.findResourcesByName(facultyName));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
 
 
     /**

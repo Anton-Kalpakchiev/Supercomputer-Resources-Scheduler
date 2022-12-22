@@ -141,8 +141,8 @@ public class ResourcePool extends HasEvents {
         return "ResourcePool{"
                 + "id=" + id
                 + ", name='" + name + '\''
-                + ", baseResources=" + baseResources
-                + ", nodeResources=" + nodeResources
-                + '}';
+                + ", baseResources=(" + baseResources
+                + "), nodeResources=(" + nodeResources
+                + ")}";
     }
 }
