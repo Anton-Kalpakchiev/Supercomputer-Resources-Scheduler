@@ -212,7 +212,7 @@ public class RequestSenderService {
                 ResponseEntity<Long> response = restTemplate.postForEntity(url, entity, Long.class);
                 return response.getBody();
             } catch (Exception e) {
-                throw new InnerRequestFailedException("Request to " + url + " failed.");
+                throw new InnerRequestFailedException(requestTo + url + failed);
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not an Employee at the requested faculty");
@@ -240,7 +240,7 @@ public class RequestSenderService {
                 ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
                 return response.getBody();
             } catch (Exception e) {
-                throw new InnerRequestFailedException("Request to " + url + " failed.");
+                throw new InnerRequestFailedException(requestTo + url + failed);
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not an Employee");
