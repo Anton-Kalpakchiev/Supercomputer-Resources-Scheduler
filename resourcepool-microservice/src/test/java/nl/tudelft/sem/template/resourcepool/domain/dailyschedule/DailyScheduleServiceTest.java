@@ -74,7 +74,7 @@ public class DailyScheduleServiceTest {
         scheduleFaculty2.addRequest(1);
         scheduleFaculty2.addRequest(2);
         scheduleFaculty1.setTotalResources(new Resources(50, 50, 50));
-        scheduleFaculty1.setAvailableResources(new Resources(10,10,10));
+        scheduleFaculty1.setAvailableResources(new Resources(10, 10, 10));
     }
 
     @Test

@@ -152,8 +152,13 @@ public class RequestSenderService {
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<ScheduleResponseModel> response = restTemplate.exchange(url, HttpMethod.GET, entity, ScheduleResponseModel.class);
-            return prettifyScheduleResponse(Objects.requireNonNull(response.getBody()));
+            ResponseEntity<ScheduleResponseModel> response = restTemplate.exchange(
+                    url, HttpMethod.GET, entity, ScheduleResponseModel.class);
+            if (response.hasBody()) {
+                return prettifyScheduleResponse(Objects.requireNonNull(response.getBody()));
+            } else {
+                return "No schedules were found";
+            }
         } catch (Exception e) {
             throw new InnerRequestFailedException("Request to " + url + " failed.");
         }
@@ -167,16 +172,26 @@ public class RequestSenderService {
      * @param token - the authentication token of the user
      * @return the response
      */
-    public String getScheduleFacultyManager(String url, String authorNetId, String token) throws NoSuchUserException, InnerRequestFailedException {
+    public String getScheduleFacultyManager(String url, String authorNetId, String token) throws InnerRequestFailedException {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
-        long facultyId = facultyAccountService.getFacultyAssignedId(authorNetId);
+        long facultyId;
+        try {
+            facultyId = facultyAccountService.getFacultyAssignedId(authorNetId);
+        } catch (NoSuchUserException exception) {
+            throw new InnerRequestFailedException("Request to " + url + " failed.");
+        }
 
         HttpEntity<ScheduleRequestModel> entity = new HttpEntity<>(new ScheduleRequestModel(facultyId), headers);
 
         try {
-            ResponseEntity<ScheduleResponseModel> response = restTemplate.exchange(url, HttpMethod.POST, entity, ScheduleResponseModel.class);
-            return prettifyScheduleResponse(Objects.requireNonNull(response.getBody()));
+            ResponseEntity<ScheduleResponseModel> response = restTemplate.exchange(
+                    url, HttpMethod.POST, entity, ScheduleResponseModel.class);
+            if (response.hasBody()) {
+                return prettifyScheduleResponse(Objects.requireNonNull(response.getBody()));
+            } else {
+                return "No schedules were found for faculty: " + facultyId;
+            }
         } catch (Exception e) {
             throw new InnerRequestFailedException("Request to " + url + " failed.");
         }

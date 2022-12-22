@@ -3,6 +3,7 @@ package nl.tudelft.sem.template.users.facade;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -11,22 +12,15 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
-import nl.tudelft.sem.template.users.domain.AccountType;
-import nl.tudelft.sem.template.users.domain.Employee;
-import nl.tudelft.sem.template.users.domain.EmployeeRepository;
-import nl.tudelft.sem.template.users.domain.FacultyAccount;
-import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
-import nl.tudelft.sem.template.users.domain.FacultyAccountService;
-import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
-import nl.tudelft.sem.template.users.domain.RegistrationService;
-import nl.tudelft.sem.template.users.domain.Sysadmin;
-import nl.tudelft.sem.template.users.domain.SysadminRepository;
+import nl.tudelft.sem.template.users.domain.*;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Optional;
 
 public class RequestSenderServiceUnitTest {
     private SysadminRepository sysadminRepository;
@@ -47,7 +41,7 @@ public class RequestSenderServiceUnitTest {
     private final String employeeNetId = "ivo";
     private final String facultyNetId = "professor";
     private final String facultyName = "math";
-    private final int facultyNumber = 0;
+    private final long facultyID = 0L;
 
     private final String sampleToken = "1234567";
     private final String url = "/Test/url";
@@ -68,7 +62,7 @@ public class RequestSenderServiceUnitTest {
 
         admin = new Sysadmin(adminNetId);
         employee = new Employee(employeeNetId);
-        facultyAccount = new FacultyAccount(facultyNetId, facultyNumber);
+        facultyAccount = new FacultyAccount(facultyNetId, facultyID);
 
         when(authorization.isOfType(adminNetId, AccountType.SYSADMIN)).thenReturn(true);
         when(authorization.isOfType(employeeNetId, AccountType.EMPLOYEE)).thenReturn(true);
@@ -165,5 +159,98 @@ public class RequestSenderServiceUnitTest {
         assertThrows(InnerRequestFailedException.class, () -> {
             sut.getRequestFromSysadmin(url, adminNetId, sampleToken);
         });
+    }
+
+    @Test
+    public void getScheduleSysadminTest() {
+        mockRestServiceServer.expect(requestTo(url))
+                .andRespond(withSuccess());
+        try {
+            sut.getScheduleSysadmin(url, sampleToken);
+        } catch (Exception e) {
+            fail("An exception was thrown");
+        }
+    }
+
+    @Test
+    public void getScheduleSysadminException() {
+        mockRestServiceServer.expect(requestTo(url))
+                .andRespond(withBadRequest());
+        assertThrows(InnerRequestFailedException.class, () -> {
+            sut.getScheduleSysadmin(url, sampleToken);
+        });
+    }
+
+    @Test
+    public void getScheduleFacultyManagerTest() {
+        when(facultyAccountRepository.findByNetId(facultyNetId)).thenReturn(Optional.of(facultyAccount));
+        mockRestServiceServer.expect(requestTo(url))
+                .andRespond(withSuccess());
+        try {
+            sut.getScheduleFacultyManager(url, facultyNetId, sampleToken);
+        } catch (Exception e) {
+            fail("An exception was thrown");
+        }
+    }
+
+    @Test
+    public void getScheduleFacultyManagerExceptionTest() {
+        mockRestServiceServer.expect(requestTo(url))
+                .andRespond(withBadRequest());
+        assertThrows(InnerRequestFailedException.class, () -> {
+            sut.getScheduleFacultyManager(url, facultyNetId, sampleToken);
+        });
+    }
+
+    @Test
+    public void getScheduleRequestRouterTestUnauthorized() {
+        assertThrows(UnauthorizedException.class, () -> {
+            sut.getScheduleRequestRouter(employeeNetId, sampleToken);
+        });
+    }
+
+    @Test
+    public void getScheduleRequestRouterExceptionFacManager() {
+        String testUrl = "http://localhost:8085/getFacultySchedules";
+        mockRestServiceServer.expect(requestTo(testUrl))
+                .andRespond(withBadRequest());
+        assertThrows(InnerRequestFailedException.class, () -> {
+            sut.getScheduleRequestRouter(facultyNetId, sampleToken);
+        });
+    }
+
+    @Test
+    public void getScheduleRequestRouterExceptionSysadmin() {
+        String testUrl = "http://localhost:8085/getAllSchedules";
+        mockRestServiceServer.expect(requestTo(testUrl))
+                .andRespond(withBadRequest());
+        assertThrows(InnerRequestFailedException.class, () -> {
+            sut.getScheduleRequestRouter(adminNetId, sampleToken);
+        });
+    }
+
+    @Test
+    public void getScheduleRouterFacManager() {
+        when(facultyAccountRepository.findByNetId(facultyNetId)).thenReturn(Optional.of(facultyAccount));
+        String testUrl = "http://localhost:8085/getFacultySchedules";
+        mockRestServiceServer.expect(requestTo(testUrl))
+                .andRespond(withSuccess());
+        try {
+            sut.getScheduleRequestRouter(facultyNetId, sampleToken);
+        } catch (Exception e) {
+            fail("An exception was thrown");
+        }
+    }
+
+    @Test
+    public void getScheduleRouterSysadmin() {
+        String testUrl = "http://localhost:8085/getAllSchedules";
+        mockRestServiceServer.expect(requestTo(testUrl))
+                .andRespond(withSuccess());
+        try {
+            sut.getScheduleRequestRouter(adminNetId, sampleToken);
+        } catch (Exception e) {
+            fail("An exception was thrown");
+        }
     }
 }

@@ -105,7 +105,7 @@ public class DailyScheduleController {
 
 
     /**
-     * Ends point to view all schedules available.
+     * Ends point to view all schedules available for a particular faculty.
      *
      * @return a response with all the schedules
      */
