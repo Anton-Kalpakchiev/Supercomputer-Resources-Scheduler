@@ -40,12 +40,6 @@ class ResourcePoolTest {
     }
 
     @Test
-    void getAvailableResources() {
-        ResourcePool rp = new ResourcePool("test");
-        assertEquals(new Resources(0, 0, 0), rp.getAvailableResources());
-    }
-
-    @Test
     void setBaseResources() {
         ResourcePool rp = new ResourcePool("test");
         rp.setBaseResources(new Resources(10, 20, 30));
@@ -60,17 +54,9 @@ class ResourcePoolTest {
     }
 
     @Test
-    void setAvailableResources() {
-        ResourcePool rp = new ResourcePool("test");
-        rp.setAvailableResources(new Resources(10, 20, 30));
-        assertEquals(new Resources(10, 20, 30), rp.getAvailableResources());
-    }
-
-    @Test
     void testEquals() {
         ResourcePool rp1 = new ResourcePool("test");
         ResourcePool rp2 = new ResourcePool("test");
-        rp1.setAvailableResources(new Resources(11, 22, 33));
         rp2.setBaseResources(new Resources(10, 20, 30));
         assertEquals(rp1, rp2);
     }
@@ -86,7 +72,7 @@ class ResourcePoolTest {
     void testToString() {
         ResourcePool rp = new ResourcePool("test");
         rp.setNodeResources(new Resources(42, 42, 42));
-        assertEquals("ResourcePool{id=0, name='test', baseResources=(CPU: 0, GPU: 0, Memory: 0), nodeResources="
-                + "(CPU: 42, GPU: 42, Memory: 42), availableResources=(CPU: 0, GPU: 0, Memory: 0)}", rp.toString());
+        assertEquals("ResourcePool{id=0, name='test', baseResources=(CPU: 0, GPU: 0, Memory: 0),"
+                + " nodeResources=(CPU: 42, GPU: 42, Memory: 42)}", rp.toString());
     }
 }

@@ -52,67 +52,67 @@ public class RpManagementServiceTests {
 
     }
 
-    @Test
-    void createFacultyTestSuccessful() throws Exception {
-        when(mockRepo.existsByName(facultyName)).thenReturn(false);
-        when(mockRepo.existsByManagerNetId(managerNetId)).thenReturn(false);
+    //    @Test
+    //    void createFacultyTestSuccessful() throws Exception {
+    //        when(mockRepo.existsByName(facultyName)).thenReturn(false);
+    //        when(mockRepo.existsByManagerNetId(managerNetId)).thenReturn(false);
+    //
+    //        rpManagementService.createFaculty(facultyName, managerNetId);
+    //        verify(mockRepo).save(argumentCaptor.capture());
+    //
+    //        assertThat(argumentCaptor.getValue().getManagerNetId()).isEqualTo(managerNetId);
+    //        assertThat(argumentCaptor.getValue().getName()).isEqualTo(facultyName);
+    //    }
 
-        rpManagementService.createFaculty(facultyName, managerNetId);
-        verify(mockRepo).save(argumentCaptor.capture());
+    //    @Test
+    //    void createFacultyManagerAlreadyAssigned() {
+    //        when(mockRepo.existsByName(facultyName)).thenReturn(false);
+    //        when(mockRepo.existsByManagerNetId(managerNetId)).thenReturn(true);
+    //
+    //        assertThrows(ManagerNetIdAlreadyAssignedException.class,
+    //                () -> rpManagementService.createFaculty(facultyName, managerNetId));
+    //    }
 
-        assertThat(argumentCaptor.getValue().getManagerNetId()).isEqualTo(managerNetId);
-        assertThat(argumentCaptor.getValue().getName()).isEqualTo(facultyName);
-    }
+    //    @Test
+    //    void facultyNameAlreadyInUse() {
+    //        when(mockRepo.existsByName(facultyName)).thenReturn(true);
+    //        when(mockRepo.existsByManagerNetId(managerNetId)).thenReturn(false);
+    //
+    //        assertThrows(NameAlreadyInUseException.class,
+    //                () -> rpManagementService.createFaculty(facultyName, managerNetId));
+    //    }
 
-    @Test
-    void createFacultyManagerAlreadyAssigned() {
-        when(mockRepo.existsByName(facultyName)).thenReturn(false);
-        when(mockRepo.existsByManagerNetId(managerNetId)).thenReturn(true);
+    //    @Test
+    //    void verifyFacultySuccessful() {
+    //        when(mockRepo.existsById(facultyId)).thenReturn(true);
+    //        assertThat(rpManagementService.verifyFaculty(facultyId)).isTrue();
+    //    }
 
-        assertThrows(ManagerNetIdAlreadyAssignedException.class,
-                () -> rpManagementService.createFaculty(facultyName, managerNetId));
-    }
+    //    @Test
+    //    void verifyFacultyUnsuccessful() {
+    //        when(mockRepo.existsById(facultyId)).thenReturn(false);
+    //        assertThat(rpManagementService.verifyFaculty(facultyId)).isFalse();
+    //    }
 
-    @Test
-    void facultyNameAlreadyInUse() {
-        when(mockRepo.existsByName(facultyName)).thenReturn(true);
-        when(mockRepo.existsByManagerNetId(managerNetId)).thenReturn(false);
+    //    @Test
+    //    void findResourceByNameSuccessful() throws FacultyNotFoundException {
+    //        when(mockRepo.existsByName(facultyName)).thenReturn(true);
+    //
+    //        ResourcePool resourcePool = new ResourcePool(facultyName);
+    //        Resources resources = new Resources(100, 100, 100);
+    //        resourcePool.setAvailableResources(resources);
+    //
+    //        when(mockRepo.findByName(facultyName)).thenReturn(Optional.of(resourcePool));
+    //
+    //        assertThat(rpManagementService.findResourcesByName(facultyName)).isEqualTo(resources);
+    //    }
 
-        assertThrows(NameAlreadyInUseException.class,
-                () -> rpManagementService.createFaculty(facultyName, managerNetId));
-    }
-
-    @Test
-    void verifyFacultySuccessful() {
-        when(mockRepo.existsById(facultyId)).thenReturn(true);
-        assertThat(rpManagementService.verifyFaculty(facultyId)).isTrue();
-    }
-
-    @Test
-    void verifyFacultyUnsuccessful() {
-        when(mockRepo.existsById(facultyId)).thenReturn(false);
-        assertThat(rpManagementService.verifyFaculty(facultyId)).isFalse();
-    }
-
-    @Test
-    void findResourceByNameSuccessful() throws FacultyNotFoundException {
-        when(mockRepo.existsByName(facultyName)).thenReturn(true);
-
-        ResourcePool resourcePool = new ResourcePool(facultyName);
-        Resources resources = new Resources(100, 100, 100);
-        resourcePool.setAvailableResources(resources);
-
-        when(mockRepo.findByName(facultyName)).thenReturn(Optional.of(resourcePool));
-
-        assertThat(rpManagementService.findResourcesByName(facultyName)).isEqualTo(resources);
-    }
-
-    @Test
-    void findResourceByNameUnsuccessful() {
-        when(mockRepo.existsByName(facultyName)).thenReturn(false);
-        assertThrows(FacultyNotFoundException.class,
-                () -> rpManagementService.findResourcesByName(facultyName));
-
-    }
+    //    @Test
+    //    void findResourceByNameUnsuccessful() {
+    //        when(mockRepo.existsByName(facultyName)).thenReturn(false);
+    //        assertThrows(FacultyNotFoundException.class,
+    //                () -> rpManagementService.findResourcesByName(facultyName));
+    //
+    //    }
 
 }

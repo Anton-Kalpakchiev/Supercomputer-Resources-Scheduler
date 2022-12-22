@@ -52,7 +52,7 @@ public class StatusTests {
     public void getStatus_withValidData_worksCorrectly() throws Exception {
         // Arrange
         final String description = "give me resources";
-        final Resources resources = new Resources(30, 50, 50);
+        final Resources resources = new Resources(50, 30, 50);
         final String owner = "User";
         final String facultyName = "CSE";
         final Calendar deadline = Calendar.getInstance();
@@ -78,7 +78,7 @@ public class StatusTests {
     public void getStatus_withInvalidData_throwsException() throws Exception {
         // Arrange
         final String description = "give me resources";
-        final Resources resources = new Resources(30, 50, 50);
+        final Resources resources = new Resources(50, 30, 50);
         final String owner = "User";
         final String facultyName = "CSE";
         final Calendar deadline = Calendar.getInstance();
@@ -103,7 +103,7 @@ public class StatusTests {
     public void setStatus_withValidData_worksCorrectly() throws Exception {
         // Arrange
         final String description = "give me resources";
-        final Resources resources = new Resources(30, 50, 50);
+        final Resources resources = new Resources(50, 30, 50);
         final String owner = "User";
         final String facultyName = "CSE";
         final Calendar deadline = Calendar.getInstance();
@@ -133,7 +133,7 @@ public class StatusTests {
     public void setStatus_withInvalidData_worksCorrectly() throws Exception {
         // Arrange
         final String description = "give me resources";
-        final Resources resources = new Resources(30, 50, 50);
+        final Resources resources = new Resources(50, 30, 50);
         final String owner = "User";
         final String facultyName = "CSE";
         final Calendar deadline = Calendar.getInstance();
