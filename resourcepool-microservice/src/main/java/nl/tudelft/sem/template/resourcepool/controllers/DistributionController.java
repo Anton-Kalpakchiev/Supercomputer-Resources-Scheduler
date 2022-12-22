@@ -80,7 +80,7 @@ public class DistributionController {
      * @throws Exception if there is a wrong amount of distributions or if the percentages don't add up
      */
     @PostMapping("/distribution/save")
-    public ResponseEntity saveDistribution() throws Exception {
+    public ResponseEntity<String> saveDistribution() throws Exception {
         try {
             distributionService.saveDistribution();
         } catch (Exception e) {

@@ -36,7 +36,7 @@ public class ResourcesUnitTests {
     @Test
     public void toStringTest() {
         Resources resource = new Resources(400, 400, 400);
-        String stringTest = "400, 400, 400";
+        String stringTest = "CPU: 400, GPU: 400, Memory: 400";
         assertEquals(stringTest, resource.toString());
     }
 

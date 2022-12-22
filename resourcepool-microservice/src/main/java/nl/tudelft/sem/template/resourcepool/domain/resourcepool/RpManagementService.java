@@ -1,6 +1,7 @@
 package nl.tudelft.sem.template.resourcepool.domain.resourcepool;
 
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
+import nl.tudelft.sem.template.resourcepool.models.NodeInteractionRequestModel;
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,6 +49,53 @@ public class RpManagementService {
      */
     public boolean verifyFaculty(long facultyId) {
         return repo.existsById(facultyId);
+    }
+
+    /**
+     * Contributes a node to a faculty.
+     *
+     * @param nodeInfo The information needed to contribute the resources of the node
+     * @return true if the contribution succeeded
+     * @throws Exception if a faculty with the given id can't be found
+     */
+    public boolean contributeNode(NodeInteractionRequestModel nodeInfo) throws Exception {
+        long facultyId = nodeInfo.getFacultyId();
+        if (!repo.existsById(facultyId)) {
+            throw new FacultyIdNotFoundException(facultyId);
+        }
+        ResourcePool faculty = repo.findById(facultyId).get();
+        Resources currentNodeResources = faculty.getNodeResources();
+        int cpu = currentNodeResources.getCpu() + nodeInfo.getCpu();
+        int gpu = currentNodeResources.getGpu() + nodeInfo.getGpu();
+        int memory = currentNodeResources.getMemory() + nodeInfo.getMemory();
+        faculty.setNodeResources(new Resources(cpu, gpu, memory));
+        repo.save(faculty);
+        return true;
+    }
+
+    /**
+     * Deletes a node from a faculty.
+     *
+     * @param nodeInfo The information needed to delete the resources of the node
+     * @return true if the deletion succeeded
+     * @throws Exception if a faculty with the given id can't be found or doesn't have enough resources
+     */
+    public boolean deleteNode(NodeInteractionRequestModel nodeInfo) throws Exception {
+        long facultyId = nodeInfo.getFacultyId();
+        if (!repo.existsById(facultyId)) {
+            throw new FacultyIdNotFoundException(facultyId);
+        }
+        ResourcePool faculty = repo.findById(facultyId).get();
+        Resources currentNodeResources = faculty.getNodeResources();
+        int cpu = currentNodeResources.getCpu() - nodeInfo.getCpu();
+        int gpu = currentNodeResources.getGpu() - nodeInfo.getGpu();
+        int memory = currentNodeResources.getMemory() - nodeInfo.getMemory();
+        if (cpu < 0 || gpu < 0 || memory < 0) {
+            throw new RemainingResourcesInsufficientException(facultyId);
+        }
+        faculty.setNodeResources(new Resources(cpu, gpu, memory));
+        repo.save(faculty);
+        return true;
     }
 
     /**

@@ -6,6 +6,8 @@ import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementServ
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationResponseModel;
+import nl.tudelft.sem.template.resourcepool.models.NodeInteractionRequestModel;
+import nl.tudelft.sem.template.resourcepool.models.NodeInteractionResponseModel;
 import nl.tudelft.sem.template.resourcepool.models.RequestTomorrowResourcesRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.VerifyFacultyRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.VerifyFacultyResponseModel;
@@ -98,6 +100,40 @@ public class ResourcePoolController {
         try {
             boolean result = rpManagementService.verifyFaculty(request.getFacultyId());
             return ResponseEntity.ok(new VerifyFacultyResponseModel(result));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
+     * Endpoint for contributing a node.
+     *
+     * @param nodeInfo The information needed to add the resources of the node
+     * @return 200 OK if the contribution is successful
+     * @throws Exception if a faculty with the given id can't be found
+     */
+    @PostMapping("/contributeNode")
+    public ResponseEntity<NodeInteractionResponseModel> contributeNode(@RequestBody NodeInteractionRequestModel nodeInfo)
+            throws Exception {
+        try {
+            return ResponseEntity.ok(new NodeInteractionResponseModel(rpManagementService.contributeNode(nodeInfo)));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
+     * Endpoint for deleting a node.
+     *
+     * @param nodeInfo The information needed to delete the resources of the node
+     * @return 200 OK if the deletion is successful
+     * @throws Exception if a faculty with the given id can't be found or doesn't have enough resources
+     */
+    @PostMapping("/deleteNode")
+    public ResponseEntity<NodeInteractionResponseModel> deleteNode(@RequestBody NodeInteractionRequestModel nodeInfo)
+            throws Exception {
+        try {
+            return ResponseEntity.ok(new NodeInteractionResponseModel(rpManagementService.deleteNode(nodeInfo)));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }

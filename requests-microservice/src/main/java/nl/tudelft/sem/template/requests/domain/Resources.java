@@ -7,7 +7,7 @@ import lombok.Getter;
 /**
  * A DDD value object representing a password in our domain.
  */
-@EqualsAndHashCode
+
 public class Resources {
     @Getter
     private final transient int mem;

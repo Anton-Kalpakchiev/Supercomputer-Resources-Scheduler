@@ -74,6 +74,6 @@ class ResourceDistributionTest {
     void testToString() {
         ResourceDistribution distribution = new ResourceDistribution("EEMCS", new Resources(1, 2, 3),
                 10.0, 20.0, 30.0);
-        assertEquals("{EEMCS, (1, 2, 3), (10.0%, 20.0%, 30.0%)}", distribution.toString());
+        assertEquals("{EEMCS, (CPU: 1, GPU: 2, Memory: 3), (10.0%, 20.0%, 30.0%)}", distribution.toString());
     }
 }
