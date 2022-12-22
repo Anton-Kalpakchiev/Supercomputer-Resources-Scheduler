@@ -1,17 +1,14 @@
 package nl.tudelft.sem.template.users.models.facade;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Request model for retrieving schedules.
- */
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ScheduleModel {
-    private long facultyId;
+public class ScheduleResponseModel {
+    private Map<String, List<String>> schedules;
 }

@@ -8,8 +8,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import nl.tudelft.sem.template.resourcepool.domain.RequestService;
+import nl.tudelft.sem.template.resourcepool.domain.resourcepool.FacultyNotFoundException;
+import nl.tudelft.sem.template.resourcepool.domain.resourcepool.ResourcePool;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpFacultyRepository;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
@@ -27,8 +33,12 @@ public class DailyScheduleServiceTest {
     private RequestService requestService;
     private RpFacultyRepository mockResourcePoolRepo;
     private Calendar day;
-
     private long resourcePoolId;
+    private ResourcePool faculty1;
+    private DailySchedule scheduleFaculty1;
+
+    private ResourcePool faculty2;
+    private DailySchedule scheduleFaculty2;
 
     @Captor
     private ArgumentCaptor<DailySchedule> argumentCaptor;
@@ -42,6 +52,29 @@ public class DailyScheduleServiceTest {
                 rpManagementService, requestService, mockResourcePoolRepo);
         day = Calendar.getInstance();
         resourcePoolId = 6L;
+    }
+
+    @BeforeEach
+    void setupExampleFaculties() {
+        faculty1 = new ResourcePool("Resource Pool 1");
+        faculty1.setBaseResources(new Resources(100, 100, 100));
+        faculty1.setNodeResources(new Resources(20, 20, 20));
+
+        scheduleFaculty1 = new DailySchedule(day, faculty1.getId());
+        scheduleFaculty1.addRequest(1);
+        scheduleFaculty1.addRequest(2);
+        scheduleFaculty1.addRequest(3);
+        scheduleFaculty1.setTotalResources(new Resources(120, 120, 120));
+        scheduleFaculty1.setAvailableResources(new Resources(0, 0, 0));
+
+        faculty2 = new ResourcePool("Resource Pool 2");
+        faculty2.setBaseResources(new Resources(50, 50, 50));
+
+        scheduleFaculty2 = new DailySchedule(day, faculty2.getId());
+        scheduleFaculty2.addRequest(1);
+        scheduleFaculty2.addRequest(2);
+        scheduleFaculty1.setTotalResources(new Resources(50, 50, 50));
+        scheduleFaculty1.setAvailableResources(new Resources(10,10,10));
     }
 
     @Test
@@ -71,5 +104,54 @@ public class DailyScheduleServiceTest {
     @Test
     void testReleaseResourcesFp() {
         assertThrows(ReleaseResourcesException.class, () -> dailyScheduleService.releaseResources(day, 1L));
+    }
+
+    @Test
+    void generateScheduleResponseContentOneFaculty() throws FacultyNotFoundException {
+        Set<Long> faculties = Set.of(faculty1.getId());
+        when(mockResourcePoolRepo.findById(faculty1.getId())).thenReturn(Optional.of(faculty1));
+        when(mockScheduleRepository.findAllByResourcePoolId(faculty1.getId())).thenReturn(List.of(scheduleFaculty1));
+
+        Map<String, List<String>> result = dailyScheduleService.generateScheduleResponseContent(faculties);
+        assertThat(result.keySet()).isEqualTo(Set.of("Resource Pool 1"));
+        assertThat(result.get(faculty1.getName())).isEqualTo(List.of(scheduleFaculty1.toPrettyString()));
+    }
+
+    @Test
+    void generateScheduleResponseExceptionTest() {
+        Set<Long> faculties = Set.of(faculty1.getId());
+        when(mockResourcePoolRepo.findById(faculty1.getId())).thenReturn(Optional.empty());
+
+        assertThrows(FacultyNotFoundException.class, () -> dailyScheduleService.generateScheduleResponseContent(faculties));
+    }
+
+    @Test
+    void getAllSchedulesPerFacultyIdTest() {
+        when(mockScheduleRepository.findAllByResourcePoolId(faculty1.getId())).thenReturn(List.of(scheduleFaculty1));
+        List<DailySchedule> result = dailyScheduleService.getAllSchedulesPerFacultyId(faculty1.getId());
+        assertThat(List.of(scheduleFaculty2)).isEqualTo(result);
+    }
+
+    @Test
+    void getSchedulesPerFacultyTest() throws FacultyNotFoundException {
+        when(mockResourcePoolRepo.findById(faculty1.getId())).thenReturn(Optional.of(faculty1));
+        when(mockScheduleRepository.findAllByResourcePoolId(faculty1.getId())).thenReturn(List.of(scheduleFaculty1));
+
+        Map<String, List<String>> expected = new HashMap<>();
+        expected.put(faculty1.getName(), List.of(scheduleFaculty1.toPrettyString()));
+        Map<String, List<String>> result = dailyScheduleService.getSchedulesPerFaculty(faculty1.getId());
+        assertThat(expected).isEqualTo(result);
+    }
+
+    @Test
+    void getAllSchedulesTest() throws FacultyNotFoundException {
+        when(mockResourcePoolRepo.findAll()).thenReturn(List.of(faculty1));
+        when(mockResourcePoolRepo.findById(faculty1.getId())).thenReturn(Optional.of(faculty1));
+        when(mockScheduleRepository.findAllByResourcePoolId(faculty1.getId())).thenReturn(List.of(scheduleFaculty1));
+
+        Map<String, List<String>> expected = new HashMap<>();
+        expected.put(faculty1.getName(), List.of(scheduleFaculty1.toPrettyString()));
+        Map<String, List<String>> result = dailyScheduleService.getAllSchedules();
+        assertThat(expected).isEqualTo(result);
     }
 }

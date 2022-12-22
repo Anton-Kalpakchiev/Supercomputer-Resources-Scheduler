@@ -163,6 +163,8 @@ public class DailySchedule {
         return Objects.hash(day, resourcePoolId, list);
     }
 
+
+
     /**
      * Returns a string representation for this daily schedule.
      *
@@ -175,5 +177,23 @@ public class DailySchedule {
                 + ", resourcePoolId=" + resourcePoolId
                 + ", list=" + list
                 + '}';
+    }
+
+
+
+
+    /**
+     * Returns a human-readable string representation for this daily schedule.
+     *
+     * @return a human-readble string representation for this daily schedule
+     */
+    public String toPrettyString() {
+        StringBuilder stringBuilder = new StringBuilder("DailySchedule:");
+        stringBuilder.append("\n\t Resource Pool:").append(this.resourcePoolId);
+        stringBuilder.append("\n\t Date: ").append(this.day.get(Calendar.DATE));
+        stringBuilder.append("\n\t Total Resources: ").append(this.totalResources.toString());
+        stringBuilder.append("\n\t Available Resources: ").append(this.availableResources.toString());
+        stringBuilder.append("\n\t List of requests: ").append(this.list.toString());
+        return stringBuilder.toString();
     }
 }

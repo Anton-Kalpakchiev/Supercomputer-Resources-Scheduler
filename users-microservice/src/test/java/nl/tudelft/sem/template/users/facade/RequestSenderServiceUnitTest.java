@@ -16,6 +16,7 @@ import nl.tudelft.sem.template.users.domain.Employee;
 import nl.tudelft.sem.template.users.domain.EmployeeRepository;
 import nl.tudelft.sem.template.users.domain.FacultyAccount;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
+import nl.tudelft.sem.template.users.domain.FacultyAccountService;
 import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.Sysadmin;
@@ -37,6 +38,8 @@ public class RequestSenderServiceUnitTest {
     private MockRestServiceServer mockRestServiceServer;
     private RequestSenderService sut;
 
+    private FacultyAccountService facultyAccountService;
+
     private Sysadmin admin;
     private Employee employee;
     private FacultyAccount facultyAccount;
@@ -54,13 +57,13 @@ public class RequestSenderServiceUnitTest {
         sysadminRepository = mock(SysadminRepository.class);
         employeeRepository = mock(EmployeeRepository.class);
         facultyAccountRepository = mock(FacultyAccountRepository.class);
+        facultyAccountService = new FacultyAccountService(facultyAccountRepository);
         restTemplate = new RestTemplate();
         registrationService = mock(RegistrationService.class);
         authorization = mock(AuthorizationManager.class);
         mockRestServiceServer = MockRestServiceServer.createServer(restTemplate);
 
-        sut = new RequestSenderService(sysadminRepository, employeeRepository,
-                facultyAccountRepository, registrationService,
+        sut = new RequestSenderService(facultyAccountService,
                 authorization, restTemplate);
 
         admin = new Sysadmin(adminNetId);
