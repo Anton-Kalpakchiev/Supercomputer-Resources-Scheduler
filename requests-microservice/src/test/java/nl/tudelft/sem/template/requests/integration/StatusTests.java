@@ -1,10 +1,9 @@
 package nl.tudelft.sem.template.requests.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -48,31 +47,32 @@ public class StatusTests {
     @Autowired
     private transient RequestRepository requestRepository;
 
-//    @Test
-//    public void getStatus_withValidData_worksCorrectly() throws Exception {
-//        // Arrange
-//        final String description = "give me resources";
-//        final Resources resources = new Resources(50, 30, 50);
-//        final String owner = "User";
-//        final String facultyName = "CSE";
-//        final Calendar deadline = Calendar.getInstance();
-//
-//        AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 1);
-//        AppRequest savedRequest = requestRepository.save(appRequest);
-//        final long requestId = savedRequest.getId();
-//
-//        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-//
-//        // Act
-//        ResultActions resultActions = mockMvc.perform(post("/status")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .header("Authorization", "Bearer MockedToken")
-//                .content(JsonUtil.serialize(requestId)));
-//
-//        // Assert
-//        resultActions.andExpect(status().isOk());
-//        assertThat(requestRepository.findById(requestId).get().getStatus() == 0);
-//    }
+    @Test
+    public void getStatus_withValidData_worksCorrectly() throws Exception {
+        // Arrange
+        final String description = "give me resources";
+        final Resources resources = new Resources(50, 30, 50);
+        final String owner = "User";
+        final String facultyName = "CSE";
+        final Calendar deadline = Calendar.getInstance();
+
+        AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 1);
+        AppRequest savedRequest = requestRepository.save(appRequest);
+        final long requestId = savedRequest.getId();
+
+        doReturn(true).when(mockJwtTokenVerifier).validateToken(anyString());
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(post("/getStatus")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer MockedToken")
+                .content(JsonUtil.serialize(requestId)));
+
+        // Assert
+        resultActions.andExpect(status().isOk());
+        assertThat(requestRepository.findById(requestId).get().getStatus() == 0);
+    }
 
     //    @Test
     //    public void getStatus_withInvalidData_throwsException() throws Exception {
