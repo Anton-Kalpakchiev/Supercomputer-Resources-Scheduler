@@ -71,7 +71,8 @@ public class RequestSenderServiceUnitTest {
         mockRestServiceServer = MockRestServiceServer.createServer(restTemplate);
 
         sut = new RequestSenderService(facultyAccountService, facultyVerificationService, sysadminRepository,
-                employeeRepository, facultyAccountRepository, registrationService, authorization, restTemplate);
+                                    employeeRepository, facultyAccountRepository, employeeService,
+                                    registrationService, authorization, restTemplate);
 
         admin = new Sysadmin(adminNetId);
         employee = new Employee(employeeNetId);

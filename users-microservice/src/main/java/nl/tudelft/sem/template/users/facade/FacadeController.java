@@ -316,4 +316,25 @@ public class FacadeController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
+
+    /**
+     * Returns a string with the pending requests for that faculty.
+     * Only accessible for a Faculty account.
+     *
+     * @return ResponseEntity containing a String with the pending request for that faculty
+     */
+    @GetMapping("/pendingRequests")
+    public ResponseEntity<String> getPendingRequests() {
+        try {
+            String url = "http://localhost:8084/pendingRequests";
+            String result = requestSenderService.getRequestFromFacultyAccount(url,
+                    authentication.getNetId(), JwtRequestFilter.token);
+            return ResponseEntity.ok(result);
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
 }
