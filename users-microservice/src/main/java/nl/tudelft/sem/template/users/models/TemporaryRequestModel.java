@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TemporaryRequestModel {
     private String name;
-    private long managerNetId;
+    private String managerNetId;
 }

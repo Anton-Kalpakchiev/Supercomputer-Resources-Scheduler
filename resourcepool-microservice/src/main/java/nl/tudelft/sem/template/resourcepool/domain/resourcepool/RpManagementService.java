@@ -104,15 +104,22 @@ public class RpManagementService {
      * Finds the resourcePool given the id.
      *
      * @param resourcePoolId the id
-     * @return the resourcePool if it exists
-     * @throws Exception if the resourcePool can't be found
+     * @return the optional resourcePool
      */
-    public Optional<ResourcePool> findById(long resourcePoolId) throws Exception {
-        if (!repo.existsById(resourcePoolId)) {
-            throw new Exception();
-        }
+    public Optional<ResourcePool> findById(long resourcePoolId) {
         return repo.findById(resourcePoolId);
     }
+
+    /**
+     * Finds the resourcePool given the name.
+     *
+     * @param facultyName the faculty name
+     * @return the optional resourcePool
+     */
+    public Optional<ResourcePool> findByName(String facultyName) {
+        return repo.findByName(facultyName);
+    }
+
 
     /**
      * Returns a string with all resource pools in the database.

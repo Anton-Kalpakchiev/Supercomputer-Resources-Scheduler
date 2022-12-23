@@ -1,7 +1,9 @@
 package nl.tudelft.sem.template.resourcepool.controllers;
 
+import java.util.Optional;
 import nl.tudelft.sem.template.resourcepool.authentication.AuthManager;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.Faculty;
+import nl.tudelft.sem.template.resourcepool.domain.resourcepool.ResourcePool;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationResponseModel;
@@ -32,7 +34,7 @@ public class ResourcePoolController {
     /**
      * Instantiates a new ResourcePoolController.
      *
-     * @param authManager Spring Security component used to authenticate and authorize the user
+     * @param authManager         Spring Security component used to authenticate and authorize the user
      * @param rpManagementService The service which will handle the business logic for managing the faculties
      */
     @Autowired
@@ -59,8 +61,7 @@ public class ResourcePoolController {
      * @throws Exception if a faculty with this name already exists
      */
     @PostMapping("/createFaculty")
-    public ResponseEntity<FacultyCreationResponseModel> createFaculty(@RequestBody FacultyCreationModel request)
-            throws Exception {
+    public ResponseEntity<FacultyCreationResponseModel> createFaculty(@RequestBody FacultyCreationModel request) {
         try {
             Faculty newFaculty = rpManagementService.createFaculty(request.getName(), request.getManagerNetId());
             return ResponseEntity.ok(new FacultyCreationResponseModel(newFaculty.getId()));
@@ -78,8 +79,9 @@ public class ResourcePoolController {
      */
     @PostMapping("/verifyFaculty")
     public ResponseEntity<VerifyFacultyResponseModel> verifyFaculty(@RequestBody VerifyFacultyRequestModel request)
-            throws Exception {
+        throws Exception {
         try {
+
             boolean result = rpManagementService.verifyFaculty(request.getFacultyId());
             return ResponseEntity.ok(new VerifyFacultyResponseModel(result));
         } catch (Exception e) {
@@ -101,6 +103,7 @@ public class ResourcePoolController {
     //            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
     //        }
     //    }
+
     /**
      * Endpoint for contributing a node.
      *
@@ -110,7 +113,7 @@ public class ResourcePoolController {
      */
     @PostMapping("/contributeNode")
     public ResponseEntity<NodeInteractionResponseModel> contributeNode(@RequestBody NodeInteractionRequestModel nodeInfo)
-            throws Exception {
+        throws Exception {
         try {
             return ResponseEntity.ok(new NodeInteractionResponseModel(rpManagementService.contributeNode(nodeInfo)));
         } catch (Exception e) {
@@ -127,7 +130,7 @@ public class ResourcePoolController {
      */
     @PostMapping("/deleteNode")
     public ResponseEntity<NodeInteractionResponseModel> deleteNode(@RequestBody NodeInteractionRequestModel nodeInfo)
-            throws Exception {
+        throws Exception {
         try {
             return ResponseEntity.ok(new NodeInteractionResponseModel(rpManagementService.deleteNode(nodeInfo)));
         } catch (Exception e) {
@@ -143,5 +146,31 @@ public class ResourcePoolController {
     @GetMapping("/printDatabase")
     public ResponseEntity<String> printDatabase() {
         return ResponseEntity.ok(rpManagementService.printDatabase());
+    }
+
+    /**
+     * Gets the facultyName given the id.
+     *
+     * @param facultyId the facultyId
+     * @return the matching facultyName
+     */
+    @PostMapping("/getFacultyName")
+    public ResponseEntity<String> getFacultyName(@RequestBody long facultyId) {
+        Optional<ResourcePool> optional = rpManagementService.findById(facultyId);
+        return optional.map(resourcePool -> ResponseEntity.ok(resourcePool.getName()))
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Gets the facultyId given the name.
+     *
+     * @param facultyName the facultyName
+     * @return the matching facultyId
+     */
+    @PostMapping("/getFacultyId")
+    public ResponseEntity<Long> getFacultyName(@RequestBody String facultyName) {
+        Optional<ResourcePool> optional = rpManagementService.findByName(facultyName);
+        return optional.map(resourcePool -> ResponseEntity.ok(resourcePool.getId()))
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

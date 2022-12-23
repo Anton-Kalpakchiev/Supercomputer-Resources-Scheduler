@@ -15,6 +15,7 @@ import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
 import nl.tudelft.sem.template.users.domain.Employee;
 import nl.tudelft.sem.template.users.domain.EmployeeRepository;
+import nl.tudelft.sem.template.users.domain.EmployeeService;
 import nl.tudelft.sem.template.users.domain.FacultyAccount;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
 import nl.tudelft.sem.template.users.domain.FacultyAccountService;
@@ -42,6 +43,7 @@ public class RequestSenderServiceUnitTest {
     private MockRestServiceServer mockRestServiceServer;
     private RequestSenderService sut;
     private FacultyAccountService facultyAccountService;
+    private EmployeeService employeeService;
 
     private Sysadmin admin;
     private Employee employee;
@@ -65,6 +67,7 @@ public class RequestSenderServiceUnitTest {
         restTemplate = new RestTemplate();
         registrationService = mock(RegistrationService.class);
         authorization = mock(AuthorizationManager.class);
+        employeeService = mock(EmployeeService.class);
         mockRestServiceServer = MockRestServiceServer.createServer(restTemplate);
 
         sut = new RequestSenderService(facultyAccountService, facultyVerificationService, sysadminRepository,
