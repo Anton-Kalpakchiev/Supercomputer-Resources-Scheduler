@@ -197,11 +197,12 @@ public class FacadeController {
      * @return the status of the request found in the database with the given id
      */
     @GetMapping("/request/status")
-    public ResponseEntity<String> getStatus(@RequestBody long id) {
+    public ResponseEntity<String> getStatus(@RequestBody NodeDeletionRequestModel idModel) {
         try {
-            String url = "http://localhost:8084/status";
+            String url = "http://localhost:8084/getStatus";
+            long requestId = idModel.getNodeId();
             String answer = requestSenderService.getStatusOfRequest(
-                    url, authentication.getNetId(), id, JwtRequestFilter.token);
+                    url, authentication.getNetId(), requestId, JwtRequestFilter.token);
             return ResponseEntity.ok(answer);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
@@ -215,12 +216,12 @@ public class FacadeController {
      * @return message to the user that tells them whether their request was successfully submitted
      */
     @PostMapping("/request/register")
-    public ResponseEntity register(@RequestBody RegistrationRequestModel request) {
+    public ResponseEntity<String> register(@RequestBody RegistrationRequestModel request) {
         try {
             String url = "http://localhost:8084/register";
-            boolean wentThrough = requestSenderService.registerRequest(
+            long requestId = requestSenderService.registerRequest(
                     url, authentication.getNetId(), request, JwtRequestFilter.token);
-            String answer = requestSenderService.registerRequestMessage(wentThrough);
+            String answer = requestSenderService.registerRequestMessage(requestId);
             return ResponseEntity.ok(answer);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());

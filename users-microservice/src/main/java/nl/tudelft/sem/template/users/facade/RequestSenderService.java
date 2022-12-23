@@ -1,9 +1,7 @@
 package nl.tudelft.sem.template.users.facade;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
@@ -20,10 +18,7 @@ import nl.tudelft.sem.template.users.models.facade.ManualApprovalModel;
 import nl.tudelft.sem.template.users.models.facade.NodeContributionRequestModel;
 import nl.tudelft.sem.template.users.models.facade.ScheduleRequestModel;
 import nl.tudelft.sem.template.users.models.facade.ScheduleResponseModel;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -343,21 +338,51 @@ public class RequestSenderService {
      */
     public String getStatusOfRequest(String url, String authorNetId, long requestId, String token)
             throws NoSuchUserException, UnauthorizedException, InnerRequestFailedException {
-        if (authorization.isOfType(authorNetId, AccountType.EMPLOYEE)
-            && employeeService.getRequestIdsByNetId(authorNetId, token).contains(requestId)) {
+        boolean authorized = authorization.isOfType(authorNetId, AccountType.EMPLOYEE);
+        List<Long> ids = getRequestIdsByNetId(authorNetId, token);
+        if (authorized && ids.contains(requestId)) {
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
 
             HttpEntity<Long> entity = new HttpEntity<>(requestId, headers);
             try {
-                ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-                return response.getBody();
+                ResponseEntity<Integer> response = restTemplate.exchange(url, HttpMethod.POST, entity, Integer.class);
+                int status = response.getBody();
+                return "Request has status " + status;
             } catch (Exception e) {
                 throw new InnerRequestFailedException(url);
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId
                     + ") is not authorized to approve or reject this request");
+        }
+    }
+
+
+    /**
+     * Gets the IDs of all requests submitted by a given user.
+     *
+     * @param netId the netId of the given user
+     * @param token the JWT token
+     * @return the set of the IDs of all requests submitted by this user
+     * @throws InnerRequestFailedException if the request MS does not respond
+     */
+    public List<Long> getRequestIdsByNetId(String netId, String token) throws InnerRequestFailedException {
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        String url = "http://localhost:8084/getRequestIds";
+        HttpEntity<String> entity = new HttpEntity<>(netId, headers);
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            List<Long> answers = new ArrayList<>();
+            for (String id : response.getBody().split("/")) {
+                answers.add(Long.parseLong(id));
+            }
+            return answers;
+        } catch (Exception e) {
+            throw new InnerRequestFailedException("Request to " + url + " failed");
         }
     }
 
@@ -378,15 +403,14 @@ public class RequestSenderService {
     /**
      * Returns the correct message to show the user when they try to register a request.
      *
-     * @param wentThrough whether the request went through
+     * @param requestId the id of the submitted request
      * @return the correct message to show the user when the request is registered
      */
-    public String registerRequestMessage(boolean wentThrough) {
-        if (wentThrough) {
-            return "Request was successfully submitted";
-        } else {
-            return "Request was not successfully submitted";
+    public String registerRequestMessage(long requestId) {
+        if (requestId == -1) {
+            return "Request was not submitted successfully";
         }
+        return "Request was successfully submitted with ID " + requestId;
     }
 
     /**
@@ -401,7 +425,7 @@ public class RequestSenderService {
      * @throws InnerRequestFailedException if the request MS did not respond
      * @throws UnauthorizedException if the employee submitting the request is not employeed at the respective faculty
      */
-    public boolean registerRequest(String url, String authorNetId, RegistrationRequestModel requestModel, String token)
+    public Long registerRequest(String url, String authorNetId, RegistrationRequestModel requestModel, String token)
             throws NoSuchUserException, InnerRequestFailedException, UnauthorizedException {
         if (authorization.isOfType(authorNetId, AccountType.EMPLOYEE)) { //TODO check if faculty has employeed the employee
             HttpHeaders headers = new HttpHeaders();
@@ -409,14 +433,14 @@ public class RequestSenderService {
 
             HttpEntity<RegistrationRequestModel> entity = new HttpEntity<>(requestModel, headers);
             try {
-                restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-                return true;
+                ResponseEntity<Long> response = restTemplate.exchange(url, HttpMethod.POST, entity, Long.class);
+                return response.getBody();
             } catch (Exception e) {
                 throw new InnerRequestFailedException(url);
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId
-                    + ") is not employeed by " + requestModel.getFacultyName());
+                    + ") is not employed by " + requestModel.getFacultyName());
         }
     }
 

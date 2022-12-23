@@ -67,7 +67,7 @@ public class RequestController {
      * @throws Exception When requests are made with insufficient gpu compared to cpu.
      */
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody RegistrationRequestModel request, HttpServletRequest requested)
+    public ResponseEntity<Long> register(@RequestBody RegistrationRequestModel request, HttpServletRequest requested)
         throws InvalidResourcesException {
         try {
             String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
@@ -87,8 +87,9 @@ public class RequestController {
             deadline.set(Calendar.DAY_OF_MONTH, Integer.parseInt(deadlineStr.split("-")[0]));
 
             try {
-                registrationService.registerRequest(description, resources, owner,
-                    facultyName, availableResources, deadline, availableFreePoolResources, token);
+                long requestId = registrationService.registerRequest(description, resources, owner,
+                    facultyName, availableResources, deadline, availableFreePoolResources, token).getId();
+                return ResponseEntity.ok(requestId);
             } catch (InvalidResourcesException e) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
             }
@@ -98,7 +99,6 @@ public class RequestController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
-        return ResponseEntity.ok().build();
     }
 
 
@@ -107,7 +107,7 @@ public class RequestController {
      *
      * @return the status of the request found in the database with the given id
      */
-    @GetMapping("/status")
+    @PostMapping("/getStatus")
     public ResponseEntity<Integer> getStatus(@RequestBody long id) {
         return ResponseEntity.ok(statusService.getStatus(id));
     }
@@ -193,7 +193,7 @@ public class RequestController {
      * @param netId the netID of the given user
      * @return the set of IDs encoded in a String
      */
-    @GetMapping("/getRequestIds")
+    @PostMapping("/getRequestIds")
     public ResponseEntity<String> getRequestIdsByNetId(@RequestBody String netId) {
         return ResponseEntity.ok(registrationService.getRequestIdsByNetId(netId));
     }
