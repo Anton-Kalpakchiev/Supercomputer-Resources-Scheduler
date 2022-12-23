@@ -127,6 +127,7 @@ public class NodesTest {
         model.setGpu(resources.getGpu());
 
         // Act and Assert
+        assertThat(nodeRepository.findAll().size() == 0);
         // assertThrows(NestedServletException.class, () -> {
         //   ResultActions resultActions = mockMvc.perform(post("/contributeNode")
         //          .contentType(MediaType.APPLICATION_JSON)
