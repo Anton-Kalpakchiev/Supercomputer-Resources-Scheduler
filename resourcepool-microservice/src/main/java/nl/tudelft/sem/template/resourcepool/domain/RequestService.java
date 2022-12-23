@@ -16,20 +16,18 @@ public class RequestService {
     /**
      * Requests the resources from the Request MS.
      *
-     * @param requestId name of the faculty
+     * @param requestId the requestId
      * @param token the jwtToken
-     * @return the available resources
+     * @return the resources of the request that is getting scheduled
      * @throws IOException when the input is incorrectly formatted.
      */
     public Resources getRequestedResourcesById(long requestId, String token) throws IOException {
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Type", "application/json");
         headers.add("Authorization", "Bearer " + token);
 
-        String requestBody = "{\"requestId\": \"" + requestId + "\"}";
-        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
-
+        HttpEntity<Long> request = new HttpEntity<>(requestId, headers);
+        RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.postForEntity("http://localhost:8084/resourcesById", request, String.class);
 
         ObjectMapper objectMapper = new ObjectMapper();

@@ -2,10 +2,13 @@ package nl.tudelft.sem.template.requests.domain;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
+
 
 @Service
 //We can remove this line later on, but I can't figure out how to fix this and the code works perfect with the error in it
@@ -21,12 +24,29 @@ public class RegistrationService {
     /**
      * Instantiates a new RegistrationService.
      *
-     * @param requestRepository the request repository
+     * @param requestRepository   the request repository
      * @param resourcePoolService the service that communicates with the resource pool
      */
     public RegistrationService(RequestRepository requestRepository, ResourcePoolService resourcePoolService) {
         this.requestRepository = requestRepository;
         this.resourcePoolService = resourcePoolService;
+    }
+
+    /**
+     * Gets the requested resources.
+     *
+     * @param requestId the id of the requested
+     * @return the requested resources
+     */
+    public Resources getResourcesForId(long requestId) {
+        Optional<AppRequest> optional = requestRepository.findById(requestId);
+        if (optional.isPresent()) {
+            AppRequest request = optional.get();
+            Resources resources = new Resources(request.getCpu(), request.getGpu(), request.getMem());
+            return resources;
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
     }
 
     /**
@@ -36,9 +56,9 @@ public class RegistrationService {
      * @param resources   The resources requested
      */
     public AppRequest registerRequest(String description, Resources resources, String owner, String facultyName,
-                                  Resources availableResources, Calendar deadline, Resources freePoolResources, String token)
-            throws InvalidResourcesException {
-
+                                      Resources availableResources, Calendar deadline, Resources freePoolResources,
+                                      String token)
+        throws InvalidResourcesException {
         if (resources.getMemory() < 0 || resources.getCpu() < 0 || resources.getGpu() < 0) {
             throw new InvalidResourcesException("Resource object cannot be created with negative inputs");
         }
@@ -52,11 +72,11 @@ public class RegistrationService {
         AppRequest request = new AppRequest(description, resources, owner, facultyName, deadline, -1);
 
         final boolean facultyHasEnoughResources = !(availableResources.getGpu() < resources.getGpu()
-                || availableResources.getCpu() < resources.getCpu()
-                || availableResources.getMemory() < resources.getMemory());
+            || availableResources.getCpu() < resources.getCpu()
+            || availableResources.getMemory() < resources.getMemory());
         final boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
-                || freePoolResources.getCpu() < resources.getCpu()
-                || freePoolResources.getMemory() < resources.getMemory());
+            || freePoolResources.getCpu() < resources.getCpu()
+            || freePoolResources.getMemory() < resources.getMemory());
         final boolean isForTomorrow = isForTomorrow(deadline);
         /*
         0 when before the 6h deadline
@@ -96,15 +116,14 @@ public class RegistrationService {
      * @param request the given request
      * @return the AppRequest returned after processing
      */
-
     public AppRequest processRequestInPeriodOne(AppRequest request, String token) {
         Calendar deadline = request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
-        final Resources freePoolResources = getFacultyResourcesByName("Free pool");
+        final Resources freePoolResources = resourcePoolService.getFacultyResourcesById(1L, token);
 
         boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
-                || freePoolResources.getCpu() < resources.getCpu()
-                || freePoolResources.getMemory() < resources.getMemory());
+            || freePoolResources.getCpu() < resources.getCpu()
+            || freePoolResources.getMemory() < resources.getMemory());
         int timePeriod = 1;
         boolean isForTomorrow = isForTomorrow(deadline);
         boolean facHasEnoughResources = false;
@@ -140,7 +159,7 @@ public class RegistrationService {
     @Scheduled(cron = "0 5 18 * * *")
     public void processAllPendingRequests() {
         List<AppRequest> allRequests = requestRepository.findAll().stream()
-                .filter(x -> x.getStatus() == 3).collect(Collectors.toList());
+            .filter(x -> x.getStatus() == 3).collect(Collectors.toList());
         for (AppRequest thisRequest : allRequests) {
             processRequestInPeriodOne(thisRequest, initialToken);
         }
@@ -150,13 +169,12 @@ public class RegistrationService {
      * Calculates the time period during which a request is made.
      *
      * @param cal the Calendar object representing the time at which the request arrived
-     *
      * @return the time period
-     *         0 when before the 6h deadline
-     *         1 when after the 6h deadline and before the 5min deadline,
-     *         2 when after the 5 min deadline
      */
     public int getTimePeriod(Calendar cal) {
+        //0 when before the 6h deadline
+        //1 when after the 6h deadline and before the 5min deadline,
+        //2 when after the 5 min deadline
         if (cal.after(getSixHoursDeadline()) && cal.before(getFiveMinutesDeadline())) {
             return 1;
         } else if (cal.after(getFiveMinutesDeadline())) {
@@ -221,23 +239,23 @@ public class RegistrationService {
      * Decides what happens with a request when it arrives - it can be approved, rejected,
      * left pending for manual review, or left pending until the FRP gets more resources at 18PM.
      *
-     * @param timePeriod the time period at which the request is submitted
-     * @param isForTomorrow whether the request is for tomorrow
-     * @param frpHasEnoughResources whether the FRP has enough resources for this request
+     * @param timePeriod                the time period at which the request is submitted
+     * @param isForTomorrow             whether the request is for tomorrow
+     * @param frpHasEnoughResources     whether the FRP has enough resources for this request
      * @param facultyHasEnoughResources whether the faculty the request is scheduled to has enough resources for this request
-     * @return the status of the request:
-     *     0 for pending manual approval,
-     *     1 for approved,
-     *     2 for rejected,
-     *     3 pending and waiting for the free RP to get resources at the 6h before end of day deadline
+     * @return the status of the request
      */
     public int decideStatusOfRequest(int timePeriod, boolean isForTomorrow, boolean frpHasEnoughResources,
                                      boolean facultyHasEnoughResources) {
+        // 0 for pending manual approval,
+        // 1 for approved,
+        // 2 for rejected,
+        // 3 pending and waiting for the free RP to get resources at the 6h before end of day deadline
         if ((timePeriod == 2 && isForTomorrow) || (!frpHasEnoughResources && timePeriod == 1 && isForTomorrow)) {
             //auto reject
             return 2;
         } else if ((timePeriod == 1 && frpHasEnoughResources) || (isForTomorrow && timePeriod == 0
-                && !facultyHasEnoughResources && frpHasEnoughResources)) {
+            && !facultyHasEnoughResources && frpHasEnoughResources)) {
             //auto approve
             return 1;
         } else if (timePeriod == 0 && !facultyHasEnoughResources && !frpHasEnoughResources) {
@@ -249,19 +267,15 @@ public class RegistrationService {
         }
     }
 
-
     /**
-     * Requests the available resources from the RP MS.
+     * Gets the pending requests for the facultyName.
      *
-     * @param facultyName name of the faculty.
-     *
-     * @return the available resources
+     * @param facultyName the facultyName for which the pending requests need to be retrieved
+     * @return the list of pending requests
      */
-    public Resources getFacultyResourcesByName(String facultyName) {
-        RestTemplate restTemplate = new RestTemplate();
-        String request = facultyName;
-        Resources availableResources = restTemplate.postForObject("http://localhost:8085/resources", request, Resources.class);
-        return availableResources;
+    public List<AppRequest> getPendingRequestsForFacultyName(String facultyName) {
+        return requestRepository.findAll().stream().filter(x -> x.getFacultyName().equals(facultyName) && x.getStatus() == 0)
+            .collect(Collectors.toList());
     }
 
     /**
