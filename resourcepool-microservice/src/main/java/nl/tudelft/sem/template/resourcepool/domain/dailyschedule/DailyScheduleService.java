@@ -88,6 +88,20 @@ public class DailyScheduleService {
         scheduleRepository.save(dailySchedule);
     }
 
+    public void scheduleFaculty(Calendar day, long requestId, String facultyName, String token) throws Exception {
+        long facultyId = resourcePoolRepo.findByName(facultyName).get().getId();
+        DailyScheduleId id = new DailyScheduleId(day, facultyId); //change to not create per every new request
+        if (!scheduleRepository.existsById(id)) {
+            DailySchedule toSave = new DailySchedule(day, facultyId);
+            saveDailyScheduleInit(toSave);
+            scheduleRepository.save(toSave);
+        }
+        DailySchedule dailySchedule = scheduleRepository.findByDayAndResourcePoolId(day, facultyId).get();
+        dailySchedule.addRequest(requestId);
+        updateResources(dailySchedule, requestId, token);
+        scheduleRepository.save(dailySchedule);
+    }
+
     /**
      * Retrieves the available resources of a resource pool.
      *

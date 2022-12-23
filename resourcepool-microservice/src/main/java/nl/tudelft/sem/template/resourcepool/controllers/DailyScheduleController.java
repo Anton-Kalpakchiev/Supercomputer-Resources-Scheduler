@@ -59,7 +59,11 @@ public class DailyScheduleController {
         String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
         String token = authorizationHeader.split(" ")[1];
         try {
-            dailyScheduleService.scheduleFp(day, request.getRequestId(), token);
+            if (request.getFacultyName().equals("Free Pool")) {
+                dailyScheduleService.scheduleFp(day, request.getRequestId(), token);
+            } else {
+                dailyScheduleService.scheduleFaculty(day, request.getRequestId(), request.getFacultyName(), token);
+            }
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);

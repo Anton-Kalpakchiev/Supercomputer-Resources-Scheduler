@@ -57,7 +57,7 @@ public class Resources {
 
     public static Resources subtract(Resources resources1, Resources resources2) {
         return new Resources(resources1.getCpu() - resources2.getCpu(),
-                resources1.getGpu() - resources2.getCpu(), resources1.getMemory() - resources2.getMemory());
+                resources1.getGpu() - resources2.getGpu(), resources1.getMemory() - resources2.getMemory());
     }
 
     /**

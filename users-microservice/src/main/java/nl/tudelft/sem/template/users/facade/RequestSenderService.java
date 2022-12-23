@@ -306,8 +306,7 @@ public class RequestSenderService {
      */
     public boolean approveRejectRequest(String url, String authorNetId, ManualApprovalModel model, String token)
             throws NoSuchUserException, InnerRequestFailedException, UnauthorizedException {
-        if (authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)
-                && facultyAccountService.getFacultyAssignedId(authorNetId) == model.getRequestId()) {
+        if (authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) { //TODO make sure the request is to the faculty manager's faculty
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
 
