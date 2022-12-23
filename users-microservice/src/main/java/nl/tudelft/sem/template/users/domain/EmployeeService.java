@@ -35,31 +35,6 @@ public class EmployeeService {
         }
     }
 
-    /**
-     * Gets the IDs of all requests submitted by a given user.
-     *
-     * @param netId the netId of the given user
-     * @param token the JWT token
-     * @return the set of the IDs of all requests submitted by this user
-     * @throws InnerRequestFailedException if the request MS does not respond
-     */
-    public Set<Long> getRequestIdsByNetId(String netId, String token) throws InnerRequestFailedException {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
-        String url = "http://localhost:8084/getRequestIds";
-        HttpEntity<String> entity = new HttpEntity<>(netId, headers);
-        try {
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-            Set<Long> answers = new HashSet<>();
-            for (String id : response.getBody().split("/")) {
-                answers.add(Long.parseLong(id));
-            }
-            return answers;
-        } catch (Exception e) {
-            throw new InnerRequestFailedException("Request to " + url + " failed");
-        }
-    }
 
     /**
      * Gets the employee if they exist.

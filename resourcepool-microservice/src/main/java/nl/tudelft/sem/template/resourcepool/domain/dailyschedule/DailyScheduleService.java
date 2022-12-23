@@ -89,6 +89,29 @@ public class DailyScheduleService {
     }
 
     /**
+     * Schedules a request in a faculty.
+     *
+     * @param day the day that the request has to be scheduled on
+     * @param requestId the id of the request
+     * @param facultyName name of the faculty
+     * @param token the jwtToken
+     * @throws Exception if something fails
+     */
+    public void scheduleFaculty(Calendar day, long requestId, String facultyName, String token) throws Exception {
+        long facultyId = resourcePoolRepo.findByName(facultyName).get().getId();
+        DailyScheduleId id = new DailyScheduleId(day, facultyId); //change to not create per every new request
+        if (!scheduleRepository.existsById(id)) {
+            DailySchedule toSave = new DailySchedule(day, facultyId);
+            saveDailyScheduleInit(toSave);
+            scheduleRepository.save(toSave);
+        }
+        DailySchedule dailySchedule = scheduleRepository.findByDayAndResourcePoolId(day, facultyId).get();
+        dailySchedule.addRequest(requestId);
+        updateResources(dailySchedule, requestId, token);
+        scheduleRepository.save(dailySchedule);
+    }
+
+    /**
      * Retrieves the available resources of a resource pool.
      *
      * @param resourcePoolId the id of the resource pool
@@ -116,8 +139,12 @@ public class DailyScheduleService {
      */
     public static Calendar getTomorrow() {
         Calendar tomorrow = Calendar.getInstance();
-        tomorrow.add(Calendar.DAY_OF_YEAR, 1);
-        tomorrow.setTime(tomorrow.getTime());
+        Calendar tomorrowCopy = Calendar.getInstance();
+        tomorrowCopy.add(Calendar.DAY_OF_YEAR, 1);
+        tomorrow.setTimeInMillis(0);
+        tomorrow.set(Calendar.YEAR, tomorrowCopy.get(Calendar.YEAR));
+        tomorrow.set(Calendar.MONTH, tomorrowCopy.get(Calendar.MONTH));
+        tomorrow.set(Calendar.DAY_OF_MONTH, tomorrowCopy.get(Calendar.DAY_OF_MONTH));
         return tomorrow;
     }
 
@@ -186,6 +213,12 @@ public class DailyScheduleService {
         if (resourcePoolId == 1L) {
             throw new ReleaseResourcesException("The free resource pool cannot release resources!");
         }
+        Calendar dayCopy = Calendar.getInstance();
+        dayCopy.setTimeInMillis(0);
+        dayCopy.set(Calendar.YEAR, day.get(Calendar.YEAR));
+        dayCopy.set(Calendar.MONTH, day.get(Calendar.MONTH));
+        dayCopy.set(Calendar.DAY_OF_MONTH, day.get(Calendar.DAY_OF_MONTH));
+        day = dayCopy;
         // Create resource pool daily schedule for that day if it does not exist
         if (!scheduleRepository.existsByDayAndResourcePoolId(day, 1)) {
             DailySchedule toSave = new DailySchedule(day, 1);

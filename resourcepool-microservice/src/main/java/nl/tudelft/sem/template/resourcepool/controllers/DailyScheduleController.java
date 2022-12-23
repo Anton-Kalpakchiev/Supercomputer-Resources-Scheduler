@@ -54,13 +54,18 @@ public class DailyScheduleController {
         String dayString = request.getDay();
         String[] dayArr = dayString.split("-"); //convert to Calendar immediately
         Calendar day = Calendar.getInstance();
+        day.setTimeInMillis(0);
         day.set(Calendar.YEAR, Integer.parseInt(dayArr[2]));
         day.set(Calendar.MONTH, Integer.parseInt(dayArr[1]));
         day.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dayArr[0]));
         String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
         String token = authorizationHeader.split(" ")[1];
         try {
-            dailyScheduleService.scheduleFp(day, request.getRequestId(), token);
+            if (request.getFacultyName().equals("Free Pool")) {
+                dailyScheduleService.scheduleFp(day, request.getRequestId(), token);
+            } else {
+                dailyScheduleService.scheduleFaculty(day, request.getRequestId(), request.getFacultyName(), token);
+            }
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);

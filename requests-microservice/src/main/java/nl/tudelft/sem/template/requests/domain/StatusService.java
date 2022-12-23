@@ -34,7 +34,10 @@ public class StatusService {
      * @param status The new status to which the request should be changed.
      */
     public void setStatus(long id, int status) {
-        requestRepository.findById(id).get().setStatus(status);
+        AppRequest request = requestRepository.findById(id).get();
+        request.setStatus(status);
+        requestRepository.save(request);
+
     }
 }
 

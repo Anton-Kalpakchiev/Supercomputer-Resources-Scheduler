@@ -24,7 +24,12 @@ public class DailyScheduleId implements Serializable {
      * @param resourcePoolId the resource pool id
      */
     public DailyScheduleId(Calendar day, long resourcePoolId) {
-        this.day = day;
+        Calendar thisDay = Calendar.getInstance();
+        thisDay.setTimeInMillis(0);
+        thisDay.set(Calendar.YEAR, day.get(Calendar.YEAR));
+        thisDay.set(Calendar.MONTH, day.get(Calendar.MONTH));
+        thisDay.set(Calendar.DAY_OF_MONTH, day.get(Calendar.DAY_OF_MONTH));
+        this.day = thisDay;
         this.resourcePoolId = resourcePoolId;
     }
 
