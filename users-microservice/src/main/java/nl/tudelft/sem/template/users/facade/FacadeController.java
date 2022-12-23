@@ -142,7 +142,7 @@ public class FacadeController {
      *                      and if accepted, its day of execution
      * @return a message to the user informing them the request is successfully approved/rejected
      */
-    @PostMapping("/manualSchedule")
+    @PostMapping("/request/manualSchedule")
     public ResponseEntity<String> approveRejectRequest(@RequestBody ManualApprovalModel approvalModel) {
         try {
             boolean approved = approvalModel.isApproved();
@@ -171,7 +171,7 @@ public class FacadeController {
      *
      * @return the status of the request found in the database with the given id
      */
-    @GetMapping("/status")
+    @GetMapping("/request/status")
     public ResponseEntity<String> getStatus(@RequestBody long id) {
         try {
             String url = "http://localhost:8084/status";
@@ -189,10 +189,10 @@ public class FacadeController {
      * @param request the model of the request containing all the important information
      * @return message to the user that tells them whether their request was successfully submitted
      */
-    @PostMapping("/register")
+    @PostMapping("/request/register")
     public ResponseEntity register(@RequestBody RegistrationRequestModel request) {
         try {
-            String url = "http://localhost:8084/reguster";
+            String url = "http://localhost:8084/register";
             boolean wentThrough = requestSenderService.registerRequest(
                     url, authentication.getNetId(), request, JwtRequestFilter.token);
             String answer = requestSenderService.registerRequestMessage(wentThrough);
