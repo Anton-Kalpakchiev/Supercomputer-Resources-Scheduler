@@ -3,12 +3,16 @@ package nl.tudelft.sem.template.requests.controllers;
 import static nl.tudelft.sem.template.requests.authentication.JwtRequestFilter.AUTHORIZATION_HEADER;
 
 import java.util.Calendar;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import nl.tudelft.sem.template.requests.authentication.AuthManager;
+import nl.tudelft.sem.template.requests.domain.AppRequest;
+import nl.tudelft.sem.template.requests.domain.InvalidResourcesException;
 import nl.tudelft.sem.template.requests.domain.RegistrationService;
 import nl.tudelft.sem.template.requests.domain.ResourcePoolService;
 import nl.tudelft.sem.template.requests.domain.Resources;
 import nl.tudelft.sem.template.requests.domain.StatusService;
+import nl.tudelft.sem.template.requests.domain.UserService;
 import nl.tudelft.sem.template.requests.models.ManualApprovalModel;
 import nl.tudelft.sem.template.requests.models.RegistrationRequestModel;
 import nl.tudelft.sem.template.requests.models.SetStatusModel;
@@ -35,6 +39,7 @@ public class RequestController {
     private final transient RegistrationService registrationService;
     private final transient StatusService statusService;
     private final transient ResourcePoolService resourcePoolService;
+    private final transient UserService userService;
 
     /**
      * Instantiates a new controller.
@@ -44,45 +49,52 @@ public class RequestController {
      */
     @Autowired
     public RequestController(AuthManager authManager, RegistrationService registrationService,
-                             StatusService statusService, ResourcePoolService resourcePoolService) {
+                             StatusService statusService, ResourcePoolService resourcePoolService,
+                             UserService userService) {
         this.authManager = authManager;
         this.registrationService = registrationService;
         this.statusService = statusService;
         this.resourcePoolService = resourcePoolService;
+        this.userService = userService;
     }
 
     /**
      * The registration process for a request.
      *
-     * @param request The request model.
+     * @param request   The request model.
      * @param requested To get the token
      * @return The response entity status.
      * @throws Exception When requests are made with insufficient gpu compared to cpu.
      */
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody RegistrationRequestModel request, HttpServletRequest requested)
-            throws Exception {
+        throws InvalidResourcesException {
         try {
+            String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
+            String token = authorizationHeader.split(" ")[1];
             final String description = request.getDescription();
-            final Resources resources = new Resources(request.getMemory(), request.getCpu(), request.getGpu());
+            final Resources resources = new Resources(request.getCpu(), request.getGpu(), request.getMemory());
             final String owner = authManager.getNetId();
             final String facultyName = request.getFacultyName();
-            final Resources availableResources = registrationService.getFacultyResourcesByName(facultyName);
-            final Resources availableFreePoolResources = registrationService.getFacultyResourcesByName("Free pool");
+            final long facultyId = resourcePoolService.getIdByName(facultyName, token);
+            final Resources availableResources = resourcePoolService.getFacultyResourcesById(facultyId, token);
+            final Resources availableFreePoolResources = resourcePoolService.getFacultyResourcesById(1L, token);
 
             String deadlineStr = request.getDeadline(); //convert to Calendar immediately
             Calendar deadline = Calendar.getInstance();
             deadline.set(Calendar.YEAR, Integer.parseInt(deadlineStr.split("-")[2]));
-            deadline.set(Calendar.MONTH, Integer.parseInt(deadlineStr.split("-")[1]));
+            deadline.set(Calendar.MONTH, Integer.parseInt(deadlineStr.split("-")[1]) - 1);
             deadline.set(Calendar.DAY_OF_MONTH, Integer.parseInt(deadlineStr.split("-")[0]));
 
-            String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
-            String token = authorizationHeader.split(" ")[1];
-
-            registrationService.registerRequest(description, resources, owner,
+            try {
+                registrationService.registerRequest(description, resources, owner,
                     facultyName, availableResources, deadline, availableFreePoolResources, token);
+            } catch (InvalidResourcesException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            }
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
@@ -120,6 +132,21 @@ public class RequestController {
     }
 
     /**
+     * Gets the pending requests for that faculty.
+     *
+     * @param requested for the jwtToken.
+     * @return the list of requests
+     */
+    @GetMapping("/pendingRequests")
+    public ResponseEntity<List<AppRequest>> getPendingRequests(HttpServletRequest requested) {
+        String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
+        String token = authorizationHeader.split(" ")[1];
+        Long facultyId = userService.getFacultyIdForManager(token);
+        String facultyName = resourcePoolService.getFacultyNameForFacultyId(facultyId, token);
+        return ResponseEntity.ok(registrationService.getPendingRequestsForFacultyName(facultyName));
+    }
+    
+    /**
      * The faculty manager manually accepts or rejects a request left for manual approval/rejection.
      *
      * @param model the manualApprovalModel that contains the requestID,
@@ -144,7 +171,6 @@ public class RequestController {
         } else {
             dayOfExecution = Calendar.getInstance();
         }
-
         String token = requested.getHeader(AUTHORIZATION_HEADER).split(" ")[1];
 
         try {
@@ -161,5 +187,14 @@ public class RequestController {
         return ResponseEntity.ok(true);
     }
 
-
+    /**
+    * Gets the requested resources given the requestId.
+    *
+    * @param requestId the id of the request
+    * @return the resources that this request requests
+    */
+    @PostMapping("/resourcesById")
+    public ResponseEntity<Resources> getResourcesById(@RequestBody long requestId) {
+        return ResponseEntity.ok(registrationService.getResourcesForId(requestId));
+    }
 }

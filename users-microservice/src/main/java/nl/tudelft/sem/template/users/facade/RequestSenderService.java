@@ -42,18 +42,16 @@ public class RequestSenderService {
     private final transient AuthorizationManager authorization;
 
     private final transient RestTemplate restTemplate;
-    private final transient String requestTo = "Request to ";
-    private final transient String failed = " failed";
 
     /**
      * Constructor for the request sender service.
      *
-     * @param sysadminRepository the injected sysadmin repository
-     * @param employeeRepository the injected employee repository.
+     * @param sysadminRepository       the injected sysadmin repository
+     * @param employeeRepository       the injected employee repository.
      * @param facultyAccountRepository the injected faculty account repo.
-     * @param registrationService the injected registration service
-     * @param authorization the authorization manager
-     * @param restTemplate the provided rest template.
+     * @param registrationService      the injected registration service
+     * @param authorization            the authorization manager
+     * @param restTemplate             the provided rest template.
      */
     public RequestSenderService(SysadminRepository sysadminRepository, EmployeeRepository employeeRepository,
                                 FacultyAccountRepository facultyAccountRepository,
@@ -73,14 +71,14 @@ public class RequestSenderService {
     /**
      * Sends a request to the specified url in the Resource pool microservice.
      *
-     * @param url the url of the request
+     * @param url         the url of the request
      * @param authorNetId the netId of the author of the request.
-     * @param token the token of the request
-     * @param model the distribution model.
+     * @param token       the token of the request
+     * @param model       the distribution model.
      * @throws Exception if the author is not a SYSADMIN or the request failed.
      */
     public void addDistributionRequest(String url, String authorNetId, String token, DistributionModel model)
-            throws Exception {
+        throws Exception {
         if (authorization.isOfType(authorNetId, AccountType.SYSADMIN)) {
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
@@ -90,7 +88,7 @@ public class RequestSenderService {
             try {
                 restTemplate.postForEntity(url, entity, Void.class);
             } catch (Exception e) {
-                throw new InnerRequestFailedException(requestTo + url + failed);
+                throw new InnerRequestFailedException(innerRequestFailedExceptionString(url));
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not a Sysadmin => can not add a distribution");
@@ -100,9 +98,9 @@ public class RequestSenderService {
     /**
      * Sends a post request to the specified url and checks if the author is a Sysadmin.
      *
-     * @param url the url to send the request to.
+     * @param url         the url to send the request to.
      * @param authorNetId the netId of the author
-     * @param token the token of the author.
+     * @param token       the token of the author.
      * @throws Exception if the user is unauthorized or the inner request failed.
      */
     public void postRequestFromSysadmin(String url, String authorNetId, String token) throws Exception {
@@ -114,7 +112,7 @@ public class RequestSenderService {
             try {
                 restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
             } catch (Exception e) {
-                throw new InnerRequestFailedException(requestTo + url + failed);
+                throw new InnerRequestFailedException(innerRequestFailedExceptionString(url));
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not a Sysadmin");
@@ -124,9 +122,9 @@ public class RequestSenderService {
     /**
      * Sends a get request to the specified url and checks if the author is a Sysadmin.
      *
-     * @param url the url to send the request to.
+     * @param url         the url to send the request to.
      * @param authorNetId the netId of the author
-     * @param token the token of the author.
+     * @param token       the token of the author.
      * @return the request response.
      * @throws Exception if the user is unauthorized or the inner request failed.
      */
@@ -141,11 +139,51 @@ public class RequestSenderService {
                 ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
                 return response.getBody();
             } catch (Exception e) {
-                throw new InnerRequestFailedException(requestTo + url + failed);
+                throw new InnerRequestFailedException(innerRequestFailedExceptionString(url));
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not a Sysadmin => can not check the status.");
         }
+    }
+
+    /**
+     * Sends a get request to the specified url and checks if the author is a faculty account.
+     *
+     * @param url         the url to send the request to.
+     * @param authorNetId the netId of the author
+     * @param token       the token of the author.
+     * @return the request response.
+     * @throws NoSuchUserException         if the user is non-existing
+     * @throws UnauthorizedException       if the user is unauthorized
+     * @throws InnerRequestFailedException if the inner request failed
+     */
+    public String getRequestFromFacultyAccount(String url, String authorNetId, String token)
+        throws NoSuchUserException, UnauthorizedException, InnerRequestFailedException {
+        if (authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            try {
+                ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+                return response.getBody();
+            } catch (Exception e) {
+                throw new InnerRequestFailedException(innerRequestFailedExceptionString(url));
+            }
+        } else {
+            throw new UnauthorizedException("(" + authorNetId + ") is not a Faculty account.");
+        }
+    }
+
+    /**
+     * Creates the String for the InnerRequestFailedException.
+     *
+     * @param url the Url
+     * @return the String for the InnerRequestFailedException
+     */
+    public String innerRequestFailedExceptionString(String url) {
+        return "Request to " + url + " failed.";
     }
 
     /**
@@ -196,7 +234,7 @@ public class RequestSenderService {
                 return "No schedules were found";
             }
         } catch (Exception e) {
-            throw new InnerRequestFailedException("Request to " + url + " failed.");
+            throw new InnerRequestFailedException(innerRequestFailedExceptionString(url));
         }
     }
 
@@ -217,7 +255,7 @@ public class RequestSenderService {
         try {
             facultyId = facultyAccountService.getFacultyAssignedId(authorNetId);
         } catch (NoSuchUserException exception) {
-            throw new InnerRequestFailedException("Request to " + url + " failed.");
+            throw new InnerRequestFailedException(innerRequestFailedExceptionString(url));
         }
 
         HttpEntity<ScheduleRequestModel> entity = new HttpEntity<>(new ScheduleRequestModel(facultyId), headers);
@@ -231,7 +269,7 @@ public class RequestSenderService {
                 return "No schedules were found for faculty: " + facultyId;
             }
         } catch (Exception e) {
-            throw new InnerRequestFailedException("Request to " + url + " failed.");
+            throw new InnerRequestFailedException(innerRequestFailedExceptionString(url));
         }
     }
 
@@ -279,7 +317,7 @@ public class RequestSenderService {
                 ResponseEntity<Boolean> response = restTemplate.exchange(url, HttpMethod.POST, entity, Boolean.class);
                 return response.getBody();
             } catch (Exception e) {
-                throw new InnerRequestFailedException(requestTo + url + failed);
+                throw new InnerRequestFailedException(innerRequestFailedExceptionString(url));
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId
@@ -323,7 +361,7 @@ public class RequestSenderService {
                 ResponseEntity<Long> response = restTemplate.postForEntity(url, entity, Long.class);
                 return response.getBody();
             } catch (Exception e) {
-                throw new InnerRequestFailedException(requestTo + url + failed);
+                throw new InnerRequestFailedException(innerRequestFailedExceptionString(url));
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not an Employee at the requested faculty");
@@ -351,7 +389,7 @@ public class RequestSenderService {
                 ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
                 return response.getBody();
             } catch (Exception e) {
-                throw new InnerRequestFailedException(requestTo + url + failed);
+                throw new InnerRequestFailedException(innerRequestFailedExceptionString(url));
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not an Employee");
