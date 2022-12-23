@@ -20,7 +20,9 @@ import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.SysadminRepository;
+import nl.tudelft.sem.template.users.models.FacultyCreationResponseModel;
 import nl.tudelft.sem.template.users.models.ResourcesDto;
+import nl.tudelft.sem.template.users.models.TemporaryRequestModel;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
 import nl.tudelft.sem.template.users.models.facade.ManualApprovalModel;
 import nl.tudelft.sem.template.users.models.facade.NodeContributionRequestModel;
@@ -31,6 +33,7 @@ import nl.tudelft.sem.template.users.models.facade.ScheduleResponseModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -134,6 +137,7 @@ public class RequestSenderService {
     }
 
     /**
+<<<<<<< HEAD
      * Sends a get request to the specified url and checks if the author is a faculty account.
      *
      * @param url         the url to send the request to.
@@ -581,6 +585,47 @@ public class RequestSenderService {
             }
         } else {
             throw new UnauthorizedException("Request to view schedules failed.");
+        }
+    }
+
+    /**
+     * Method for creating a faculty by calling the microservice Resource Pool.
+     *
+     * @param authorNetId the netId of the author of the request.
+     * @param managerNetId the netid of the manager of the request.
+     * @param facultyName the new faculty name.
+     * @param token the token of the request.
+     * @return the id of the new faculty
+     * @throws Exception if a user is unauthorized or does not exist
+     */
+    public long createFaculty(String authorNetId, String managerNetId, String facultyName, String token)
+            throws FacultyException, NoSuchUserException, UnauthorizedException {
+        if (authorization.isOfType(authorNetId, AccountType.SYSADMIN)) {
+            if (authorization.isOfType(managerNetId, AccountType.EMPLOYEE)) {
+                String url = "http://localhost:8085/createFaculty";
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.setBearerAuth(token);
+                HttpEntity<TemporaryRequestModel> entity = new HttpEntity<>(
+                        new TemporaryRequestModel(facultyName, managerNetId), headers);
+
+                ResponseEntity<FacultyCreationResponseModel> result = restTemplate.postForEntity(url, entity,
+                        FacultyCreationResponseModel.class);
+
+                if (result.getStatusCode().is2xxSuccessful()) {
+                    registrationService.dropEmployee(managerNetId);
+                    registrationService.addFacultyAccount(managerNetId, (int) result.getBody().getFacultyId());
+
+                    return result.getBody().getFacultyId();
+                } else {
+                    throw new FacultyException(result.getStatusCode().getReasonPhrase());
+                }
+            } else {
+                throw new NoSuchUserException("No such employee: " + managerNetId);
+            }
+        } else {
+            throw new UnauthorizedException("User (" + authorNetId + ") is not a Sysadmin => can not create a faculty");
         }
     }
 }
