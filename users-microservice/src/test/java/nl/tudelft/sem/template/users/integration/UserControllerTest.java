@@ -20,7 +20,6 @@ import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.domain.Employee;
 import nl.tudelft.sem.template.users.domain.EmployeeRepository;
 import nl.tudelft.sem.template.users.domain.FacultyVerificationService;
-import nl.tudelft.sem.template.users.models.EmployeeResponseModel;
 import nl.tudelft.sem.template.users.models.FacultyAssignmentRequestModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +29,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -39,7 +39,7 @@ import org.springframework.test.web.servlet.ResultActions;
 @ExtendWith(SpringExtension.class)
 // activate profiles to have spring use mocks during auto-injection of certain beans.
 @ActiveProfiles({"test", "mockTokenVerifier", "mockAuthenticationManager"})
-//@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @AutoConfigureMockMvc
 public class UserControllerTest {
 
@@ -49,7 +49,7 @@ public class UserControllerTest {
     private transient AuthManager mockAuthenticationManager;
     @Autowired
     private transient JwtTokenVerifier mockJwtTokenVerifier;
-    @Autowired
+
     private ObjectMapper objectMapper;
     @MockBean
     private FacultyVerificationService facultyVerificationService;
@@ -68,6 +68,7 @@ public class UserControllerTest {
     void setup() {
         netId = "mayte";
         facultyId = 6L;
+        objectMapper = new ObjectMapper();
     }
 
 

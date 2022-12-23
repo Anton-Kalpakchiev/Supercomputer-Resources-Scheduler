@@ -3,15 +3,20 @@ package nl.tudelft.sem.template.resourcepool.controllers;
 import static nl.tudelft.sem.template.resourcepool.authentication.JwtRequestFilter.AUTHORIZATION_HEADER;
 
 import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import nl.tudelft.sem.template.resourcepool.authentication.AuthManager;
 import nl.tudelft.sem.template.resourcepool.domain.dailyschedule.DailyScheduleService;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.models.AutomaticApprovalModel;
 import nl.tudelft.sem.template.resourcepool.models.RequestTomorrowResourcesRequestModel;
+import nl.tudelft.sem.template.resourcepool.models.ScheduleRequestModel;
+import nl.tudelft.sem.template.resourcepool.models.ScheduleResponseModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -76,6 +81,40 @@ public class DailyScheduleController {
         long facultyId = request.getResourcePoolId();
         try {
             return ResponseEntity.ok(dailyScheduleService.getAvailableResourcesById(facultyId));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
+     * Ends point to view all schedules available.
+     *
+     * @return a response with all the schedules
+     */
+    @GetMapping("/getAllSchedules")
+    public ResponseEntity<ScheduleResponseModel> getAllSchedules() {
+        try {
+            ScheduleResponseModel response = new ScheduleResponseModel(dailyScheduleService.getAllSchedules());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+
+    /**
+     * Ends point to view all schedules available for a particular faculty.
+     *
+     * @return a response with all the schedules
+     */
+    @PostMapping("/getFacultySchedules")
+    public ResponseEntity<ScheduleResponseModel> getFacultySchedules(@RequestBody ScheduleRequestModel request) {
+        try {
+            Map<String, List<String>> responseRaw = dailyScheduleService.getSchedulesPerFaculty(request.getFacultyId());
+            ScheduleResponseModel response = new ScheduleResponseModel(responseRaw);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
