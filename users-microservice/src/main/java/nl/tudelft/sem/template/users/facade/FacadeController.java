@@ -169,7 +169,7 @@ public class FacadeController {
     /**
      * Post request from a faculty manager to manually approve/reject a request.
      *
-     * @param approvalModel containts the requestID, whether it is accepted or rejected,
+     * @param approvalModel contains the requestID, whether it is accepted or rejected,
      *                      and if accepted, its day of execution
      * @return a message to the user informing them the request is successfully approved/rejected
      */
@@ -353,7 +353,6 @@ public class FacadeController {
         String managerNetId = request.getManagerNetId();
         String facultyName = request.getName();
         String token = JwtRequestFilter.token;
-        System.out.println(token);
         try {
             long facId = requestSenderService.createFaculty(authorNetId, managerNetId, facultyName, token);
             System.out.println("Faculty \"" + facultyName + "\" with id " + facId + " was created. "

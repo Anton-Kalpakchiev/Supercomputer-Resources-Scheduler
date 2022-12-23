@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @Data
 public class ReleaseResourcesRequestModel {
     private long facultyId;
-    private Calendar day;
+    private String day;
 }
