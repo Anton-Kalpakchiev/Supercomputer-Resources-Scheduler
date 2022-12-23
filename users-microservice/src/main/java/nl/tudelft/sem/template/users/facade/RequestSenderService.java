@@ -353,7 +353,7 @@ public class RequestSenderService {
                 ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
                 return response.getBody();
             } catch (Exception e) {
-                throw new InnerRequestFailedException(requestTo + url + failed);
+                throw new InnerRequestFailedException(url);
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId
@@ -412,7 +412,7 @@ public class RequestSenderService {
                 restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
                 return true;
             } catch (Exception e) {
-                throw new InnerRequestFailedException(requestTo + url + failed);
+                throw new InnerRequestFailedException(url);
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId
