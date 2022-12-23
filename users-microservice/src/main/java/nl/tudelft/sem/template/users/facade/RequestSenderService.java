@@ -38,7 +38,6 @@ public class RequestSenderService {
     private final transient SysadminRepository sysadminRepository;
     private final transient EmployeeRepository employeeRepository;
     private final transient FacultyAccountRepository facultyAccountRepository;
-    private final transient FacultyAccountService facultyAccountService;
     private final transient EmployeeService employeeService;
 
     private final transient RegistrationService registrationService;
