@@ -276,7 +276,6 @@ class RegistrationServiceTest {
 
     @Test
     void getPendingResources() throws InvalidResourcesException {
-
         // Act
         AppRequest returnedRequest = registrationService.registerRequest(description, resources, owner,
             facultyName, availableResources, deadline, freePoolResources, token);
@@ -286,7 +285,6 @@ class RegistrationServiceTest {
             resources, owner, facultyName, availableResources, deadline, freePoolResources, token);
         notReturnedRequest1.setStatus(1);
         requestRepository.save(notReturnedRequest1);
-        System.out.println(notReturnedRequest1.getStatus());
         AppRequest notReturnedRequest2 = registrationService.registerRequest("don't return because of facultyName",
             resources, owner, "other", availableResources, deadline, freePoolResources, token);
         notReturnedRequest2.setStatus(0);
