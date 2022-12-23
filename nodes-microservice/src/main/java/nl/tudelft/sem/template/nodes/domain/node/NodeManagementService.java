@@ -1,8 +1,15 @@
 package nl.tudelft.sem.template.nodes.domain.node;
 
 import nl.tudelft.sem.template.nodes.authentication.JwtRequestFilter;
+import nl.tudelft.sem.template.nodes.domain.node.chain.FacultyExistenceHandler;
+import nl.tudelft.sem.template.nodes.domain.node.chain.Handler;
+import nl.tudelft.sem.template.nodes.domain.node.chain.InvalidRequestException;
+import nl.tudelft.sem.template.nodes.domain.node.chain.NodeExistenceHandler;
+import nl.tudelft.sem.template.nodes.domain.node.chain.ValidOwnerHandler;
 import nl.tudelft.sem.template.nodes.domain.resources.Resources;
 import nl.tudelft.sem.template.nodes.models.FacultyInteractionRequestModel;
+import nl.tudelft.sem.template.nodes.models.VerifyFacultyRequestModel;
+import nl.tudelft.sem.template.nodes.models.VerifyFacultyResponseModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -68,17 +75,24 @@ public class NodeManagementService {
      * Delete a node from the repository.
      *
      * @param nodeId the id of the node to be deleted
-     * @param ownerNetId the id of the owner of the node
+     * @param requesterNetId the netId of the employee which made the request
      * @throws Exception if the node id can't be found or the requester isn't the owner of the node
      */
-    public String deleteNode(long nodeId, String ownerNetId) throws Exception {
-        if (!repo.existsById(nodeId)) {
-            throw new NodeIdNotFoundException(nodeId);
+    public String deleteNode(long nodeId, String requesterNetId) throws Exception {
+        Handler nodeExistenceHandler = new NodeExistenceHandler(repo);
+        Handler validOwnerHandler = new ValidOwnerHandler(repo, requesterNetId);
+        Handler facultyExistenceHandler = new FacultyExistenceHandler(repo, this);
+
+        nodeExistenceHandler.setNext(validOwnerHandler);
+        validOwnerHandler.setNext(facultyExistenceHandler);
+
+        try {
+            nodeExistenceHandler.handle(nodeId);
+        } catch (InvalidRequestException e) {
+            return "Invalid request";
         }
+
         Node node = repo.findById(nodeId).get();
-        if (!node.getOwnerNetId().equals(ownerNetId)) {
-            throw new InvalidOwnerException(ownerNetId);
-        }
         interactWithFaculty("deleteNode", node.getFacultyId(), node.getResource());
         repo.deleteById(nodeId);
         return node.getNodeName().toString();
@@ -119,6 +133,28 @@ public class NodeManagementService {
             restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
         } catch (Exception e) {
             throw new InnerRequestFailedException("Request to " + url + " failed.");
+        }
+    }
+
+    /**
+     * Checks if the facultyId belongs to a faculty in the resourcePool microservice.
+     *
+     * @param facultyId the id of the faculty to be checked
+     * @return whether the faculty exists or not
+     */
+    public boolean verifyFaculty(long facultyId) {
+        String url = "http://localhost:8085/verifyFaculty";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(JwtRequestFilter.token);
+
+        HttpEntity<VerifyFacultyRequestModel> entity = new HttpEntity<>(new VerifyFacultyRequestModel(facultyId), headers);
+        try {
+            return restTemplate.exchange(url, HttpMethod.POST, entity,
+                    VerifyFacultyResponseModel.class).getBody().isVerified();
+        } catch (Exception e) {
+            return false;
         }
     }
 }
