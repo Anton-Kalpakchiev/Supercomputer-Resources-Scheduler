@@ -1,11 +1,11 @@
 package nl.tudelft.sem.template.users.facade;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.ArrayList;
 import lombok.AllArgsConstructor;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
@@ -299,7 +299,8 @@ public class RequestSenderService {
      */
     public boolean approveRejectRequest(String url, String authorNetId, ManualApprovalModel model, String token)
             throws NoSuchUserException, InnerRequestFailedException, UnauthorizedException {
-        if (authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) { //TODO make sure the request is to the faculty manager's faculty
+        if (authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) {
+            //TODO make sure the request is to the faculty manager's faculty
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
 

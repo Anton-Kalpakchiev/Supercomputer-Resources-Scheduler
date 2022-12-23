@@ -88,6 +88,15 @@ public class DailyScheduleService {
         scheduleRepository.save(dailySchedule);
     }
 
+    /**
+     * Schedules a request in a faculty.
+     *
+     * @param day the day that the request has to be scheduled on
+     * @param requestId the id of the request
+     * @param facultyName name of the faculty
+     * @param token the jwtToken
+     * @throws Exception if something fails
+     */
     public void scheduleFaculty(Calendar day, long requestId, String facultyName, String token) throws Exception {
         long facultyId = resourcePoolRepo.findByName(facultyName).get().getId();
         DailyScheduleId id = new DailyScheduleId(day, facultyId); //change to not create per every new request

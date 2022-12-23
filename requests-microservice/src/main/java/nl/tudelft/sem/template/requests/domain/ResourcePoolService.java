@@ -47,7 +47,8 @@ public class ResourcePoolService {
         int month = day.get(Calendar.MONTH);
         String dayString = day.get(Calendar.DAY_OF_MONTH) + "-" + month + "-" + day.get(Calendar.YEAR);
         String facultyName = requestRepo.findById(requestId).get().getFacultyName();
-        String requestBody = "{\"day\": \"" + dayString + "\",\"requestId\": \"" + requestId + "\",\"facultyName\": \"" + facultyName +"\"}";
+        String requestBody = "{\"day\": \"" + dayString + "\",\"requestId\": \"" + requestId
+                                + "\",\"facultyName\": \"" + facultyName + "\"}";
 
         HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
