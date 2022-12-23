@@ -2,8 +2,6 @@ package nl.tudelft.sem.template.nodes.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -22,7 +20,6 @@ import nl.tudelft.sem.template.nodes.domain.node.Token;
 import nl.tudelft.sem.template.nodes.domain.resources.Resources;
 import nl.tudelft.sem.template.nodes.integration.utils.JsonUtil;
 import nl.tudelft.sem.template.nodes.models.NodeContributionRequestModel;
-import nl.tudelft.sem.template.nodes.models.NodeDeletionRequestModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -160,14 +157,12 @@ public class NodesTest {
                 .content(JsonUtil.serialize(model)));
 
         long id = 0L; // Long.parseLong(resultActions.andReturn().getResponse().getContentAsString());
-        NodeDeletionRequestModel deletionModel = new NodeDeletionRequestModel();
-        deletionModel.setNodeId(id);
 
         // Act
         ResultActions resultActions2 = mockMvc.perform(post("/deleteNode")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer MockedToken")
-                .content(JsonUtil.serialize(deletionModel)));
+                .content(JsonUtil.serialize(id)));
 
         // Assert
         resultActions2.andExpect(status().isOk());
