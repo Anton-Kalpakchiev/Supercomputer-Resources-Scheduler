@@ -1,10 +1,9 @@
 package nl.tudelft.sem.template.users.facade;
 
-import java.util.Set;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import lombok.AllArgsConstructor;
+import java.util.Set;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
