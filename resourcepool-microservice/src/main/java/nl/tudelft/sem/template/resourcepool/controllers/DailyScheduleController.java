@@ -54,6 +54,7 @@ public class DailyScheduleController {
         String dayString = request.getDay();
         String[] dayArr = dayString.split("-"); //convert to Calendar immediately
         Calendar day = Calendar.getInstance();
+        day.setTimeInMillis(0);
         day.set(Calendar.YEAR, Integer.parseInt(dayArr[2]));
         day.set(Calendar.MONTH, Integer.parseInt(dayArr[1]));
         day.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dayArr[0]));
