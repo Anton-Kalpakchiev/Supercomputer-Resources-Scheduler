@@ -1,9 +1,10 @@
-package nl.tudelft.sem.template.resourcepool.models;
+package nl.tudelft.sem.template.users.models.facade;
 
 import java.util.Calendar;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 
 @Data
 @AllArgsConstructor

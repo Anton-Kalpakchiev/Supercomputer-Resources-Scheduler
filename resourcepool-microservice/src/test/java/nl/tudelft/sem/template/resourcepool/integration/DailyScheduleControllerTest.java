@@ -1,7 +1,9 @@
 package nl.tudelft.sem.template.resourcepool.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -25,9 +27,9 @@ import nl.tudelft.sem.template.resourcepool.domain.resourcepool.ResourcePool;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpFacultyRepository;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
+import nl.tudelft.sem.template.resourcepool.models.RequestTomorrowResourcesRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.ScheduleRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.ScheduleResponseModel;
-import nl.tudelft.sem.template.resourcepool.models.VerifyFacultyRequestModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -101,7 +103,7 @@ public class DailyScheduleControllerTest {
         faculty.setNodeResources(new Resources(20, 20, 20));
 
         day = Calendar.getInstance();
-        day.set(2022, Calendar.JANUARY, 4);
+        day.setTime(day.getTime());
         schedule1 = new DailySchedule(day, faculty.getId());
         schedule1.addRequest(1);
         schedule1.addRequest(2);
@@ -110,9 +112,10 @@ public class DailyScheduleControllerTest {
         schedule1.setAvailableResources(new Resources(0, 0, 0));
 
         day2 = Calendar.getInstance();
-        day2.set(2022, Calendar.MARCH, 28);
+        day2.add(Calendar.DATE, 1);
+        day2.setTime(day2.getTime());
 
-        schedule2 = new DailySchedule(day, faculty.getId());
+        schedule2 = new DailySchedule(day2, faculty.getId());
         schedule2.addRequest(1);
         schedule2.addRequest(2);
         schedule2.setTotalResources(new Resources(50, 50, 50));
@@ -163,6 +166,31 @@ public class DailyScheduleControllerTest {
         String response = result.andReturn().getResponse().getContentAsString();
 
         assertThat(response).isEqualTo(objectMapper.writeValueAsString(expected));
+    }
+
+    @Test
+    void getAvailableResourcesForTomorrowTest() throws Exception {
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(mockFacultyRepo.findAll()).thenReturn(List.of(faculty));
+        when(mockFacultyRepo.findById(faculty.getId())).thenReturn(Optional.of(faculty));
+        when(mockScheduleRepo.existsByDayAndResourcePoolId(any(Calendar.class), eq(faculty.getId())))
+                .thenReturn(true);
+        when(mockScheduleRepo.findByDayAndResourcePoolId(any(Calendar.class), eq(faculty.getId())))
+                .thenReturn(Optional.of(schedule2));
+
+        String expectedResources = objectMapper.writeValueAsString(schedule2.getAvailableResources());
+        ResultActions result = mockMvc.perform(post("/availableFacultyResources")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer MockedToken")
+                    .content(objectMapper.writeValueAsString(
+                            new RequestTomorrowResourcesRequestModel(faculty.getId()))));
+
+        result.andExpect(status().isOk());
+
+        String response = result.andReturn().getResponse().getContentAsString();
+
+        assertThat(response).isEqualTo(expectedResources);
+
     }
 
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
@@ -19,7 +20,9 @@ import nl.tudelft.sem.template.users.domain.EmployeeService;
 import nl.tudelft.sem.template.users.domain.FacultyAccount;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
 import nl.tudelft.sem.template.users.domain.FacultyAccountService;
+import nl.tudelft.sem.template.users.domain.FacultyVerificationService;
 import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
+import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.Sysadmin;
 import nl.tudelft.sem.template.users.domain.SysadminRepository;
@@ -34,6 +37,8 @@ public class RequestSenderServiceUnitTest {
     private SysadminRepository sysadminRepository;
     private EmployeeRepository employeeRepository;
     private FacultyAccountRepository facultyAccountRepository;
+
+    private FacultyVerificationService facultyVerificationService;
     private RestTemplate restTemplate;
     private RegistrationService registrationService;
     private AuthorizationManager authorization;
@@ -67,9 +72,9 @@ public class RequestSenderServiceUnitTest {
         employeeService = mock(EmployeeService.class);
         mockRestServiceServer = MockRestServiceServer.createServer(restTemplate);
 
-        sut = new RequestSenderService(sysadminRepository, employeeRepository,
-                facultyAccountRepository, registrationService,
-                authorization, restTemplate, facultyAccountService, employeeService);
+        sut = new RequestSenderService(facultyAccountService, facultyVerificationService, sysadminRepository,
+                                    employeeRepository, facultyAccountRepository, employeeService,
+                                    registrationService, authorization, restTemplate);
 
         admin = new Sysadmin(adminNetId);
         employee = new Employee(employeeNetId);
@@ -205,6 +210,22 @@ public class RequestSenderServiceUnitTest {
     }
 
     @Test
+    public void createFacultyNormalFlow() {
+        try {
+            mockRestServiceServer.expect(requestTo("http://localhost:8085/createFaculty"))
+                    .andRespond(withSuccess("{\"facultyId\": \"" + facultyId + "\"}", MediaType.APPLICATION_JSON));
+
+            long expected = sut.createFaculty(adminNetId, employeeNetId, facultyName, sampleToken);
+            assertThat(expected).isEqualTo(facultyId);
+
+            verify(registrationService).dropEmployee(employeeNetId);
+            verify(registrationService).addFacultyAccount(employeeNetId, facultyId);
+        } catch (Exception e) {
+            fail("An exception was thrown.");
+        }
+    }
+
+    @Test
     public void getScheduleFacultyManagerExceptionTest() {
         mockRestServiceServer.expect(requestTo(url))
                 .andRespond(withBadRequest());
@@ -215,8 +236,14 @@ public class RequestSenderServiceUnitTest {
 
     @Test
     public void getScheduleRequestRouterTestUnauthorized() {
+        assertThrows(UnauthorizedException.class, () ->
+                sut.getScheduleRequestRouter(employeeNetId, sampleToken));
+    }
+
+    @Test
+    public void createFacultyExceptionsUnauthorized() {
         assertThrows(UnauthorizedException.class, () -> {
-            sut.getScheduleRequestRouter(employeeNetId, sampleToken);
+            sut.createFaculty(facultyNetId, employeeNetId, facultyName, sampleToken);
         });
     }
 
@@ -227,6 +254,13 @@ public class RequestSenderServiceUnitTest {
                 .andRespond(withBadRequest());
         assertThrows(InnerRequestFailedException.class, () -> {
             sut.getScheduleRequestRouter(facultyNetId, sampleToken);
+        });
+    }
+
+    @Test
+    public void createFacultyExceptionsNoSuchUser() {
+        assertThrows(NoSuchUserException.class, () -> {
+            sut.createFaculty(adminNetId, facultyNetId, facultyName, sampleToken);
         });
     }
 
@@ -263,5 +297,14 @@ public class RequestSenderServiceUnitTest {
         } catch (Exception e) {
             fail("An exception was thrown");
         }
+    }
+
+    @Test
+    public void createFacultyExceptionsCanNotSendRequest() {
+        mockRestServiceServer.expect(requestTo("http://localhost:8085/createFaculty"))
+                .andRespond(withBadRequest());
+        assertThrows(Exception.class, () -> {
+            sut.createFaculty(adminNetId, employeeNetId, facultyName, sampleToken);
+        });
     }
 }
