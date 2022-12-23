@@ -2,9 +2,13 @@ package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import nl.tudelft.sem.template.resourcepool.domain.RequestService;
+import nl.tudelft.sem.template.resourcepool.domain.resourcepool.FacultyNotFoundException;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.ResourcePool;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpFacultyRepository;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.RpManagementService;
@@ -101,6 +105,58 @@ public class DailyScheduleService {
         }
     }
 
+    /**
+     * Gets all schedules in the repository.
+     *
+     * @return a map of faculty names and strings of schedules.
+     */
+    public Map<String, List<String>> getAllSchedules() throws FacultyNotFoundException {
+        Set<Long> faculties = resourcePoolRepo.findAll().stream().map(ResourcePool::getId).collect(Collectors.toSet());
+        return generateScheduleResponseContent(faculties);
+    }
+
+    /**
+     * Gets all schedules for a given faculty and puts it in the correct format.
+     *
+     * @param facultyId the faculty to fetch the schedules for.
+     * @return a map of faculty names and strings of schedules.
+     */
+    public Map<String, List<String>> getSchedulesPerFaculty(long facultyId) throws FacultyNotFoundException {
+        return generateScheduleResponseContent(Set.of(facultyId));
+    }
+
+    /**
+     * Gets all schedules for a given faculty.
+     *
+     * @param facultyId the faculty to retrieve the schedules for
+     * @return the schedules of the faculty
+     */
+    public List<DailySchedule> getAllSchedulesPerFacultyId(long facultyId) {
+        return scheduleRepository.findAllByResourcePoolId(facultyId);
+    }
+
+
+    /**
+     * Fetches the daily schedules of the faculties and puts it in the correct format.
+     *
+     * @param faculties the list of faculties to fetch schedules for
+     * @return a map of faculty names and
+     */
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    public Map<String, List<String>> generateScheduleResponseContent(Set<Long> faculties) throws FacultyNotFoundException {
+        Map<String, List<String>> allSchedulesMap = new HashMap<>();
+        for (long faculty : faculties) {
+            if (resourcePoolRepo.findById(faculty).isPresent()) {
+                String facultyName = resourcePoolRepo.findById(faculty).get().getName();
+                List<String> dailySchedules = getAllSchedulesPerFacultyId(faculty).stream()
+                        .map(DailySchedule::toPrettyString).collect(Collectors.toList());
+                allSchedulesMap.put(facultyName, dailySchedules);
+            } else {
+                throw new FacultyNotFoundException("Faculty was not found");
+            }
+        }
+        return allSchedulesMap;
+    }
 
     /**
      * Releases resources of a faculty for a given day into the free resource pool of that day.
