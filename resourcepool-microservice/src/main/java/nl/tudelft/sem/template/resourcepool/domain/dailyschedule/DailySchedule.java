@@ -1,16 +1,19 @@
 package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
 import lombok.NoArgsConstructor;
+import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
+import nl.tudelft.sem.template.resourcepool.domain.resources.ResourcesAttributeConverter;
 
 /**
  * A DDD entity representing an application user in our domain.
@@ -24,9 +27,10 @@ public class DailySchedule {
     /**
      * Identifier for the daily schedule.
      */
+
     @Id
     @Column(name = "day", nullable = false)
-    private Date day;
+    private Calendar day;
 
     @Id
     @Column(name = "resource_pool_id", nullable = false)
@@ -36,15 +40,25 @@ public class DailySchedule {
     @Column(name = "list_request_id", nullable = false)
     private List<Long> list;
 
+    @Convert(converter = ResourcesAttributeConverter.class)
+    @Column(name = "available_resources", nullable = true)
+    private Resources availableResources;
+
+    @Convert(converter = ResourcesAttributeConverter.class)
+    @Column(name = "total_resources", nullable = true)
+    private Resources totalResources;
+
     /**
      * Create a new DailySchedule per Resource Pool.
      *
      * @param day            the day that the requests are scheduled on
      * @param resourcePoolId the id of the resource pool the requests are scheduled in
      */
-    public DailySchedule(Date day, long resourcePoolId) {
+    public DailySchedule(Calendar day, long resourcePoolId) {
         this.day = day;
         this.resourcePoolId = resourcePoolId;
+        this.availableResources = new Resources(0, 0, 0);
+        this.totalResources = new Resources(0, 0, 0);
         this.list = new ArrayList<>();
     }
 
@@ -53,7 +67,7 @@ public class DailySchedule {
      *
      * @return the day
      */
-    public Date getDay() {
+    public Calendar getDay() {
         return day;
     }
 
@@ -73,6 +87,42 @@ public class DailySchedule {
      */
     public List<Long> getList() {
         return list;
+    }
+
+    /**
+     * Gets the available resources.
+     *
+     * @return the available resources
+     */
+    public Resources getAvailableResources() {
+        return availableResources;
+    }
+
+    /**
+     * Sets the available resources.
+     *
+     * @param availableResources the available resources for this day and faculty
+     */
+    public void setAvailableResources(Resources availableResources) {
+        this.availableResources = availableResources;
+    }
+
+    /**
+     * Gets the total amount of resources that were available for this day.
+     *
+     * @return the total amount of resources
+     */
+    public Resources getTotalResources() {
+        return totalResources;
+    }
+
+    /**
+     * Sets the total amount of resources.
+     *
+     * @param totalResources the total amount of resources that need to be set
+     */
+    public void setTotalResources(Resources totalResources) {
+        this.totalResources = totalResources;
     }
 
     /**
@@ -125,5 +175,20 @@ public class DailySchedule {
                 + ", resourcePoolId=" + resourcePoolId
                 + ", list=" + list
                 + '}';
+    }
+
+    /**
+     * Returns a human-readable string representation for this daily schedule.
+     *
+     * @return a human-readble string representation for this daily schedule
+     */
+    public String toPrettyString() {
+        StringBuilder stringBuilder = new StringBuilder("DailySchedule:");
+        stringBuilder.append("\n\t Resource Pool:").append(this.resourcePoolId);
+        stringBuilder.append("\n\t Date: ").append(this.day.get(Calendar.DATE));
+        stringBuilder.append("\n\t Total Resources: ").append(this.totalResources.toString());
+        stringBuilder.append("\n\t Available Resources: ").append(this.availableResources.toString());
+        stringBuilder.append("\n\t List of requests: ").append(this.list.toString());
+        return stringBuilder.toString();
     }
 }

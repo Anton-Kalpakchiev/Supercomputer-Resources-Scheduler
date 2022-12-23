@@ -58,7 +58,7 @@ public class RegistrationService {
     }
 
     /**
-     * Adds a new employee account in the respective repository.
+     * Adds a new employee account in the respective repository with only netId.
      *
      * @param netId the netId of the user
      * @return the newly created Employee.
@@ -76,7 +76,7 @@ public class RegistrationService {
      * @param assignedFaculty the assigned faculty of the user.
      * @return the newly created faculty account.
      */
-    public FacultyAccount addFacultyAccount(String netId, int assignedFaculty) {
+    public FacultyAccount addFacultyAccount(String netId, long assignedFaculty) {
         FacultyAccount newFacultyAccount = new FacultyAccount(netId, assignedFaculty);
         facultyAccountRepository.save(newFacultyAccount);
         return newFacultyAccount;

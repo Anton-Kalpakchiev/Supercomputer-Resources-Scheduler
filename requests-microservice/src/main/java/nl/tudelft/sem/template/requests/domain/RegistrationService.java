@@ -1,136 +1,187 @@
 package nl.tudelft.sem.template.requests.domain;
 
 import java.util.Calendar;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 
 @Service
+//We can remove this line later on, but I can't figure out how to fix this and the code works perfect with the error in it
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.AvoidLiteralsInIfCondition"})
+
 public class RegistrationService {
     private final transient RequestRepository requestRepository;
+    private final transient ResourcePoolService resourcePoolService;
+
+    private transient String initialToken = null;
+    //when tokens are not needed anymore, delete this and rework a bit the functions
 
     /**
      * Instantiates a new RegistrationService.
      *
-     * @param requestRepository the request repository
+     * @param requestRepository   the request repository
+     * @param resourcePoolService the service that communicates with the resource pool
      */
-    public RegistrationService(RequestRepository requestRepository) {
+    public RegistrationService(RequestRepository requestRepository, ResourcePoolService resourcePoolService) {
         this.requestRepository = requestRepository;
+        this.resourcePoolService = resourcePoolService;
+    }
+
+    /**
+     * Gets the requested resources.
+     *
+     * @param requestId the id of the requested
+     * @return the requested resources
+     */
+    public Resources getResourcesForId(long requestId) {
+        Optional<AppRequest> optional = requestRepository.findById(requestId);
+        if (optional.isPresent()) {
+            AppRequest request = optional.get();
+            Resources resources = new Resources(request.getCpu(), request.getGpu(), request.getMem());
+            return resources;
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
     }
 
     /**
      * Register a new request.
      *
      * @param description The description of the request
-     * @param resources   The resorces requested
+     * @param resources   The resources requested
      */
-    public AppRequest registerRequest(String description, Resources resources,
-                                      String owner, String facultyName, Resources availableResources,
-                                      Calendar deadline, Resources freePoolResources) {
+    public AppRequest registerRequest(String description, Resources resources, String owner, String facultyName,
+                                      Resources availableResources, Calendar deadline, Resources freePoolResources,
+                                      String token)
+        throws InvalidResourcesException {
+        if (resources.getMemory() < 0 || resources.getCpu() < 0 || resources.getGpu() < 0) {
+            throw new InvalidResourcesException("Resource object cannot be created with negative inputs");
+        }
+        if (resources.getGpu() > resources.getCpu()) {
+            throw new InvalidResourcesException("Resource object must provide at least the same amount of CPU as GPU");
+        }
+        if (initialToken == null) {
+            initialToken = token;
+        }
+
         AppRequest request = new AppRequest(description, resources, owner, facultyName, deadline, -1);
 
-        Calendar deadlineSixHoursBeforeEnd = Calendar.getInstance();
-        deadlineSixHoursBeforeEnd.set(Calendar.HOUR_OF_DAY, 18);
-        deadlineSixHoursBeforeEnd.set(Calendar.MINUTE, 0);
-        deadlineSixHoursBeforeEnd.set(Calendar.SECOND, 0);
-
-        Calendar deadlineFiveMinutesBeforeEnd = Calendar.getInstance();
-        deadlineFiveMinutesBeforeEnd.set(Calendar.HOUR_OF_DAY, 23);
-        deadlineFiveMinutesBeforeEnd.set(Calendar.MINUTE, 55);
-        deadlineFiveMinutesBeforeEnd.set(Calendar.SECOND, 0);
-
-        boolean facultyHasEnoughResources = true;
-        if (availableResources.getGpu() < resources.getGpu()
-                || availableResources.getCpu() < resources.getCpu()
-                || availableResources.getMem() < resources.getMem()) {
-            facultyHasEnoughResources = false;
-        }
-        boolean freePoolHasEnoughResources = true;
-        if (freePoolResources.getGpu() < resources.getGpu()
-                || freePoolResources.getCpu() < resources.getCpu()
-                || freePoolResources.getMem() < resources.getMem()) {
-            freePoolHasEnoughResources = false;
-        }
-        boolean isForTomorrow = isForTomorrow(deadline);
-        int timePeriod = 0;
+        final boolean facultyHasEnoughResources = !(availableResources.getGpu() < resources.getGpu()
+            || availableResources.getCpu() < resources.getCpu()
+            || availableResources.getMemory() < resources.getMemory());
+        final boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
+            || freePoolResources.getCpu() < resources.getCpu()
+            || freePoolResources.getMemory() < resources.getMemory());
+        final boolean isForTomorrow = isForTomorrow(deadline);
         /*
         0 when before the 6h deadline
         1 when after the 6h deadline and before the 5min deadline,
         2 when after the 5 min deadline
          */
-        if (Calendar.getInstance().after(deadlineSixHoursBeforeEnd)
-                && Calendar.getInstance().before(deadlineFiveMinutesBeforeEnd)) {
-            timePeriod = 1;
-        }
-        if (Calendar.getInstance().after(deadlineFiveMinutesBeforeEnd)) {
-            timePeriod = 2;
-        }
+        int timePeriod = getTimePeriod(Calendar.getInstance());
 
-        //automatic rejection
-        if ((timePeriod == 2 && isForTomorrow) || (!freePoolHasEnoughResources
-                && timePeriod == 1 && isForTomorrow)) {
-            //auto reject
-            request.setStatus(2);
-        } else if ((timePeriod == 1 && freePoolHasEnoughResources)
-                || (isForTomorrow && timePeriod == 0 && !facultyHasEnoughResources
-                && freePoolHasEnoughResources)) {
+        int status = decideStatusOfRequest(timePeriod, isForTomorrow, frpHasEnoughResources, facultyHasEnoughResources);
+
+        if (status == 0) {
+            //pending for manual review
+            request.setStatus(0);
+            requestRepository.save(request);
+        } else if (status == 1) {
             //auto approve
             request.setStatus(1);
-            //update RP/Schedule MS os that it can update the schedule for the corresponding faculty for tomorrow
-        } else if (timePeriod == 0 && !facultyHasEnoughResources && !freePoolHasEnoughResources) {
-            //wait for the FRP to get more resources at 6h before end of day and then automatically check again
-            request.setStatus(3);
+            requestRepository.save(request);
+            resourcePoolService.approval(deadline, request.getId(), token);
+        } else if (status == 2) {
+            //auto reject
+            request.setStatus(2);
+            requestRepository.save(request);
         } else {
-            //set for manual approval/rejection
-            request.setStatus(0);
+            //pending for the FRP to get more resources at 6h before end of day
+            request.setStatus(3);
+            requestRepository.save(request);
         }
 
-        requestRepository.save(request);
         return request;
     }
 
     /**
-     * Processes a request in period one.
+     * Processes a requests that is left pending until the frp gets more resources at 6h before the start of the next day.
+     * Gets called on every request withs status 3 at the aforementioned time.
      *
      * @param request the given request
-     * @param freePoolResources the free resources
      * @return the AppRequest returned after processing
-     * @throws InvalidResourcesException thrown when resources are invalid
      */
-    public AppRequest processRequestInPeriodOne(
-            AppRequest request, Resources freePoolResources) throws InvalidResourcesException {
-        Calendar deadline = Calendar.getInstance(); //request.getDeadline();
+    public AppRequest processRequestInPeriodOne(AppRequest request, String token) {
+        Calendar deadline = request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
-        boolean isForTomorrow = isForTomorrow(deadline);
+        final Resources freePoolResources = resourcePoolService.getFacultyResourcesById(1L, token);
 
-        boolean freePoolHasEnoughResources = true;
-        if (freePoolResources.getGpu() < resources.getGpu()
-                || freePoolResources.getCpu() < resources.getCpu()
-                || freePoolResources.getMem() < resources.getMem()) {
-            freePoolHasEnoughResources = false;
-        }
+        boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
+            || freePoolResources.getCpu() < resources.getCpu()
+            || freePoolResources.getMemory() < resources.getMemory());
         int timePeriod = 1;
-        /*
-        0 when before the 6h deadline,
-        1 when after the 6h deadline and before the 5min deadline,
-        2 when after the 5 min deadline
-        */
+        boolean isForTomorrow = isForTomorrow(deadline);
+        boolean facHasEnoughResources = false;
+        int status = decideStatusOfRequest(timePeriod, isForTomorrow, frpHasEnoughResources, facHasEnoughResources);
 
-        //automatic rejection
-        if ((!freePoolHasEnoughResources && isForTomorrow)) {
-            System.out.println("To be implemented!");
-            //auto reject
+        if (status == 0) {
+            //set for manual review
             //find request in Repo, update its status
-        } else if (freePoolHasEnoughResources) {
-            System.out.println("To be implemented!");
-            //auto approve for tomorrow
+            request.setStatus(0);
+            requestRepository.save(request);
+        } else if (status == 1) {
+            //approval for tomorrow
+            request.setStatus(1);
             //find request in Repo, update its status
-            //update RP/Schedule MS os that it can update the schedule for the corresponding faculty for tomorrow
+            requestRepository.save(request);
+            //update RP/Schedule MS so that it can update the schedule for the corresponding faculty for tomorrow
+            resourcePoolService.approval(deadline, request.getId(), token);
         } else {
-            System.out.println("To be implemented!");
-            //set for manual approval
+            //rejection
             //find request in Repo, update its status
+            request.setStatus(2);
+            requestRepository.save(request);
         }
-
         return request;
+    }
+
+
+    /**
+     * At 18PM every day, all requests that are left pending to be processed when the FRP gets more resources, get processed.
+     * Gets automatically called at the proper time. (5 minute after 18PM,
+     * in order to give time for the resources to be released from all faculties)
+     */
+    @Scheduled(cron = "0 5 18 * * *")
+    public void processAllPendingRequests() {
+        List<AppRequest> allRequests = requestRepository.findAll().stream()
+            .filter(x -> x.getStatus() == 3).collect(Collectors.toList());
+        for (AppRequest thisRequest : allRequests) {
+            processRequestInPeriodOne(thisRequest, initialToken);
+        }
+    }
+
+    /**
+     * Calculates the time period during which a request is made.
+     *
+     * @param cal the Calendar object representing the time at which the request arrived
+     * @return the time period
+     */
+    public int getTimePeriod(Calendar cal) {
+        //0 when before the 6h deadline
+        //1 when after the 6h deadline and before the 5min deadline,
+        //2 when after the 5 min deadline
+        if (cal.after(getSixHoursDeadline()) && cal.before(getFiveMinutesDeadline())) {
+            return 1;
+        } else if (cal.after(getFiveMinutesDeadline())) {
+            return 2;
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -146,10 +197,105 @@ public class RegistrationService {
         endOfTomorrow.set(Calendar.SECOND, 59);
         endOfTomorrow.set(Calendar.MILLISECOND, 999);
         endOfTomorrow.add(Calendar.DAY_OF_YEAR, 1);
-        if (deadline.after(endOfTomorrow)) {
-            return false;
+
+        Calendar startOfTomorrow = Calendar.getInstance();
+        startOfTomorrow.set(Calendar.HOUR_OF_DAY, 0);
+        startOfTomorrow.set(Calendar.MINUTE, 0);
+        startOfTomorrow.set(Calendar.SECOND, 0);
+        startOfTomorrow.set(Calendar.MILLISECOND, 0);
+        startOfTomorrow.add(Calendar.DAY_OF_YEAR, 1);
+
+        return !deadline.after(endOfTomorrow) && !deadline.before(startOfTomorrow);
+    }
+
+    /**
+     * Generates a Calendar object representing the current date with time 18PM.
+     *
+     * @return a Calendar object representing the current date with time 18PM
+     */
+    public Calendar getSixHoursDeadline() {
+        Calendar deadlineSixHoursBeforeEnd = Calendar.getInstance();
+        deadlineSixHoursBeforeEnd.set(Calendar.HOUR_OF_DAY, 18);
+        deadlineSixHoursBeforeEnd.set(Calendar.MINUTE, 0);
+        deadlineSixHoursBeforeEnd.set(Calendar.SECOND, 0);
+        return deadlineSixHoursBeforeEnd;
+    }
+
+    /**
+     * Generates a Calendar object representing the current date with time 23:55 PM.
+     *
+     * @return a Calendar object representing the current date with time 23:55 PM.
+     */
+    public Calendar getFiveMinutesDeadline() {
+        Calendar deadlineFiveMinutesBeforeEnd = Calendar.getInstance();
+        deadlineFiveMinutesBeforeEnd.set(Calendar.HOUR_OF_DAY, 23);
+        deadlineFiveMinutesBeforeEnd.set(Calendar.MINUTE, 55);
+        deadlineFiveMinutesBeforeEnd.set(Calendar.SECOND, 0);
+        return deadlineFiveMinutesBeforeEnd;
+    }
+
+
+    /**
+     * Decides what happens with a request when it arrives - it can be approved, rejected,
+     * left pending for manual review, or left pending until the FRP gets more resources at 18PM.
+     *
+     * @param timePeriod                the time period at which the request is submitted
+     * @param isForTomorrow             whether the request is for tomorrow
+     * @param frpHasEnoughResources     whether the FRP has enough resources for this request
+     * @param facultyHasEnoughResources whether the faculty the request is scheduled to has enough resources for this request
+     * @return the status of the request
+     */
+    public int decideStatusOfRequest(int timePeriod, boolean isForTomorrow, boolean frpHasEnoughResources,
+                                     boolean facultyHasEnoughResources) {
+        // 0 for pending manual approval,
+        // 1 for approved,
+        // 2 for rejected,
+        // 3 pending and waiting for the free RP to get resources at the 6h before end of day deadline
+        if ((timePeriod == 2 && isForTomorrow) || (!frpHasEnoughResources && timePeriod == 1 && isForTomorrow)) {
+            //auto reject
+            return 2;
+        } else if ((timePeriod == 1 && frpHasEnoughResources) || (isForTomorrow && timePeriod == 0
+            && !facultyHasEnoughResources && frpHasEnoughResources)) {
+            //auto approve
+            return 1;
+        } else if (timePeriod == 0 && !facultyHasEnoughResources && !frpHasEnoughResources) {
+            //wait for the FRP to get more resources at 6h before end of day and then automatically check again
+            return 3;
+        } else {
+            //set for manual review
+            return 0;
         }
-        return true;
+    }
+
+    /**
+     * Gets the pending requests for the facultyName.
+     *
+     * @param facultyName the facultyName for which the pending requests need to be retrieved
+     * @return the list of pending requests
+     */
+    public List<AppRequest> getPendingRequestsForFacultyName(String facultyName) {
+        return requestRepository.findAll().stream().filter(x -> x.getFacultyName().equals(facultyName) && x.getStatus() == 0)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Gets the set of all IDs of resource requests made by a given user.
+     *
+     * @param netId the netid of the user
+     * @return a String that has the encoded IDs
+     */
+    public String getRequestIdsByNetId(String netId) {
+        List<Long> ids = requestRepository.findAll().stream().filter(x -> x.getOwner().equals(netId))
+                .map(x -> x.getId()).collect(Collectors.toList());
+        StringBuilder answer = new StringBuilder();
+        for (int i = 0; i < ids.size(); i++) {
+            long id = ids.get(i);
+            answer.append(id);
+            if (i != ids.size() - 1) {
+                answer.append("/");
+            }
+        }
+        return answer.toString();
     }
 
 }

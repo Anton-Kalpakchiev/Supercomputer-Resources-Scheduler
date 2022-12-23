@@ -2,13 +2,9 @@ package nl.tudelft.sem.template.requests.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.util.Calendar;
 import java.util.NoSuchElementException;
-import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,53 +25,74 @@ class StatusServiceTest {
     @Autowired
     private transient RequestRepository requestRepository;
 
-    @BeforeEach
-    void setup() {
+    @Test
+    public void getStatusOnExistingRequestTest() {
         final String description = "give me resources";
-        final Resources resources;
-
-        try {
-            resources = new Resources(30, 50, 50);
-        } catch (InvalidResourcesException e) {
-            throw new RuntimeException(e);
-        }
-
+        final Resources resources = new Resources(50, 50, 30);
         final String owner = "The Boss";
         final String facultyName = "CSE";
         final Calendar deadline = Calendar.getInstance();
+        deadline.set(Calendar.YEAR, 2010);
 
         AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 0);
-        Optional<AppRequest> res = Optional.of(appRequest);
-        requestRepository = mock(RequestRepository.class);
-        when(requestRepository.findById(0L)).thenReturn(res);
+        AppRequest savedRequest = requestRepository.save(appRequest);
+        long requestId = savedRequest.getId();
+
+        int status = statusService.getStatus(requestId);
+        assertThat(status == 0);
     }
 
-    // TODO: Fix Test
-    /*@Test
-    public void getStatusOnExistingRequestTest() throws Exception {
-        int status = statusService.getStatus(0L);
-        assertThat(status == 0);
-    }*/
-
     @Test
-    public void getStatusOnNonExistentRequestTest() throws Exception {
+    public void getStatusOnNonExistentRequestTest() {
+        final String description = "give me resources";
+        final Resources resources = new Resources(50, 30, 50);
+        final String owner = "The Boss";
+        final String facultyName = "CSE";
+        final Calendar deadline = Calendar.getInstance();
+        deadline.set(Calendar.YEAR, 2010);
+
+        AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, -1);
+        AppRequest savedRequest = requestRepository.save(appRequest);
+        long requestId = savedRequest.getId();
+
         assertThrows(NoSuchElementException.class, () -> {
-            int status = statusService.getStatus(1L);
+            int status = statusService.getStatus(requestId + 1);
         });
     }
 
-    // TODO: Fix Test
-    /* @Test
-    public void setStatusOnExistingRequestTest() throws Exception {
-        statusService.setStatus(0L, 3);
-        int status = statusService.getStatus(0L);
+    @Test
+    public void setStatusOnExistingRequestTest() {
+        final String description = "give me resources";
+        final Resources resources = new Resources(50, 30, 50);
+        final String owner = "The Boss";
+        final String facultyName = "CSE";
+        final Calendar deadline = Calendar.getInstance();
+        deadline.set(Calendar.YEAR, 2010);
+
+        AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 0);
+        AppRequest savedRequest = requestRepository.save(appRequest);
+        long requestId = savedRequest.getId();
+
+        statusService.setStatus(requestId, 3);
+        int status = statusService.getStatus(requestId);
         assertThat(status == 3);
     }
-*/
+
     @Test
-    public void setStatusOnNonExistentRequestTest() throws Exception {
+    public void setStatusOnNonExistentRequestTest() {
+        final String description = "give me resources";
+        final Resources resources = new Resources(50, 30, 50);
+        final String owner = "The Boss";
+        final String facultyName = "CSE";
+        final Calendar deadline = Calendar.getInstance();
+        deadline.set(Calendar.YEAR, 2010);
+
+        AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 0);
+        AppRequest savedRequest = requestRepository.save(appRequest);
+        long requestId = savedRequest.getId();
+
         assertThrows(NoSuchElementException.class, () -> {
-            statusService.setStatus(1L, 3);
+            statusService.setStatus(requestId + 1, 3);
         });
     }
 }

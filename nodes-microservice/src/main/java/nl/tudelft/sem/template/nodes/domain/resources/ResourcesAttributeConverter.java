@@ -10,11 +10,23 @@ import javax.persistence.Converter;
 @Converter
 public class ResourcesAttributeConverter implements AttributeConverter<Resources, String> {
 
+    /**
+     * Returns a string representation of the resource to be stored in the column.
+     *
+     * @param attribute  the resource attribute value to be converted
+     * @return a string representation of the resource
+     */
     @Override
     public String convertToDatabaseColumn(Resources attribute) {
-        return attribute.toString();
+        return attribute.getCpu() + "," + attribute.getGpu() + "," + attribute.getMemory();
     }
 
+    /**
+     * Returns the resource object extracted from the string stored in the database.
+     *
+     * @param dbData  the data from the database column to be converted back to a resource
+     * @return the resource object extracted from the string
+     */
     @Override
     public Resources convertToEntityAttribute(String dbData) {
         List<String> parts = List.of(dbData.split(","));

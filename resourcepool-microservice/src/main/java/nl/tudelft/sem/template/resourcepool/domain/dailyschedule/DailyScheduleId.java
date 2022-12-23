@@ -1,7 +1,7 @@
 package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.Objects;
 
 /**
@@ -10,8 +10,12 @@ import java.util.Objects;
 public class DailyScheduleId implements Serializable {
 
     static final long serialVersionUID = 512472699;
-    private Date day;
+    private Calendar day;
     private long resourcePoolId;
+
+    public DailyScheduleId() {
+
+    }
 
     /**
      * Instantiates a new DailyScheduleId.
@@ -19,7 +23,7 @@ public class DailyScheduleId implements Serializable {
      * @param day            the day
      * @param resourcePoolId the resource pool id
      */
-    public DailyScheduleId(Date day, long resourcePoolId) {
+    public DailyScheduleId(Calendar day, long resourcePoolId) {
         this.day = day;
         this.resourcePoolId = resourcePoolId;
     }
@@ -29,7 +33,7 @@ public class DailyScheduleId implements Serializable {
      *
      * @return the day
      */
-    public Date getDay() {
+    public Calendar getDay() {
         return day;
     }
 
@@ -38,7 +42,7 @@ public class DailyScheduleId implements Serializable {
      *
      * @param day the day
      */
-    public void setDay(Date day) {
+    public void setDay(Calendar day) {
         this.day = day;
     }
 
@@ -74,7 +78,9 @@ public class DailyScheduleId implements Serializable {
             return false;
         }
         DailyScheduleId that = (DailyScheduleId) o;
-        return resourcePoolId == that.resourcePoolId && Objects.equals(day, that.day);
+        return resourcePoolId == that.resourcePoolId && day.get(Calendar.YEAR) == that.day.get(Calendar.YEAR)
+                && day.get(Calendar.MONTH) == that.day.get(Calendar.MONTH)
+                && day.get(Calendar.DAY_OF_MONTH) == that.day.get(Calendar.DAY_OF_MONTH);
     }
 
     /**

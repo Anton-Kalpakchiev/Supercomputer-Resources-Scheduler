@@ -41,7 +41,8 @@ public class DistributionController {
      */
     @GetMapping("/distribution/current")
     public ResponseEntity<String> getCurrentDistribution() {
-        return ResponseEntity.ok(distributionService.getCurrentDistribution());
+        return ResponseEntity.ok("This is the current distribution of the resources: \n"
+                                    + distributionService.getCurrentDistribution());
     }
 
     /**
@@ -58,7 +59,7 @@ public class DistributionController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("Distribution for " + distribution.getName() + " successfully added");
     }
 
     /**
@@ -68,7 +69,8 @@ public class DistributionController {
      */
     @GetMapping("/distribution/status")
     public ResponseEntity<String> statusDistribution() {
-        return ResponseEntity.ok(distributionService.statusDistribution());
+        return ResponseEntity.ok("These are the currently submitted distributions: \n"
+                                    + distributionService.statusDistribution());
     }
 
     /**
@@ -78,13 +80,13 @@ public class DistributionController {
      * @throws Exception if there is a wrong amount of distributions or if the percentages don't add up
      */
     @PostMapping("/distribution/save")
-    public ResponseEntity saveDistribution() throws Exception {
+    public ResponseEntity<String> saveDistribution() throws Exception {
         try {
             distributionService.saveDistribution();
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("The proposed distribution was successfully saved!");
     }
 
     /**
@@ -100,6 +102,6 @@ public class DistributionController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("The proposed distribution was successfully cleared.");
     }
 }

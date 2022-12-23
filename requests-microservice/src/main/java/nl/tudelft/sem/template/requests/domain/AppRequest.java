@@ -67,18 +67,21 @@ public class AppRequest extends HasEvents {
     */
 
 
-
     /**
-     * Create new application request.
+     * Creates a resource request.
      *
-     * @param description The description of the request
-     * @param resources The resources in the request
+     * @param description the description of the request
+     * @param resources the amount of resources being requested
+     * @param owner the netid of the employee that submitted the request
+     * @param facultyName the name of the faculty the request is for
+     * @param deadline the latest day that the request can be executed
+     * @param status the status of the request at the moment of creation
      */
     public AppRequest(String description, Resources resources, String owner,
                       String facultyName, Calendar deadline, int status) {
         this.facultyName = facultyName;
         this.description = description;
-        this.mem = resources.getMem();
+        this.mem = resources.getMemory();
         this.cpu = resources.getCpu();
         this.gpu = resources.getGpu();
         this.owner = owner;
@@ -104,6 +107,6 @@ public class AppRequest extends HasEvents {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(owner);
     }
 }
