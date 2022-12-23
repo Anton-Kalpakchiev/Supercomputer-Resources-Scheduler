@@ -142,6 +142,7 @@ public class DailyScheduleService {
      * @param faculties the list of faculties to fetch schedules for
      * @return a map of faculty names and
      */
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public Map<String, List<String>> generateScheduleResponseContent(Set<Long> faculties) throws FacultyNotFoundException {
         Map<String, List<String>> allSchedulesMap = new HashMap<>();
         for (long faculty : faculties) {

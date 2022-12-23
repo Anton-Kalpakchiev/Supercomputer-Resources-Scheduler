@@ -3,13 +3,13 @@ package nl.tudelft.sem.template.users.facade;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import java.util.Optional;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
@@ -29,8 +29,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Optional;
-
 public class RequestSenderServiceUnitTest {
     private SysadminRepository sysadminRepository;
     private EmployeeRepository employeeRepository;
@@ -42,8 +40,6 @@ public class RequestSenderServiceUnitTest {
     private RequestSenderService sut;
     private FacultyAccountService facultyAccountService;
 
-    private FacultyAccountService facultyAccountService;
-
     private Sysadmin admin;
     private Employee employee;
     private FacultyAccount facultyAccount;
@@ -51,7 +47,7 @@ public class RequestSenderServiceUnitTest {
     private final String employeeNetId = "ivo";
     private final String facultyNetId = "professor";
     private final String facultyName = "math";
-    private final long facultyID = 0L;
+    private final long facultyId = 0L;
 
     private final String sampleToken = "1234567";
     private final String url = "/Test/url";
@@ -70,11 +66,11 @@ public class RequestSenderServiceUnitTest {
 
         sut = new RequestSenderService(sysadminRepository, employeeRepository,
                 facultyAccountRepository, registrationService,
-                authorization, restTemplate);
+                authorization, restTemplate, facultyAccountService);
 
         admin = new Sysadmin(adminNetId);
         employee = new Employee(employeeNetId);
-        facultyAccount = new FacultyAccount(facultyNetId, facultyID);
+        facultyAccount = new FacultyAccount(facultyNetId, facultyId);
 
         when(authorization.isOfType(adminNetId, AccountType.SYSADMIN)).thenReturn(true);
         when(authorization.isOfType(employeeNetId, AccountType.EMPLOYEE)).thenReturn(true);

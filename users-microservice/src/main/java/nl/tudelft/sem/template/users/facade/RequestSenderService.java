@@ -7,8 +7,6 @@ import lombok.AllArgsConstructor;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
-import nl.tudelft.sem.template.users.domain.EmployeeService;
-import nl.tudelft.sem.template.users.domain.FacultyAccountService;
 import nl.tudelft.sem.template.users.domain.EmployeeRepository;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
 import nl.tudelft.sem.template.users.domain.FacultyAccountService;
@@ -17,9 +15,9 @@ import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.SysadminRepository;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
+import nl.tudelft.sem.template.users.models.facade.ManualApprovalModel;
 import nl.tudelft.sem.template.users.models.facade.ScheduleRequestModel;
 import nl.tudelft.sem.template.users.models.facade.ScheduleResponseModel;
-import nl.tudelft.sem.template.users.models.facade.ManualApprovalModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -33,13 +31,12 @@ import org.springframework.web.client.RestTemplate;
  */
 @Service
 @AllArgsConstructor
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class RequestSenderService {
     private final transient FacultyAccountService facultyAccountService;
     private final transient SysadminRepository sysadminRepository;
     private final transient EmployeeRepository employeeRepository;
     private final transient FacultyAccountRepository facultyAccountRepository;
-    private final transient FacultyAccountService facultyAccountService;
-
 
     private final transient RegistrationService registrationService;
     private final transient AuthorizationManager authorization;
@@ -161,6 +158,7 @@ public class RequestSenderService {
      * @throws InnerRequestFailedException if the request fails
      * @throws UnauthorizedException if the user is unauthorized
      */
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public String getScheduleRequestRouter(String authorNetId, String token)
             throws NoSuchUserException, UnauthorizedException, InnerRequestFailedException {
         String sysadminUrl = "http://localhost:8085/getAllSchedules";
@@ -210,7 +208,9 @@ public class RequestSenderService {
      * @param token - the authentication token of the user
      * @return the response
      */
-    public String getScheduleFacultyManager(String url, String authorNetId, String token) throws InnerRequestFailedException {
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    public String getScheduleFacultyManager(String url, String authorNetId, String token)
+            throws InnerRequestFailedException {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
         long facultyId;

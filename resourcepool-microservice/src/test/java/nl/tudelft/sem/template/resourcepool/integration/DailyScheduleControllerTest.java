@@ -1,7 +1,6 @@
 package nl.tudelft.sem.template.resourcepool.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.setMaxElementsForPrinting;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -120,7 +119,8 @@ public class DailyScheduleControllerTest {
         schedule2.setAvailableResources(new Resources(10, 10, 10));
 
         Map<String, List<String>> map = new HashMap<>();
-        map.put(faculty.getName(), Stream.of(schedule1, schedule2).map(DailySchedule::toPrettyString).collect(Collectors.toList()));
+        map.put(faculty.getName(),
+                Stream.of(schedule1, schedule2).map(DailySchedule::toPrettyString).collect(Collectors.toList()));
         expected = new ScheduleResponseModel(map);
     }
 
