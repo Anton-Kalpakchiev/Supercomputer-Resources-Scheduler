@@ -129,7 +129,8 @@ public class FacadeController {
     public ResponseEntity<String> clearDistribution() {
         try {
             String url = "http://localhost:8085/distribution/clear";
-            requestSenderService.postRequestFromSysadmin(url, authentication.getNetId(), JwtRequestFilter.token);
+            requestSenderService.postRequestFromSysadmin(
+                    url, authentication.getNetId(), JwtRequestFilter.token);
             return ResponseEntity.ok("Distribution was cleared.");
         } catch (UnauthorizedException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
@@ -166,7 +167,7 @@ public class FacadeController {
      *                      and if accepted, its day of execution
      * @return a message to the user informing them the request is successfully approved/rejected
      */
-    @PostMapping("/manualSchedule")
+    @PostMapping("/request/manualSchedule")
     public ResponseEntity<String> approveRejectRequest(@RequestBody ManualApprovalModel approvalModel) {
         try {
             boolean approved = approvalModel.isApproved();
@@ -184,6 +185,42 @@ public class FacadeController {
             String url = "http://localhost:8084/manualSchedule";
             requestSenderService.approveRejectRequest(url, authentication.getNetId(), approvalModel, JwtRequestFilter.token);
             String answer = requestSenderService.getRequestAnswer(approved);
+            return ResponseEntity.ok(answer);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
+        }
+    }
+
+    /**
+     * Gets the status of a request.
+     *
+     * @return the status of the request found in the database with the given id
+     */
+    @GetMapping("/request/status")
+    public ResponseEntity<String> getStatus(@RequestBody long id) {
+        try {
+            String url = "http://localhost:8084/status";
+            String answer = requestSenderService.getStatusOfRequest(
+                    url, authentication.getNetId(), id, JwtRequestFilter.token);
+            return ResponseEntity.ok(answer);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
+        }
+    }
+
+    /**
+     * Endpoint for Post API call that registers a resource request.
+     *
+     * @param request the model of the request containing all the important information
+     * @return message to the user that tells them whether their request was successfully submitted
+     */
+    @PostMapping("/request/register")
+    public ResponseEntity register(@RequestBody RegistrationRequestModel request) {
+        try {
+            String url = "http://localhost:8084/register";
+            boolean wentThrough = requestSenderService.registerRequest(
+                    url, authentication.getNetId(), request, JwtRequestFilter.token);
+            String answer = requestSenderService.registerRequestMessage(wentThrough);
             return ResponseEntity.ok(answer);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());

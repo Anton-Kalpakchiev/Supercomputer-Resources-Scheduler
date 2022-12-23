@@ -278,5 +278,25 @@ public class RegistrationService {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Gets the set of all IDs of resource requests made by a given user.
+     *
+     * @param netId the netid of the user
+     * @return a String that has the encoded IDs
+     */
+    public String getRequestIdsByNetId(String netId) {
+        List<Long> ids = requestRepository.findAll().stream().filter(x -> x.getOwner().equals(netId))
+                .map(x -> x.getId()).collect(Collectors.toList());
+        StringBuilder answer = new StringBuilder();
+        for (int i = 0; i < ids.size(); i++) {
+            long id = ids.get(i);
+            answer.append(id);
+            if (i != ids.size() - 1) {
+                answer.append("/");
+            }
+        }
+        return answer.toString();
+    }
+
 }
 
