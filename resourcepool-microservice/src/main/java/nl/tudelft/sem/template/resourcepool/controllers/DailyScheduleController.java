@@ -10,6 +10,7 @@ import nl.tudelft.sem.template.resourcepool.authentication.AuthManager;
 import nl.tudelft.sem.template.resourcepool.domain.dailyschedule.DailyScheduleService;
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import nl.tudelft.sem.template.resourcepool.models.AutomaticApprovalModel;
+import nl.tudelft.sem.template.resourcepool.models.ReleaseResourcesRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.RequestTomorrowResourcesRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.ScheduleRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.ScheduleResponseModel;
@@ -80,7 +81,8 @@ public class DailyScheduleController {
             @RequestBody RequestTomorrowResourcesRequestModel request) {
         long facultyId = request.getResourcePoolId();
         try {
-            return ResponseEntity.ok(dailyScheduleService.getAvailableResourcesById(facultyId));
+            return ResponseEntity.ok(dailyScheduleService.getAvailableResourcesById(facultyId,
+                    DailyScheduleService.getTomorrow()));
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -113,8 +115,30 @@ public class DailyScheduleController {
     public ResponseEntity<ScheduleResponseModel> getFacultySchedules(@RequestBody ScheduleRequestModel request) {
         try {
             Map<String, List<String>> responseRaw = dailyScheduleService.getSchedulesPerFaculty(request.getFacultyId());
+            System.out.println("it got to the other side");
             ScheduleResponseModel response = new ScheduleResponseModel(responseRaw);
             return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
+     * End point to release resources for a particular faculty and day into the free resource pool.
+     *
+     * @param request the request body
+     * @return the response entity which is a string of the faculty name
+     */
+    @PostMapping("/releaseResources")
+    public ResponseEntity<String> releaseResources(@RequestBody ReleaseResourcesRequestModel request) {
+        try {
+            System.out.println("we got to the other side!");
+            dailyScheduleService.releaseResources(request.getDay(), request.getFacultyId());
+            System.out.println("we managed to release the resources");
+            String facultyName = dailyScheduleService.getFacultyName(request.getFacultyId());
+            System.out.println("we returned the faculty name");
+            return ResponseEntity.ok(facultyName);
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());

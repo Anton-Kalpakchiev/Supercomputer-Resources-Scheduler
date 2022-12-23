@@ -163,8 +163,6 @@ public class DailySchedule {
         return Objects.hash(day, resourcePoolId, list);
     }
 
-
-
     /**
      * Returns a string representation for this daily schedule.
      *
@@ -178,9 +176,6 @@ public class DailySchedule {
                 + ", list=" + list
                 + '}';
     }
-
-
-
 
     /**
      * Returns a human-readable string representation for this daily schedule.

@@ -27,6 +27,8 @@ public class FacultyVerificationService {
      */
     public boolean verifyFaculty(long facultyId, String token) throws FacultyException {
         String url = "http://localhost:8085/verifyFaculty";
+        System.out.println(facultyId);
+        System.out.println(token);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
