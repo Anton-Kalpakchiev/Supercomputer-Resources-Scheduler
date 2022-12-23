@@ -1,5 +1,9 @@
 package nl.tudelft.sem.template.users.facade;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
@@ -13,6 +17,9 @@ import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.SysadminRepository;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
 import nl.tudelft.sem.template.users.models.facade.ManualApprovalModel;
+import nl.tudelft.sem.template.users.models.facade.NodeContributionRequestModel;
+import nl.tudelft.sem.template.users.models.facade.ScheduleRequestModel;
+import nl.tudelft.sem.template.users.models.facade.ScheduleResponseModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -25,13 +32,14 @@ import org.springframework.web.client.RestTemplate;
  * A DDD for sending requests to other microservice.
  */
 @Service
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class RequestSenderService {
+    private final transient FacultyAccountService facultyAccountService;
     private final transient SysadminRepository sysadminRepository;
     private final transient EmployeeRepository employeeRepository;
     private final transient FacultyAccountRepository facultyAccountRepository;
     private final transient FacultyAccountService facultyAccountService;
     private final transient EmployeeService employeeService;
-
 
     private final transient RegistrationService registrationService;
     private final transient AuthorizationManager authorization;
@@ -143,6 +151,112 @@ public class RequestSenderService {
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not a Sysadmin => can not check the status.");
         }
+    }
+
+    /**
+     * Routes the request to the correct method.
+     *
+     * @param authorNetId - the netId of the sender.
+     * @param token - the token with which the user is authenticated.
+     * @return the response
+     * @throws NoSuchUserException if the user cannot be found
+     * @throws InnerRequestFailedException if the request fails
+     * @throws UnauthorizedException if the user is unauthorized
+     */
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    public String getScheduleRequestRouter(String authorNetId, String token)
+            throws NoSuchUserException, UnauthorizedException, InnerRequestFailedException {
+        String sysadminUrl = "http://localhost:8085/getAllSchedules";
+        String facManagerUrl = "http://localhost:8085/getFacultySchedules";
+
+        if (authorization.isOfType(authorNetId, AccountType.SYSADMIN)) {
+            return getScheduleSysadmin(sysadminUrl, token);
+        } else if (authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) {
+            return getScheduleFacultyManager(facManagerUrl, authorNetId, token);
+        } else if (authorization.isOfType(authorNetId, AccountType.EMPLOYEE)) {
+            throw new UnauthorizedException("Employees cannot view schedules");
+        } else {
+            throw new UnauthorizedException("Request to view schedules failed.");
+        }
+    }
+
+    /**
+     * Gets all available schedules on all days for all faculties.
+     *
+     * @param url - the url of the end point
+     * @param token - the authentication token of the user
+     * @return the response
+     */
+    public String getScheduleSysadmin(String url, String token) throws InnerRequestFailedException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<ScheduleResponseModel> response = restTemplate.exchange(
+                    url, HttpMethod.GET, entity, ScheduleResponseModel.class);
+            if (response.hasBody()) {
+                return prettifyScheduleResponse(Objects.requireNonNull(response.getBody()));
+            } else {
+                return "No schedules were found";
+            }
+        } catch (Exception e) {
+            throw new InnerRequestFailedException("Request to " + url + " failed.");
+        }
+    }
+
+    /**
+     * Gets all available schedules on all days for a given faculty.
+     *
+     * @param url - the url of the end point
+     * @param authorNetId - the netId of the user that made the request
+     * @param token - the authentication token of the user
+     * @return the response
+     */
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    public String getScheduleFacultyManager(String url, String authorNetId, String token)
+            throws InnerRequestFailedException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        long facultyId;
+        try {
+            facultyId = facultyAccountService.getFacultyAssignedId(authorNetId);
+        } catch (NoSuchUserException exception) {
+            throw new InnerRequestFailedException("Request to " + url + " failed.");
+        }
+
+        HttpEntity<ScheduleRequestModel> entity = new HttpEntity<>(new ScheduleRequestModel(facultyId), headers);
+
+        try {
+            ResponseEntity<ScheduleResponseModel> response = restTemplate.exchange(
+                    url, HttpMethod.POST, entity, ScheduleResponseModel.class);
+            if (response.hasBody()) {
+                return prettifyScheduleResponse(Objects.requireNonNull(response.getBody()));
+            } else {
+                return "No schedules were found for faculty: " + facultyId;
+            }
+        } catch (Exception e) {
+            throw new InnerRequestFailedException("Request to " + url + " failed.");
+        }
+    }
+
+
+    /**
+     * Returns the list of schedules and faculties in a human-readable format.
+     *
+     * @param response the response of the request
+     * @return a String with all the faculties and schedules
+     */
+    public static String prettifyScheduleResponse(ScheduleResponseModel response) {
+        Map<String, List<String>> schedules = response.getSchedules();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String faculty : schedules.keySet()) {
+            stringBuilder.append(faculty).append(":");
+            for (String schedule : schedules.get(faculty)) {
+                stringBuilder.append("\n\t:").append(schedule);
+            }
+        }
+        return stringBuilder.toString();
     }
 
     /**
@@ -266,6 +380,64 @@ public class RequestSenderService {
         } else {
             throw new UnauthorizedException("(" + authorNetId
                     + ") is not employeed by " + requestModel.getFacultyName());
+        }
+    }
+
+    /**
+     * Sends a request to contribute a node.
+     *
+     * @param url the url of the request
+     * @param authorNetId the netId of the author of the request
+     * @param token the token of the request
+     * @param nodeInfo the model with all the information for the new node
+     * @throws Exception if the author is not an EMPLOYEE at the requested faculty or the request failed
+     */
+    public long contributeNodeRequest(String url, String authorNetId, String token, NodeContributionRequestModel nodeInfo)
+            throws Exception {
+        Set<Long> facultyIds = employeeRepository.findByNetId(authorNetId).get().getParentFacultyIds();
+        if (authorization.isOfType(authorNetId, AccountType.EMPLOYEE)
+                && facultyIds.contains(nodeInfo.getFacultyId())) {
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setBearerAuth(token);
+
+                HttpEntity<NodeContributionRequestModel> entity = new HttpEntity<>(nodeInfo, headers);
+
+                ResponseEntity<Long> response = restTemplate.postForEntity(url, entity, Long.class);
+                return response.getBody();
+            } catch (Exception e) {
+                throw new InnerRequestFailedException(requestTo + url + failed);
+            }
+        } else {
+            throw new UnauthorizedException("(" + authorNetId + ") is not an Employee at the requested faculty");
+        }
+    }
+
+    /**
+     * Sends a request to delete a node.
+     *
+     * @param url the url of the request
+     * @param authorNetId the netId of the author of the request
+     * @param token the token of the request
+     * @param nodeId the id of the node to be deleted
+     * @throws Exception if the author is not an EMPLOYEE or the request failed
+     */
+    public String deleteNodeRequest(String url, String authorNetId, String token, long nodeId)
+            throws Exception {
+        if (authorization.isOfType(authorNetId, AccountType.EMPLOYEE)) {
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setBearerAuth(token);
+
+                HttpEntity<Long> entity = new HttpEntity<>(nodeId, headers);
+
+                ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+                return response.getBody();
+            } catch (Exception e) {
+                throw new InnerRequestFailedException(requestTo + url + failed);
+            }
+        } else {
+            throw new UnauthorizedException("(" + authorNetId + ") is not an Employee");
         }
     }
 }

@@ -2,6 +2,7 @@ package nl.tudelft.sem.template.resourcepool.domain.dailyschedule;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -16,4 +17,5 @@ public interface ScheduleRepository extends JpaRepository<DailySchedule, DailySc
 
     boolean existsByDayAndResourcePoolId(Calendar day, long resourcePoolId);
 
+    List<DailySchedule> findAllByResourcePoolId(long resourcePoolId);
 }

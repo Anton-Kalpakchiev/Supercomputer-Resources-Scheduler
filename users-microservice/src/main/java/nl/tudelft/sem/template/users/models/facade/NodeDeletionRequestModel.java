@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.nodes.models;
+package nl.tudelft.sem.template.users.models.facade;
 
 import lombok.Data;
 

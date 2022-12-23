@@ -8,10 +8,14 @@ import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.EmployeeService;
 import nl.tudelft.sem.template.users.domain.FacultyAccountService;
+import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
+import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
 import nl.tudelft.sem.template.users.models.facade.ManualApprovalModel;
+import nl.tudelft.sem.template.users.models.facade.NodeContributionRequestModel;
+import nl.tudelft.sem.template.users.models.facade.NodeDeletionRequestModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -136,6 +140,27 @@ public class FacadeController {
     }
 
     /**
+     * Allows the user to view the schedules they are authorized to view.
+     * SYSADMINS - all schedules for all available days per faculty.
+     * Faculty Managers - all schedules for all available days of their faculty.
+     * Employees cannot view the schedules of any faculties.
+     *
+     * @return the schedules of the authorized faculties.
+     */
+    @GetMapping("/schedules/viewSchedules")
+    public ResponseEntity<String> viewSchedule() {
+        try {
+            String response = requestSenderService.getScheduleRequestRouter(
+                    authentication.getNetId(), JwtRequestFilter.token);
+            return ResponseEntity.ok(response);
+        } catch (InnerRequestFailedException | NoSuchUserException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
+    /**
      * Post request from a faculty manager to manually approve/reject a request.
      *
      * @param approvalModel containts the requestID, whether it is accepted or rejected,
@@ -197,6 +222,47 @@ public class FacadeController {
                     url, authentication.getNetId(), request, JwtRequestFilter.token);
             String answer = requestSenderService.registerRequestMessage(wentThrough);
             return ResponseEntity.ok(answer);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
+        }
+    }
+
+    /**
+     * Contributes a node to a faculty.
+     * Only accessible for an EMPLOYEE.
+     *
+     * @return 200 OK if the contribution was successful
+     */
+    @PostMapping("/contributeNode")
+    public ResponseEntity<String> contributeNode(@RequestBody NodeContributionRequestModel nodeInfo) {
+        try {
+            String url = "http://localhost:8083/contributeNode";
+            long nodeId = requestSenderService.contributeNodeRequest(
+                    url, authentication.getNetId(), JwtRequestFilter.token, nodeInfo);
+            return ResponseEntity.ok("The node with the name \"" + nodeInfo.getName()
+                                    + "\" has been contributed. The ID of the node is: " + nodeId + '.');
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
+        }
+    }
+
+    /**
+     * Deletes a node from a faculty.
+     * Only accessible for an EMPLOYEE.
+     *
+     * @return 200 OK if the deletion was successful
+     */
+    @PostMapping("/deleteNode")
+    public ResponseEntity<String> deleteNode(@RequestBody NodeDeletionRequestModel nodeId) {
+        try {
+            String url = "http://localhost:8083/deleteNode";
+            String nodeName = requestSenderService.deleteNodeRequest(
+                    url, authentication.getNetId(), JwtRequestFilter.token, nodeId.getNodeId());
+            return ResponseEntity.ok("The node with the name \"" + nodeName + "\" has been successfully deleted.");
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
         }

@@ -3,11 +3,10 @@ package nl.tudelft.sem.template.nodes.domain.node;
 import nl.tudelft.sem.template.nodes.authentication.JwtRequestFilter;
 import nl.tudelft.sem.template.nodes.domain.resources.Resources;
 import nl.tudelft.sem.template.nodes.models.FacultyInteractionRequestModel;
-import nl.tudelft.sem.template.nodes.models.FacultyInteractionResponseModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -72,7 +71,7 @@ public class NodeManagementService {
      * @param ownerNetId the id of the owner of the node
      * @throws Exception if the node id can't be found or the requester isn't the owner of the node
      */
-    public void deleteNode(long nodeId, String ownerNetId) throws Exception {
+    public String deleteNode(long nodeId, String ownerNetId) throws Exception {
         if (!repo.existsById(nodeId)) {
             throw new NodeIdNotFoundException(nodeId);
         }
@@ -82,6 +81,7 @@ public class NodeManagementService {
         }
         interactWithFaculty("deleteNode", node.getFacultyId(), node.getResource());
         repo.deleteById(nodeId);
+        return node.getNodeName().toString();
     }
 
     /**
@@ -115,13 +115,10 @@ public class NodeManagementService {
         HttpEntity<FacultyInteractionRequestModel> entity = new HttpEntity<>(new FacultyInteractionRequestModel(facultyId,
                                     resources.getCpu(), resources.getGpu(), resources.getMemory()), headers);
 
-        ResponseEntity<FacultyInteractionResponseModel> result = restTemplate.postForEntity(
-                                                                url, entity, FacultyInteractionResponseModel.class);
-        if (result == null) {
-            return;
-        }
-        if (!result.getStatusCode().is2xxSuccessful()) {
-            throw new Exception(result.getStatusCode().getReasonPhrase());
+        try {
+            restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
+        } catch (Exception e) {
+            throw new InnerRequestFailedException("Request to " + url + " failed.");
         }
     }
 }
