@@ -41,12 +41,17 @@ public class ResourcePoolService {
      * @param token     the jwtToken.
      * @return true when the request is successfully scheduled.
      */
-    public ResponseEntity<Boolean> approval(Calendar day, long requestId, String token) {
+    public ResponseEntity<Boolean> approval(Calendar day, long requestId, boolean toFreePool, String token) {
         HttpHeaders headers = setup(token);
         headers.add("Content-Type", "application/json");
         int month = day.get(Calendar.MONTH);
         String dayString = day.get(Calendar.DAY_OF_MONTH) + "-" + month + "-" + day.get(Calendar.YEAR);
-        String facultyName = requestRepo.findById(requestId).get().getFacultyName();
+        String facultyName;
+        if (toFreePool) {
+            facultyName = "Free Pool";
+        } else {
+            facultyName = requestRepo.findById(requestId).get().getFacultyName();
+        }
         String requestBody = "{\"day\": \"" + dayString + "\",\"requestId\": \"" + requestId
                                 + "\",\"facultyName\": \"" + facultyName + "\"}";
 

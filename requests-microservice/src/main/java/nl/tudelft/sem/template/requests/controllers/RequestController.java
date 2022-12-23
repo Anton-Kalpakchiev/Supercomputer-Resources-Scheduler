@@ -176,7 +176,7 @@ public class RequestController {
         try {
             if (approved) {
                 statusService.setStatus(id, 1);
-                resourcePoolService.approval(dayOfExecution, id, token);
+                resourcePoolService.approval(dayOfExecution, id, false, token);
             } else {
                 statusService.setStatus(id, 2);
             }

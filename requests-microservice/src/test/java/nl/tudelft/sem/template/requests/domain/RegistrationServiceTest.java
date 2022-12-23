@@ -69,7 +69,7 @@ class RegistrationServiceTest {
         // Arrange
 
         when(mockResourcePoolService.approval(
-                any(Calendar.class), any(long.class), any(String.class))).thenReturn(
+                any(Calendar.class), any(long.class), false, any(String.class))).thenReturn(
                 ResponseEntity.ok(true));
 
         // Act

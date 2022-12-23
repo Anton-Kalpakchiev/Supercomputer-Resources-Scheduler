@@ -55,7 +55,13 @@ public class DailySchedule {
      * @param resourcePoolId the id of the resource pool the requests are scheduled in
      */
     public DailySchedule(Calendar day, long resourcePoolId) {
-        this.day = day;
+        Calendar thisDay = Calendar.getInstance();
+        thisDay.setTimeInMillis(0);
+        thisDay.set(Calendar.YEAR, day.get(Calendar.YEAR));
+        thisDay.set(Calendar.MONTH, day.get(Calendar.MONTH));
+        thisDay.set(Calendar.DAY_OF_MONTH, day.get(Calendar.DAY_OF_MONTH));
+
+        this.day = thisDay;
         this.resourcePoolId = resourcePoolId;
         this.availableResources = new Resources(0, 0, 0);
         this.totalResources = new Resources(0, 0, 0);
@@ -185,7 +191,9 @@ public class DailySchedule {
     public String toPrettyString() {
         StringBuilder stringBuilder = new StringBuilder("DailySchedule:");
         stringBuilder.append("\n\t Resource Pool:").append(this.resourcePoolId);
-        stringBuilder.append("\n\t Date: ").append(this.day.get(Calendar.DATE));
+        stringBuilder.append("\n\t Date: ").append(this.day.get(Calendar.DAY_OF_MONTH))
+                .append("/").append(this.day.get(Calendar.MONTH))
+                .append("/").append(this.day.get(Calendar.YEAR));
         stringBuilder.append("\n\t Total Resources: ").append(this.totalResources.toString());
         stringBuilder.append("\n\t Available Resources: ").append(this.availableResources.toString());
         stringBuilder.append("\n\t List of requests: ").append(this.list.toString());
