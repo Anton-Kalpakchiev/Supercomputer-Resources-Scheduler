@@ -353,7 +353,6 @@ public class FacadeController {
         String managerNetId = request.getManagerNetId();
         String facultyName = request.getName();
         String token = JwtRequestFilter.token;
-        System.out.println(token);
         try {
             long facId = requestSenderService.createFaculty(authorNetId, managerNetId, facultyName, token);
             System.out.println("Faculty \"" + facultyName + "\" with id " + facId + " was created. "

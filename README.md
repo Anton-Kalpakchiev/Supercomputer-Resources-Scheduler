@@ -9,18 +9,26 @@ After cloning the repository, all the microservices should be run, by starting t
 
 ## Requests
 
-### Faculties
+### Faculties and their resources
 
-### POST /createFaculty
+#### POST: /createFaculty
 This request allows a user to request the creation of a new faculty. It is only accessible to users with the SYSADMIN role.
 
 It expects a request body with a request object, which is the faculty creation request. It should be formatted as follows:
 {
     "name": the name of the faculty that needs to be created,
+
     "managerNetId": the netId of the account that needs to be matched to the faculty and needs to be promoted to a faculty account
 }
 
 The endpoint returns a message indicating whether the request was successful.
+
+#### POST: /availableResourcesForTomorrow
+This request allows a user to request the available resources for the next day for a particular faculty. 
+
+It expects a request body with a request object, containing a long which is the facultyId the user wants to see the available resources for.
+
+The endpoint returns a string of the available resources for tomorrow.
 
 #### GET: /distribution/current
 This requests returns a string with the current distribution of the resources in the system. It is only accessible to users with the SYSADMIN role.
@@ -112,7 +120,7 @@ This request allows an EMPLOYEE to delete a node from a faculty. It expects a re
 
 The endpoint returns a 200 OK status code if the deletion was successful.
 
-### Schedules
+### Schedules and scheduling
 
 #### GET: /schedules/viewSchedules
 This request allows a user to view the schedules they are authorized to view. Depending on the user's role, the following rules apply:
@@ -123,7 +131,7 @@ Employee: No schedules are returned.
 The endpoint returns the schedules of the authorized faculties.
 
 #### POST: /request/manualSchedule
-This endpoint allows a Faculty Manager to manually approve or reject a request. 
+This request allows a Faculty Manager to manually approve or reject a request. 
 
 It expects a request body that should formatted as followed:
 {
@@ -135,3 +143,17 @@ It expects a request body that should formatted as followed:
 }
 
 The endpoint returns a message to the user informing them the request is successfully approved or rejected.
+
+#### POST: /releaseResources
+This request allows a user to release resources for a particular faculty on a particular day. 
+
+It expects a request body formatted as follows:
+{
+    "facultyId": a long which is the facultyId that the resources need to be released for,
+
+    "day": the day for which the resources need to be released, formatted as follows: "DD-MM-YYYY"
+}
+
+The endpoint returns a string which indicates whether the request was successful.
+
+
