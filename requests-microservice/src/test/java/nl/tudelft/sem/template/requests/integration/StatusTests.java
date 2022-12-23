@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Calendar;
 import java.util.NoSuchElementException;
-
 import nl.tudelft.sem.template.requests.authentication.AuthManager;
 import nl.tudelft.sem.template.requests.authentication.JwtTokenVerifier;
 import nl.tudelft.sem.template.requests.domain.AppRequest;
