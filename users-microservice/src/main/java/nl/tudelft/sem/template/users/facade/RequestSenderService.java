@@ -157,6 +157,7 @@ public class RequestSenderService {
      * @throws UnauthorizedException       if the user is unauthorized
      * @throws InnerRequestFailedException if the inner request failed
      */
+    public String getRequestFromFacultyAccount(String url, String authorNetId, String token)
         throws NoSuchUserException, UnauthorizedException, InnerRequestFailedException {
         if (authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) {
             HttpHeaders headers = new HttpHeaders();
@@ -165,7 +166,6 @@ public class RequestSenderService {
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
             try {
-                System.out.println("Kinda far");
                 ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
                 return response.getBody();
             } catch (Exception e) {
@@ -361,7 +361,7 @@ public class RequestSenderService {
                 ResponseEntity<Long> response = restTemplate.postForEntity(url, entity, Long.class);
                 return response.getBody();
             } catch (Exception e) {
-                throw new InnerRequestFailedException(innerRequestFailedExceptionString);
+                throw new InnerRequestFailedException(innerRequestFailedExceptionString(url));
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not an Employee at the requested faculty");

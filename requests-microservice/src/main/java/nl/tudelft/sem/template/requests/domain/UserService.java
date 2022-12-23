@@ -27,7 +27,7 @@ public class UserService {
         HttpEntity<String> request = new HttpEntity<>("", headers);
 
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Long> response = restTemplate.postForEntity("http://localhost:8086/get-faculty-id-for-manager", request, Long.class);
+        ResponseEntity<Long> response = restTemplate.postForEntity("http://localhost:8086/getFacultyIdForManager", request, Long.class);
         return response.getBody();
     }
 

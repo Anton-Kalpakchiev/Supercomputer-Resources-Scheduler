@@ -61,7 +61,6 @@ public class ResourcePoolController {
      */
     @PostMapping("/createFaculty")
     public ResponseEntity<FacultyCreationResponseModel> createFaculty(@RequestBody FacultyCreationModel request) {
-        System.out.println(request.getManagerNetId() + "\nName: " + request.getName());
         try {
             Faculty newFaculty = rpManagementService.createFaculty(request.getName(), request.getManagerNetId());
             return ResponseEntity.ok(new FacultyCreationResponseModel(newFaculty.getId()));
@@ -154,7 +153,7 @@ public class ResourcePoolController {
      * @param facultyId the facultyId
      * @return the matching facultyName
      */
-    @PostMapping("/get-faculty-name")
+    @PostMapping("/getFacultyName")
     public ResponseEntity<String> getFacultyName(@RequestBody long facultyId) {
         Optional<ResourcePool> optional = rpManagementService.findById(facultyId);
         return optional.map(resourcePool -> ResponseEntity.ok(resourcePool.getName()))
@@ -167,7 +166,7 @@ public class ResourcePoolController {
      * @param facultyName the facultyName
      * @return the matching facultyId
      */
-    @PostMapping("/get-faculty-id")
+    @PostMapping("/getFacultyId")
     public ResponseEntity<Long> getFacultyName(@RequestBody String facultyName) {
         Optional<ResourcePool> optional = rpManagementService.findByName(facultyName);
         return optional.map(resourcePool -> ResponseEntity.ok(resourcePool.getId()))

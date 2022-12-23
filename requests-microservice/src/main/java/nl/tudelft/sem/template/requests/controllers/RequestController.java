@@ -195,7 +195,6 @@ public class RequestController {
     */
     @PostMapping("/resourcesById")
     public ResponseEntity<Resources> getResourcesById(@RequestBody long requestId) {
-        System.out.println(requestId);
         return ResponseEntity.ok(registrationService.getResourcesForId(requestId));
     }
 }

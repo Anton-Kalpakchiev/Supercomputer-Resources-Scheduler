@@ -42,7 +42,6 @@ public class ResourcePoolService {
         String dayString = day.get(Calendar.DAY_OF_MONTH) + "-" + month + "-" + day.get(Calendar.YEAR);
         String requestBody = "{\"day\": \"" + dayString + "\",\"requestId\": \"" + requestId + "\"}";
 
-        System.out.println(requestBody);
         HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
         RestTemplate restTemplate = new RestTemplate();
@@ -66,7 +65,7 @@ public class ResourcePoolService {
 
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response =
-            restTemplate.postForEntity("http://localhost:8085/get-faculty-name", request, String.class);
+            restTemplate.postForEntity("http://localhost:8085/getFacultyName", request, String.class);
         if (response.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
@@ -85,7 +84,7 @@ public class ResourcePoolService {
         HttpEntity<String> request = new HttpEntity<>(facultyName, headers);
 
         RestTemplate restTemplate = new RestTemplate();
-        long facultyId = restTemplate.postForObject("http://localhost:8085/get-faculty-id", request, Long.class);
+        long facultyId = restTemplate.postForObject("http://localhost:8085/getFacultyId", request, Long.class);
         return facultyId;
     }
 

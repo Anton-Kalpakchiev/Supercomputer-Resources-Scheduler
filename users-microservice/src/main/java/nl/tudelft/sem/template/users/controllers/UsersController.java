@@ -165,7 +165,7 @@ public class UsersController {
      *
      * @return whether the request was successful
      */
-    @PostMapping("/get-faculty-id-for-manager")
+    @PostMapping("/getFacultyIdForManager")
     public ResponseEntity<Long> getFacultyIdForManager() {
         try {
             String netId = authentication.getNetId();

@@ -59,7 +59,6 @@ public class RegistrationService {
                                       Resources availableResources, Calendar deadline, Resources freePoolResources,
                                       String token)
         throws InvalidResourcesException {
-        System.out.println(resources);
         if (resources.getMemory() < 0 || resources.getCpu() < 0 || resources.getGpu() < 0) {
             throw new InvalidResourcesException("Resource object cannot be created with negative inputs");
         }
@@ -88,7 +87,7 @@ public class RegistrationService {
 
         int status = decideStatusOfRequest(timePeriod, isForTomorrow, frpHasEnoughResources, facultyHasEnoughResources);
 
-        if (status == 0 || status == 1) {
+        if (status == 0) {
             //pending for manual review
             request.setStatus(0);
             requestRepository.save(request);

@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
 import org.junit.jupiter.api.BeforeEach;
@@ -261,6 +262,42 @@ class RegistrationServiceTest {
 
         assertEquals(3, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
                 frpHasEnoughResources, facHasEnoughResources));
+    }
+
+    @Test
+    void getResourcesForId() throws InvalidResourcesException {
+        // Act
+        AppRequest returnedRequest = registrationService.registerRequest(description, resources, owner,
+            facultyName, availableResources, deadline, freePoolResources, token);
+
+        // Assert
+        assertEquals(resources, registrationService.getResourcesForId(returnedRequest.getId()));
+    }
+
+    @Test
+    void getPendingResources() throws InvalidResourcesException {
+
+        // Act
+        AppRequest returnedRequest = registrationService.registerRequest(description, resources, owner,
+            facultyName, availableResources, deadline, freePoolResources, token);
+        returnedRequest.setStatus(0);
+        requestRepository.save(returnedRequest);
+        AppRequest notReturnedRequest1 = registrationService.registerRequest("don't return because of status",
+            resources, owner, facultyName, availableResources, deadline, freePoolResources, token);
+        notReturnedRequest1.setStatus(1);
+        requestRepository.save(notReturnedRequest1);
+        System.out.println(notReturnedRequest1.getStatus());
+        AppRequest notReturnedRequest2 = registrationService.registerRequest("don't return because of facultyName",
+            resources, owner, "other", availableResources, deadline, freePoolResources, token);
+        notReturnedRequest2.setStatus(0);
+        requestRepository.save(notReturnedRequest2);
+        ArrayList<AppRequest> expected = new ArrayList<>();
+        expected.add(returnedRequest);
+
+        // Assert
+        assertEquals(expected, registrationService.getPendingRequestsForFacultyName(facultyName));
+        assertFalse(registrationService.getPendingRequestsForFacultyName(facultyName).contains(notReturnedRequest1));
+        assertFalse(registrationService.getPendingRequestsForFacultyName(facultyName).contains(notReturnedRequest2));
     }
 
 
