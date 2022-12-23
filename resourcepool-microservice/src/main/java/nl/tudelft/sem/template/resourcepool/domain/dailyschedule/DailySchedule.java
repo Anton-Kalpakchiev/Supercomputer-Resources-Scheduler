@@ -197,6 +197,7 @@ public class DailySchedule {
         stringBuilder.append("\n\t Total Resources: ").append(this.totalResources.toString());
         stringBuilder.append("\n\t Available Resources: ").append(this.availableResources.toString());
         stringBuilder.append("\n\t List of requests: ").append(this.list.toString());
+        stringBuilder.append("\n\t");
         return stringBuilder.toString();
     }
 }
