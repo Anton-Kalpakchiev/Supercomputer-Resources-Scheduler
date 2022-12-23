@@ -79,7 +79,7 @@ public class ResourcePoolController {
      */
     @PostMapping("/verifyFaculty")
     public ResponseEntity<VerifyFacultyResponseModel> verifyFaculty(@RequestBody VerifyFacultyRequestModel request)
-        throws Exception {
+            throws Exception {
         try {
 
             boolean result = rpManagementService.verifyFaculty(request.getFacultyId());
@@ -113,7 +113,7 @@ public class ResourcePoolController {
      */
     @PostMapping("/contributeNode")
     public ResponseEntity<NodeInteractionResponseModel> contributeNode(@RequestBody NodeInteractionRequestModel nodeInfo)
-        throws Exception {
+            throws Exception {
         try {
             return ResponseEntity.ok(new NodeInteractionResponseModel(rpManagementService.contributeNode(nodeInfo)));
         } catch (Exception e) {
@@ -130,7 +130,7 @@ public class ResourcePoolController {
      */
     @PostMapping("/deleteNode")
     public ResponseEntity<NodeInteractionResponseModel> deleteNode(@RequestBody NodeInteractionRequestModel nodeInfo)
-        throws Exception {
+            throws Exception {
         try {
             return ResponseEntity.ok(new NodeInteractionResponseModel(rpManagementService.deleteNode(nodeInfo)));
         } catch (Exception e) {
@@ -158,7 +158,7 @@ public class ResourcePoolController {
     public ResponseEntity<String> getFacultyName(@RequestBody long facultyId) {
         Optional<ResourcePool> optional = rpManagementService.findById(facultyId);
         return optional.map(resourcePool -> ResponseEntity.ok(resourcePool.getName()))
-            .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
@@ -171,6 +171,6 @@ public class ResourcePoolController {
     public ResponseEntity<Long> getFacultyName(@RequestBody String facultyName) {
         Optional<ResourcePool> optional = rpManagementService.findByName(facultyName);
         return optional.map(resourcePool -> ResponseEntity.ok(resourcePool.getId()))
-            .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

@@ -26,10 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Hello World requests controller.
- * <p>
- * This controller shows how you can extract information from the JWT token.
- * </p>
+ * This controller shows how you can extract information from the request controller.
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 @RestController
@@ -68,7 +65,7 @@ public class RequestController {
      */
     @PostMapping("/register")
     public ResponseEntity<Long> register(@RequestBody RegistrationRequestModel request, HttpServletRequest requested)
-        throws InvalidResourcesException {
+            throws InvalidResourcesException {
         try {
             String authorizationHeader = requested.getHeader(AUTHORIZATION_HEADER);
             String token = authorizationHeader.split(" ")[1];
@@ -88,7 +85,7 @@ public class RequestController {
 
             try {
                 long requestId = registrationService.registerRequest(description, resources, owner,
-                    facultyName, availableResources, deadline, availableFreePoolResources, token).getId();
+                        facultyName, availableResources, deadline, availableFreePoolResources, token).getId();
                 return ResponseEntity.ok(requestId);
             } catch (InvalidResourcesException e) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -145,7 +142,7 @@ public class RequestController {
         String facultyName = resourcePoolService.getFacultyNameForFacultyId(facultyId, token);
         return ResponseEntity.ok(registrationService.getPendingRequestsForFacultyName(facultyName));
     }
-    
+
     /**
      * The faculty manager manually accepts or rejects a request left for manual approval/rejection.
      *
@@ -201,11 +198,11 @@ public class RequestController {
 
 
     /**
-    * Gets the requested resources given the requestId.
-    *
-    * @param requestId the id of the request
-    * @return the resources that this request requests
-    */
+     * Gets the requested resources given the requestId.
+     *
+     * @param requestId the id of the request
+     * @return the resources that this request requests
+     */
     @PostMapping("/resourcesById")
     public ResponseEntity<Resources> getResourcesById(@RequestBody long requestId) {
         return ResponseEntity.ok(registrationService.getResourcesForId(requestId));
