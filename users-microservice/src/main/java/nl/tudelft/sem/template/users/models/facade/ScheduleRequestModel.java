@@ -1,16 +1,16 @@
-package nl.tudelft.sem.template.users.models;
+package nl.tudelft.sem.template.users.models.facade;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Model for requesting the schedule.
+ * Request model for retrieving schedules.
  */
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RequestScheduleModel {
+public class ScheduleRequestModel {
     private long facultyId;
-    private boolean facultyManager;
 }
