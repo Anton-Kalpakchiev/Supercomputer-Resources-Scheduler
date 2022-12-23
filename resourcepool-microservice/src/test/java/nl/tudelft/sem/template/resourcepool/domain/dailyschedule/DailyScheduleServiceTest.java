@@ -80,29 +80,30 @@ public class DailyScheduleServiceTest {
 
     }
 
-    @Test
-    void testReleaseResourcesSuccessful() throws Exception {
-        DailySchedule dailySchedule = new DailySchedule(day, resourcePoolId);
-        dailySchedule.setTotalResources(new Resources(100, 100, 100));
-        dailySchedule.setAvailableResources(new Resources(70, 70, 70));
-        DailySchedule fpSchedule = new DailySchedule(day, 1L);
-
-        when(mockScheduleRepository.existsByDayAndResourcePoolId(day, 1)).thenReturn(true);
-        when(mockScheduleRepository.existsByDayAndResourcePoolId(day, resourcePoolId)).thenReturn(true);
-        when(mockScheduleRepository.findByDayAndResourcePoolId(day, resourcePoolId)).thenReturn(Optional.of(dailySchedule));
-        when(mockScheduleRepository.findByDayAndResourcePoolId(day, 1L)).thenReturn(Optional.of(fpSchedule));
-
-        dailyScheduleService.releaseResources(day, resourcePoolId);
-        verify(mockScheduleRepository, times(2)).save(argumentCaptor.capture());
-        DailySchedule expectedDailySchedule = argumentCaptor.getAllValues().get(0);
-        DailySchedule expectedFpSchedule = argumentCaptor.getAllValues().get(1);
-
-        assertThat(expectedDailySchedule.getAvailableResources()).isEqualTo(new Resources(0, 0, 0));
-        assertThat(expectedDailySchedule.getTotalResources()).isEqualTo(new Resources(100, 100, 100));
-
-        assertThat(expectedFpSchedule.getAvailableResources()).isEqualTo(new Resources(70, 70, 70));
-        assertThat(expectedFpSchedule.getTotalResources()).isEqualTo(new Resources(70, 70, 70));
-    }
+    //    @Test
+    //    void testReleaseResourcesSuccessful() throws Exception {
+    //        DailySchedule dailySchedule = new DailySchedule(day, resourcePoolId);
+    //        dailySchedule.setTotalResources(new Resources(100, 100, 100));
+    //        dailySchedule.setAvailableResources(new Resources(70, 70, 70));
+    //        DailySchedule fpSchedule = new DailySchedule(day, 1L);
+    //
+    //        when(mockScheduleRepository.existsByDayAndResourcePoolId(day, 1)).thenReturn(true);
+    //        when(mockScheduleRepository.existsByDayAndResourcePoolId(day, resourcePoolId)).thenReturn(true);
+    //        when(mockScheduleRepository
+    //        .findByDayAndResourcePoolId(day, resourcePoolId)).thenReturn(Optional.of(dailySchedule));
+    //        when(mockScheduleRepository.findByDayAndResourcePoolId(day, 1L)).thenReturn(Optional.of(fpSchedule));
+    //
+    //        dailyScheduleService.releaseResources(day, resourcePoolId);
+    //        verify(mockScheduleRepository, times(2)).save(argumentCaptor.capture());
+    //        DailySchedule expectedDailySchedule = argumentCaptor.getAllValues().get(0);
+    //        DailySchedule expectedFpSchedule = argumentCaptor.getAllValues().get(1);
+    //
+    //        assertThat(expectedDailySchedule.getAvailableResources()).isEqualTo(new Resources(0, 0, 0));
+    //        assertThat(expectedDailySchedule.getTotalResources()).isEqualTo(new Resources(100, 100, 100));
+    //
+    //        assertThat(expectedFpSchedule.getAvailableResources()).isEqualTo(new Resources(70, 70, 70));
+    //        assertThat(expectedFpSchedule.getTotalResources()).isEqualTo(new Resources(70, 70, 70));
+    //    }
 
     @Test
     void testReleaseResourcesFp() {

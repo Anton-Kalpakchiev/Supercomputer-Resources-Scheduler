@@ -26,8 +26,13 @@ class DailyScheduleIdTest {
         day.set(Calendar.YEAR, 2022);
         day.set(Calendar.MONTH, 1);
         day.set(Calendar.DAY_OF_MONTH, 1);
+        Calendar dayCopy = Calendar.getInstance();
+        dayCopy.setTimeInMillis(0);
+        dayCopy.set(Calendar.YEAR, day.get(Calendar.YEAR));
+        dayCopy.set(Calendar.MONTH, day.get(Calendar.MONTH));
+        dayCopy.set(Calendar.DAY_OF_MONTH, day.get(Calendar.DAY_OF_MONTH));
         DailyScheduleId dsi = new DailyScheduleId(day, 1);
-        assertEquals(dsi.getDay(), day);
+        assertEquals(dsi.getDay(), dayCopy);
     }
 
     @Test
@@ -95,9 +100,14 @@ class DailyScheduleIdTest {
     @Test
     void testToString() {
         Calendar day = Calendar.getInstance();
+        Calendar dayCopy = Calendar.getInstance();
+        dayCopy.setTimeInMillis(0);
+        dayCopy.set(Calendar.YEAR, day.get(Calendar.YEAR));
+        dayCopy.set(Calendar.MONTH, day.get(Calendar.MONTH));
+        dayCopy.set(Calendar.DAY_OF_MONTH, day.get(Calendar.DAY_OF_MONTH));
         long facId = 5L;
         DailyScheduleId dsId = new DailyScheduleId(day, facId);
-        assertEquals(dsId.toString(), "DailyScheduleId{day=" + day.toString()
+        assertEquals(dsId.toString(), "DailyScheduleId{day=" + dayCopy.toString()
                 + ", resourcePoolId=5}");
     }
 }
