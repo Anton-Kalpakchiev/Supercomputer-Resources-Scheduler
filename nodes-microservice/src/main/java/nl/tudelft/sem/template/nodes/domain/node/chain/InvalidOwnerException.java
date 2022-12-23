@@ -1,7 +1,5 @@
 package nl.tudelft.sem.template.nodes.domain.node.chain;
 
-import nl.tudelft.sem.template.nodes.domain.node.chain.InvalidRequestException;
-
 /**
  * Exception to indicate that the request isn't made by the owner of the node.
  */

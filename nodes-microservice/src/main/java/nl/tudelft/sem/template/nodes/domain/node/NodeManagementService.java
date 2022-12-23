@@ -1,7 +1,11 @@
 package nl.tudelft.sem.template.nodes.domain.node;
 
 import nl.tudelft.sem.template.nodes.authentication.JwtRequestFilter;
-import nl.tudelft.sem.template.nodes.domain.node.chain.*;
+import nl.tudelft.sem.template.nodes.domain.node.chain.FacultyExistenceHandler;
+import nl.tudelft.sem.template.nodes.domain.node.chain.Handler;
+import nl.tudelft.sem.template.nodes.domain.node.chain.InvalidRequestException;
+import nl.tudelft.sem.template.nodes.domain.node.chain.NodeExistenceHandler;
+import nl.tudelft.sem.template.nodes.domain.node.chain.ValidOwnerHandler;
 import nl.tudelft.sem.template.nodes.domain.resources.Resources;
 import nl.tudelft.sem.template.nodes.models.FacultyInteractionRequestModel;
 import nl.tudelft.sem.template.nodes.models.VerifyFacultyRequestModel;
@@ -12,8 +16,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Calendar;
 
 /**
  * A DDD service for registering a new user.
@@ -73,7 +75,7 @@ public class NodeManagementService {
      * Delete a node from the repository.
      *
      * @param nodeId the id of the node to be deleted
-     * @param ownerNetId the id of the owner of the node
+     * @param requesterNetId the netId of the employee which made the request
      * @throws Exception if the node id can't be found or the requester isn't the owner of the node
      */
     public String deleteNode(long nodeId, String requesterNetId) throws Exception {
@@ -134,6 +136,12 @@ public class NodeManagementService {
         }
     }
 
+    /**
+     * Checks if the facultyId belongs to a faculty in the resourcePool microservice.
+     *
+     * @param facultyId the id of the faculty to be checked
+     * @return whether the faculty exists or not
+     */
     public boolean verifyFaculty(long facultyId) {
         String url = "http://localhost:8085/verifyFaculty";
 
