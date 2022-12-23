@@ -4,6 +4,7 @@ import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
 import nl.tudelft.sem.template.users.domain.EmployeeRepository;
+import nl.tudelft.sem.template.users.domain.EmployeeService;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
 import nl.tudelft.sem.template.users.domain.FacultyAccountService;
 import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
@@ -29,6 +30,7 @@ public class RequestSenderService {
     private final transient EmployeeRepository employeeRepository;
     private final transient FacultyAccountRepository facultyAccountRepository;
     private final transient FacultyAccountService facultyAccountService;
+    private final transient EmployeeService employeeService;
 
 
     private final transient RegistrationService registrationService;
@@ -47,13 +49,14 @@ public class RequestSenderService {
      * @param registrationService the injected registration service
      * @param authorization the authorization manager
      * @param restTemplate the provided rest template.
+     * @param employeeService the provided employee service
      */
     public RequestSenderService(SysadminRepository sysadminRepository, EmployeeRepository employeeRepository,
                                 FacultyAccountRepository facultyAccountRepository,
                                 RegistrationService registrationService,
                                 AuthorizationManager authorization,
                                 RestTemplate restTemplate,
-                                FacultyAccountService facultyAccountService) {
+                                FacultyAccountService facultyAccountService, EmployeeService employeeService) {
         this.sysadminRepository = sysadminRepository;
         this.employeeRepository = employeeRepository;
         this.facultyAccountRepository = facultyAccountRepository;
@@ -61,6 +64,7 @@ public class RequestSenderService {
         this.authorization = authorization;
         this.restTemplate = restTemplate;
         this.facultyAccountService = facultyAccountService;
+        this.employeeService = employeeService;
     }
 
     /**
@@ -170,9 +174,42 @@ public class RequestSenderService {
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId
-                    + ") is not a Faculty Manager => can not approve or reject requests.");
+                    + ") is not authorized to approve or reject this request");
         }
     }
+
+    /**
+     * Gets the status of a given request.
+     *
+     * @param url the url of the request MS
+     * @param authorNetId the netId of the user wanting to check the status of the request
+     * @param requestId the id of the request
+     * @param token the JWT token
+     * @return the status of the request
+     * @throws NoSuchUserException if no such user exists
+     * @throws UnauthorizedException if the user is not authorized to check the status of this request
+     * @throws InnerRequestFailedException if something goes wrong with the api call to the request MS
+     */
+    public String getStatusOfRequest(String url, String authorNetId, long requestId, String token)
+            throws NoSuchUserException, UnauthorizedException, InnerRequestFailedException {
+        if (authorization.isOfType(authorNetId, AccountType.EMPLOYEE)
+            && employeeService.getRequestIdsByNetId(authorNetId, token).contains(requestId)) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+
+            HttpEntity<Long> entity = new HttpEntity<>(requestId, headers);
+            try {
+                ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+                return response.getBody();
+            } catch (Exception e) {
+                throw new InnerRequestFailedException(requestTo + url + failed);
+            }
+        } else {
+            throw new UnauthorizedException("(" + authorNetId
+                    + ") is not authorized to approve or reject this request");
+        }
+    }
+
 
     /** Returns the correct message to show the user when a request is successfully approved/rejected.
      *
@@ -184,6 +221,51 @@ public class RequestSenderService {
             return "Request was successfully approved";
         } else {
             return "Request was successfully rejected";
+        }
+    }
+
+    /**
+     * Returns the correct message to show the user when they try to register a request.
+     *
+     * @param wentThrough whether the request went through
+     * @return the correct message to show the user when the request is registered
+     */
+    public String registerRequestMessage(boolean wentThrough) {
+        if (wentThrough) {
+            return "Request was successfully submitted";
+        } else {
+            return "Request was not successfully submitted";
+        }
+    }
+
+    /**
+     * Register a resource request.
+     *
+     * @param url the url of the request MS
+     * @param authorNetId the netID of the author of the request
+     * @param requestModel the requestModel containing the information about the request
+     * @param token the JWT token
+     * @return whether the request went through
+     * @throws NoSuchUserException if no such user was found
+     * @throws InnerRequestFailedException if the request MS did not respond
+     * @throws UnauthorizedException if the employee submitting the request is not employeed at the respective faculty
+     */
+    public boolean registerRequest(String url, String authorNetId, RegistrationRequestModel requestModel, String token)
+            throws NoSuchUserException, InnerRequestFailedException, UnauthorizedException {
+        if (authorization.isOfType(authorNetId, AccountType.EMPLOYEE)) { //TODO check if faculty has employeed the employee
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+
+            HttpEntity<RegistrationRequestModel> entity = new HttpEntity<>(requestModel, headers);
+            try {
+                restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+                return true;
+            } catch (Exception e) {
+                throw new InnerRequestFailedException(requestTo + url + failed);
+            }
+        } else {
+            throw new UnauthorizedException("(" + authorNetId
+                    + ") is not employeed by " + requestModel.getFacultyName());
         }
     }
 }

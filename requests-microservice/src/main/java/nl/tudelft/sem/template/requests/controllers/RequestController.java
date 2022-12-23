@@ -161,5 +161,17 @@ public class RequestController {
         return ResponseEntity.ok(true);
     }
 
+    /**
+     * Gets the set of IDs of all resource requests made by a given user.
+     *
+     * @param netId the netID of the given user
+     * @return the set of IDs encoded in a String
+     */
+    @GetMapping("/getRequestIds")
+    public ResponseEntity<String> getRequestIdsByNetId(@RequestBody String netId) {
+        return ResponseEntity.ok(registrationService.getRequestIdsByNetId(netId));
+    }
+
+
 
 }
