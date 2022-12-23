@@ -6,4 +6,5 @@ import lombok.Data;
 public class AutomaticApprovalModel {
     private String day;
     private Long requestId;
+    private String facultyName;
 }

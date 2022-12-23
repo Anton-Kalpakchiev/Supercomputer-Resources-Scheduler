@@ -2,9 +2,11 @@ package nl.tudelft.sem.template.users.domain.user;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import nl.tudelft.sem.template.users.domain.Employee;
+import nl.tudelft.sem.template.users.domain.Sysadmin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,6 +47,15 @@ public class EmployeeAndUserUnitTest {
     @Test
     public void getParentFacultyIdTest() {
         assertThat(testSubject.getParentFacultyIds()).isEqualTo(Set.of(parentFacultyId));
+    }
+
+    @Test
+    public void setParentFacultyIdTest() {
+        Set<Long> parentIds = new HashSet<>();
+        parentIds.add(1L);
+        parentIds.add(2L);
+        testSubject.setParentFacultyIds(parentIds);
+        assertThat(testSubject.getParentFacultyIds()).isEqualTo(parentIds);
     }
 
     @Test
@@ -96,6 +107,26 @@ public class EmployeeAndUserUnitTest {
         Employee other = new Employee(netId, Set.of(6L));
         //only compared by netId.
         assertThat(testSubject.equals(other)).isTrue();
+    }
+
+    @Test
+    public void equalsSameTest() {
+        //only compared by netId.
+        assertThat(testSubject.equals(testSubject)).isTrue();
+    }
+
+    @Test
+    public void equalsOtherClass() {
+        Sysadmin other = new Sysadmin(netId);
+        //only compared by netId.
+        assertThat(testSubject.equals(other)).isFalse();
+    }
+
+    @Test
+    public void equalsNull() {
+        Sysadmin other = new Sysadmin(netId);
+        //only compared by netId.
+        assertThat(testSubject.equals(null)).isFalse();
     }
 
     @Test

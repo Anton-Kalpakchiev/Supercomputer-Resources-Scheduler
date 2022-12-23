@@ -28,8 +28,13 @@ class DailyScheduleTest {
         day.set(Calendar.YEAR, 2022);
         day.set(Calendar.MONTH, 1);
         day.set(Calendar.DAY_OF_MONTH, 1);
+        Calendar dayCopy = Calendar.getInstance();
+        dayCopy.setTimeInMillis(0);
+        dayCopy.set(Calendar.YEAR, day.get(Calendar.YEAR));
+        dayCopy.set(Calendar.MONTH, day.get(Calendar.MONTH));
+        dayCopy.set(Calendar.DAY_OF_MONTH, day.get(Calendar.DAY_OF_MONTH));
         DailySchedule ds = new DailySchedule(day, 1);
-        assertEquals(ds.getDay(), day);
+        assertEquals(ds.getDay(), dayCopy);
     }
 
     @Test
@@ -98,12 +103,17 @@ class DailyScheduleTest {
 
     @Test
     void testToString() {
-        Calendar cal = Calendar.getInstance();
+        Calendar day = Calendar.getInstance();
         long facId = 1L;
+        Calendar dayCopy = Calendar.getInstance();
+        dayCopy.setTimeInMillis(0);
+        dayCopy.set(Calendar.YEAR, day.get(Calendar.YEAR));
+        dayCopy.set(Calendar.MONTH, day.get(Calendar.MONTH));
+        dayCopy.set(Calendar.DAY_OF_MONTH, day.get(Calendar.DAY_OF_MONTH));
 
-        DailySchedule ds = new DailySchedule(cal, facId);
+        DailySchedule ds = new DailySchedule(day, facId);
         ds.addRequest(50L);
-        assertEquals(ds.toString(), "DailySchedule{day=" + cal.toString()
+        assertEquals(ds.toString(), "DailySchedule{day=" + dayCopy.toString()
                 + ", resourcePoolId=1, list=[50]}");
     }
 }

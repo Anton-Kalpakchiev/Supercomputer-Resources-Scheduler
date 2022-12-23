@@ -95,7 +95,9 @@ public class RegistrationService {
             //auto approve
             request.setStatus(1);
             requestRepository.save(request);
-            resourcePoolService.approval(deadline, request.getId(), token);
+            Calendar tomorrow = Calendar.getInstance();
+            tomorrow.add(Calendar.DAY_OF_MONTH, 1);
+            resourcePoolService.approval(tomorrow, request.getId(), true, token);
         } else if (status == 2) {
             //auto reject
             request.setStatus(2);
@@ -140,7 +142,9 @@ public class RegistrationService {
             //find request in Repo, update its status
             requestRepository.save(request);
             //update RP/Schedule MS so that it can update the schedule for the corresponding faculty for tomorrow
-            resourcePoolService.approval(deadline, request.getId(), token);
+            Calendar tomorrow = Calendar.getInstance();
+            tomorrow.add(Calendar.DAY_OF_MONTH, 1);
+            resourcePoolService.approval(tomorrow, request.getId(), true, token);
         } else {
             //rejection
             //find request in Repo, update its status
