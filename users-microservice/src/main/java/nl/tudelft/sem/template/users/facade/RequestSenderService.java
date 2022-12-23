@@ -30,7 +30,6 @@ import org.springframework.web.client.RestTemplate;
  * A DDD for sending requests to other microservice.
  */
 @Service
-@AllArgsConstructor
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class RequestSenderService {
     private final transient FacultyAccountService facultyAccountService;
