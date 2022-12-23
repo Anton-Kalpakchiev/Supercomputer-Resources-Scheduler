@@ -122,45 +122,6 @@ public class PromotionAndEmploymentUnitTest {
     }
 
     @Test
-    public void createFacultyNormalFlow() {
-        try {
-            mockRestServiceServer.expect(requestTo("http://localhost:8085/createFaculty"))
-                    .andRespond(withSuccess("{\"facultyId\": \"" + facultyId + "\"}", MediaType.APPLICATION_JSON));
-
-            long expected = sut.createFaculty(adminNetId, employeeNetId, facultyName, sampleToken);
-            assertThat(expected).isEqualTo(facultyId);
-
-            verify(registrationService).dropEmployee(employeeNetId);
-            verify(registrationService).addFacultyAccount(employeeNetId, facultyId);
-        } catch (Exception e) {
-            fail("An exception was thrown.");
-        }
-    }
-
-    @Test
-    public void createFacultyExceptionsUnauthorized() {
-        assertThrows(UnauthorizedException.class, () -> {
-            sut.createFaculty(facultyNetId, employeeNetId, facultyName, sampleToken);
-        });
-    }
-
-    @Test
-    public void createFacultyExceptionsNoSuchUser() {
-        assertThrows(NoSuchUserException.class, () -> {
-            sut.createFaculty(adminNetId, facultyNetId, facultyName, sampleToken);
-        });
-    }
-
-    @Test
-    public void createFacultyExceptionsCanNotSendRequest() {
-        mockRestServiceServer.expect(requestTo("http://localhost:8085/createFaculty"))
-                .andRespond(withBadRequest());
-        assertThrows(Exception.class, () -> {
-            sut.createFaculty(adminNetId, employeeNetId, facultyName, sampleToken);
-        });
-    }
-
-    @Test
     void jsonParsedCorrectly() throws EmploymentException {
         String facultyIds = "6, 7, 8";
         assertThat(sut.parseJsonFacultyIds(facultyIds)).isEqualTo(Set.of(6L, 7L, 8L));

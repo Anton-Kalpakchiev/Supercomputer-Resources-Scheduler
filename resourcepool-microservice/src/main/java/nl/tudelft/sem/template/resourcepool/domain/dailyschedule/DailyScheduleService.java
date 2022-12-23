@@ -109,18 +109,30 @@ public class DailyScheduleService {
      * @return the available resources
      * @throws Exception thrown when resources were not found
      */
-    public Resources getAvailableResourcesById(long resourcePoolId) throws Exception {
-        Calendar tomorrow = Calendar.getInstance();
-        tomorrow.add(Calendar.DAY_OF_MONTH, 1);
-        Optional<DailySchedule> optional = scheduleRepository.findByDayAndResourcePoolId(tomorrow, resourcePoolId);
-        if (optional.isPresent()) {
-            return optional.get().getAvailableResources();
-        } else {
-            DailySchedule toSave = new DailySchedule(tomorrow, resourcePoolId);
-            saveDailyScheduleInit(toSave);
-            scheduleRepository.save(toSave);
-            return toSave.getAvailableResources();
+    public Resources getAvailableResourcesById(long resourcePoolId, Calendar tomorrow) throws Exception {
+        if (!scheduleRepository.existsByDayAndResourcePoolId(tomorrow, resourcePoolId)) {
+            DailySchedule newSchedule = new DailySchedule(tomorrow, resourcePoolId);
+            saveDailyScheduleInit(newSchedule);
         }
+
+        if (scheduleRepository.findByDayAndResourcePoolId(tomorrow, resourcePoolId).isPresent()) {
+            return scheduleRepository.findByDayAndResourcePoolId(tomorrow, resourcePoolId).get().getAvailableResources();
+        } else {
+            // Proper exception implemented in different branches
+            throw new Exception("Resource pool not found");
+        }
+    }
+
+    /**
+     * Gets the date of the next day.
+     *
+     * @return returns the date of the next day
+     */
+    public static Calendar getTomorrow() {
+        Calendar tomorrow = Calendar.getInstance();
+        tomorrow.add(Calendar.DAY_OF_YEAR, 1);
+        tomorrow.setTime(tomorrow.getTime());
+        return tomorrow;
     }
 
     /**
@@ -216,6 +228,21 @@ public class DailyScheduleService {
         freePoolSchedule.setAvailableResources(Resources.add(availableInFreePool, leftOverResources));
         freePoolSchedule.setTotalResources(Resources.add(totalInFreePool, leftOverResources));
         scheduleRepository.save(freePoolSchedule);
+    }
+
+    /**
+     * Gets the faculty name from the facultyId.
+     *
+     * @param facultyId the faculty id
+     * @return the name of the faculty
+     * @throws FacultyNotFoundException thrown when the faculty does not exist
+     */
+    public String getFacultyName(long facultyId) throws FacultyNotFoundException {
+        if (resourcePoolRepo.findById(facultyId).isPresent()) {
+            return resourcePoolRepo.findById(facultyId).get().getName();
+        } else {
+            throw new FacultyNotFoundException("Faculty was not found!");
+        }
     }
 
     /**
