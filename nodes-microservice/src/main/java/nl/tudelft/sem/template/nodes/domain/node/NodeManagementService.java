@@ -134,16 +134,16 @@ public class NodeManagementService {
         }
     }
 
-    public boolean verifyFaculty(long nodeId) {
+    public boolean verifyFaculty(long facultyId) {
         String url = "http://localhost:8085/verifyFaculty";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(JwtRequestFilter.token);
 
-        HttpEntity<VerifyFacultyRequestModel> entity = new HttpEntity<>(new VerifyFacultyRequestModel(nodeId), headers);
+        HttpEntity<VerifyFacultyRequestModel> entity = new HttpEntity<>(new VerifyFacultyRequestModel(facultyId), headers);
         try {
-            return restTemplate.exchange(url, HttpMethod.GET, entity,
+            return restTemplate.exchange(url, HttpMethod.POST, entity,
                     VerifyFacultyResponseModel.class).getBody().isVerified();
         } catch (Exception e) {
             return false;
