@@ -163,7 +163,7 @@ public class FacadeController {
     /**
      * Post request from a faculty manager to manually approve/reject a request.
      *
-     * @param approvalModel containts the requestID, whether it is accepted or rejected,
+     * @param approvalModel contains the requestID, whether it is accepted or rejected,
      *                      and if accepted, its day of execution
      * @return a message to the user informing them the request is successfully approved/rejected
      */

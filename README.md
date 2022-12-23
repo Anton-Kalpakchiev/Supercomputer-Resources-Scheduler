@@ -1,27 +1,137 @@
-# Lab Template
+# SEM Project Group 14a
 
-This template contains two microservices:
-- authentication-microservice
-- example-microservice
+## Description of project
 
-The `authentication-microservice` is responsible for registering new users and authenticating current ones. After successful authentication, this microservice will provide a JWT token which can be used to bypass the security on the `example-microservice`. This token contains the *NetID* of the user that authenticated. If your scenario includes different roles, these will have to be added to the authentication-microservice and to the JWT token. To do this, you will have to:
-- Add a concept of roles to the `AppUser`
-- Add the roles to the `UserDetails` in `JwtUserDetailsService`
-- Add the roles as claims to the JWT token in `JwtTokenGenerator`
+The TU Delft has recently acquired a new super computer called DelftBlue. The goal is for all employees of the university to have access to this supercomputer and use it for their research. For this reason the university has asked us to model and develop a system for employees to request and schedule processor time based on their tasks requirements. The person responsible for overseeing this project has summarized what they would like to have developed. The system, as they described it, should be a compute job scheduling system. The goal of this project is to create this compute job scheduling system.
 
-The `example-microservice` is just an example and needs to be modified to suit the domain you are modeling based on your scenario.
+## How to run it
+After cloning the repository, all the microservices should be run, by starting the Spring applications. Then, *Postman* can be used to perform the different requests. All requests can be made by calling *localhost:8086/*, followed by the url stated before the explanation of the request.
 
-The `domain` and `application` packages contain the code for the domain layer and application layer. The code for the framework layer is the root package as *Spring* has some limitations on were certain files are located in terms of autowiring.
+## Requests
 
-## Running the microservices
+### Faculties
 
-You can run the two microservices individually by starting the Spring applications. Then, you can use *Postman* to perform the different requests:
+### POST /createFaculty
+This request allows a user to request the creation of a new faculty. It is only accessible to users with the SYSADMIN role.
 
-Register:
-![image](instructions/register.png)
+It expects a request body with a request object, which is the faculty creation request. It should be formatted as follows:
+{
+    "name": the name of the faculty that needs to be created,
+    "managerNetId": the netId of the account that needs to be matched to the faculty and needs to be promoted to a faculty account
+}
 
-Authenticate:
-![image](instructions/authenticate.png)
+The endpoint returns a message indicating whether the request was successful.
 
-Hello:
-![image](instructions/hello.png)
+#### GET: /distribution/current
+This requests returns a string with the current distribution of the resources in the system. It is only accessible to users with the SYSADMIN role.
+
+#### POST: /distribution/add
+This requests adds a distribution for a faculty to the queue. It is only accessible to users with the SYSADMIN role.
+
+The endpoint expects a parameter distribution which is the wanted percentage of resources for a faculty. 
+It should be formatted as follows: 
+{   
+    "name": the faculty name,
+
+    "cpu": the percentage of cpu, given as a double,
+
+    "gpu": the percentage of gpu, given as a double,
+
+    "memory": the percentage of memory, given as a double
+}
+
+It returns a 200 OK status code if the adding is successful.
+
+#### GET: /distribution/status
+This request returns a string with the current distributions in the queue. It is only accessible to users with the SYSADMIN role. The endpoint returns a ResponseEntity containing a string with the current distributions in the queue.
+
+#### POST: /distribution/save
+This request saves all the current faculty distributions in the queue to the full system. It is only accessible to users with the SYSADMIN role. The endpoint returns a 200 OK status code if the saving is successful.
+
+#### POST: /distribution/clear
+This request clears the queue with all the current faculty distributions. It is only accessible to users with the SYSADMIN role. The endpoint returns a 200 OK status code if the clearing is successful.
+
+### Requests
+
+#### POST: /request/status
+This request allows the user to retrieve the status of a request. It expects a request parameter requestID, which needs to be a long, to be passed in the request body.
+
+The endpoint returns the status of the request found in the database with the given id.
+
+#### POST: /request/register
+This request allows a user to register a resource request.
+
+ It expects a request body with a request object, which is a model of the request containing all the important information. It should be formatted as follows:
+ {
+    "description": a String containing the description of the request,
+
+    "cpu": an int containg the requested amount of cpu,
+
+    "gpu": an int containg the requested amount of gpu,
+
+    "memory": an int containg the requested amount of memory,
+
+    "facultyName": the faculty name for which the request is made,
+
+    "deadline": the deadline, formatted as follows: "DD-MM-YYYY"
+ }
+
+The endpoint returns a message to the user that tells them whether their request was successfully submitted.
+
+#### GET /pendingRequests
+This request returns a string with the pending requests for a faculty. It is only accessible to users with a Faculty account.
+
+The endpoint returns a ResponseEntity containing a string with the pending request for that faculty.
+
+### Nodes
+
+#### POST /contributeNode
+This request allows an EMPLOYEE to contribute a node to a faculty. 
+
+The input should be formatted as follows:
+{
+    "name": the name of the node,
+
+    "url": the url of the node,
+
+    "facultyId": the id of the faculty that the node has to be contributed to,
+
+    "token": the token of the node,
+
+    "cpu": an int containg the contributed amount of cpu,
+
+    "gpu": an int containg the contributed amount of gpu,
+
+    "memory": an int containg the contributed amount of memory,
+}
+
+The endpoint returns a 200 OK status code if the contribution was successful.
+
+#### POST /deleteNode
+This request allows an EMPLOYEE to delete a node from a faculty. It expects a request parameter nodeID, which needs to be a long, to be passed in the request body.
+
+The endpoint returns a 200 OK status code if the deletion was successful.
+
+### Schedules
+
+#### GET: /schedules/viewSchedules
+This request allows a user to view the schedules they are authorized to view. Depending on the user's role, the following rules apply:
+
+SYSADMIN: All schedules for all available days per faculty are returned.
+Faculty Manager: All schedules for all available days of their faculty are returned.
+Employee: No schedules are returned.
+The endpoint returns the schedules of the authorized faculties.
+
+#### POST: /request/manualSchedule
+This endpoint allows a Faculty Manager to manually approve or reject a request. 
+
+It expects a request body that should formatted as followed:
+{
+    "approved": boolean, true when the request needs to be approved, false otherwise,
+
+    "requestId": long of the requestId,
+
+    "dayOfExecution": the day of execution, formatted as follows: "DD-MM-YYYY"
+}
+
+The endpoint returns a message to the user informing them the request is successfully approved or rejected.
