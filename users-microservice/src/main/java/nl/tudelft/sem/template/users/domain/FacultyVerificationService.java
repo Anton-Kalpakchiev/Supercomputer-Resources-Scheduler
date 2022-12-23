@@ -4,7 +4,6 @@ import java.util.Objects;
 import lombok.AllArgsConstructor;
 import nl.tudelft.sem.template.users.models.VerifyFacultyRequestModel;
 import nl.tudelft.sem.template.users.models.VerifyFacultyResponseModel;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

@@ -8,7 +8,6 @@ import nl.tudelft.sem.template.nodes.domain.node.NodeUrl;
 import nl.tudelft.sem.template.nodes.domain.node.Token;
 import nl.tudelft.sem.template.nodes.domain.resources.Resources;
 import nl.tudelft.sem.template.nodes.models.NodeContributionRequestModel;
-import nl.tudelft.sem.template.nodes.models.NodeDeletionRequestModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -69,12 +68,12 @@ public class NodeController {
      * @throws Exception if the node id couldn't be found
      */
     @PostMapping("/deleteNode")
-    public ResponseEntity deleteNode(@RequestBody NodeDeletionRequestModel nodeId) throws Exception {
+    public ResponseEntity<String> deleteNode(@RequestBody Long nodeId) throws Exception {
         try {
-            nodeManagementService.deleteNode(nodeId.getNodeId(), authManager.getNetId());
+            String nodeName = nodeManagementService.deleteNode(nodeId, authManager.getNetId());
+            return ResponseEntity.ok(nodeName);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-        return ResponseEntity.ok().build();
     }
 }
