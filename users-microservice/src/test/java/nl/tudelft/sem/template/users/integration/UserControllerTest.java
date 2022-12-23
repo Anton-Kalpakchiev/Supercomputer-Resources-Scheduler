@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,10 +22,10 @@ import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.domain.AccountType;
 import nl.tudelft.sem.template.users.domain.Employee;
 import nl.tudelft.sem.template.users.domain.EmployeeRepository;
+import nl.tudelft.sem.template.users.domain.FacultyAccount;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
 import nl.tudelft.sem.template.users.domain.FacultyVerificationService;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
-import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
 import nl.tudelft.sem.template.users.domain.Sysadmin;
 import nl.tudelft.sem.template.users.domain.SysadminRepository;
 import nl.tudelft.sem.template.users.models.FacultyAssignmentRequestModel;
@@ -214,6 +215,59 @@ public class UserControllerTest {
     }
 
     @Test
+    public void fireEmployeeTestMultipleFaculties() throws Exception {
+        //Arrange
+        when(mockAuthenticationManager.getNetId()).thenReturn("admin");
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn("admin");
+        when(facultyVerificationService.verifyFaculty(anyLong(), anyString())).thenReturn(true);
+        when(authorization.isOfType(anyString(), any())).thenReturn(true);
+
+        long secondFaculty = 5L;
+        when(employeeRepository.findByNetId(employeeNetId))
+                .thenReturn(Optional.of(new Employee(employeeNetId, Set.of(facultyId, secondFaculty))));
+
+        //Act
+        ResultActions result = mockMvc.perform(post("/terminateEmployee")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer MockedToken")
+                .content(objectMapper.writeValueAsString(
+                        new FacultyAssignmentRequestModel(employeeNetId, facultyId + ", " + secondFaculty))));
+
+        //Assert
+        result.andExpect(status().isOk());
+
+        verify(employeeRepository, times(2)).saveAndFlush(new Employee(employeeNetId, Set.of()));
+        String response = result.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo("User (" + employeeNetId
+                + ") was removed from the following faculties: [5, 6]");
+    }
+
+    @Test
+    public void fireEmployeeUnauthorized() throws Exception {
+        //Arrange
+        when(mockAuthenticationManager.getNetId()).thenReturn("admin");
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn("admin");
+        when(facultyVerificationService.verifyFaculty(anyLong(), anyString())).thenReturn(true);
+        when(authorization.isOfType(anyString(), any())).thenReturn(false);
+
+        long secondFaculty = 5L;
+        when(employeeRepository.findByNetId(employeeNetId))
+                .thenReturn(Optional.of(new Employee(employeeNetId, Set.of(facultyId, secondFaculty))));
+
+        //Act
+        ResultActions result = mockMvc.perform(post("/terminateEmployee")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer MockedToken")
+                .content(objectMapper.writeValueAsString(
+                        new FacultyAssignmentRequestModel(employeeNetId, facultyId + ", " + secondFaculty))));
+
+        //Assert
+        result.andExpect(status().isUnauthorized());
+    }
+
+    @Test
     public void checkAccessAdminNormalFlow() throws Exception {
         when(mockAuthenticationManager.getNetId()).thenReturn(adminNetId);
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
@@ -272,6 +326,102 @@ public class UserControllerTest {
         ResultActions result = mockMvc.perform(get("/checkAccess")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer MockedToken"));
+
+        result.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void promoteToSysadminNormalFlow() throws Exception {
+        when(mockAuthenticationManager.getNetId()).thenReturn(adminNetId);
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn(adminNetId);
+
+        when(authorization.checkAccess(adminNetId)).thenReturn(AccountType.SYSADMIN);
+        when(authorization.checkAccess(employeeNetId)).thenReturn(AccountType.EMPLOYEE);
+        when(authorization.isOfType(anyString(), any(AccountType.class))).thenReturn(true);
+
+        when(employeeRepository.existsByNetId(employeeNetId)).thenReturn(true);
+
+        ResultActions result = mockMvc.perform(post("/promoteToSysadmin")
+                .header("Authorization", "Bearer MockedToken")
+                .content("{\"netId\":\"" + employeeNetId + "\"}")
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        result.andExpect(status().isOk());
+
+        verify(employeeRepository).deleteByNetId(employeeNetId);
+        verify(sysadminRepository).save(new Sysadmin(employeeNetId));
+    }
+
+    @Test
+    public void promoteToSysadminUnauthorized() throws Exception {
+        when(mockAuthenticationManager.getNetId()).thenReturn(adminNetId);
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn(adminNetId);
+
+        when(authorization.checkAccess(adminNetId)).thenReturn(AccountType.EMPLOYEE);
+        when(authorization.checkAccess(employeeNetId)).thenReturn(AccountType.EMPLOYEE);
+
+        ResultActions result = mockMvc.perform(post("/promoteToSysadmin")
+                .header("Authorization", "Bearer MockedToken")
+                .content("{\"netId\":\"" + employeeNetId + "\"}")
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        result.andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void promoteToSysadminNoSuchUser() throws Exception {
+        when(mockAuthenticationManager.getNetId()).thenReturn(adminNetId);
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn(adminNetId);
+
+        when(authorization.checkAccess(adminNetId)).thenReturn(AccountType.SYSADMIN);
+        when(authorization.checkAccess(employeeNetId)).thenThrow(new NoSuchUserException(""));
+        when(authorization.isOfType(adminNetId, AccountType.SYSADMIN)).thenReturn(true);
+
+        ResultActions result = mockMvc.perform(post("/promoteToSysadmin")
+                .header("Authorization", "Bearer MockedToken")
+                .content("{\"netId\":\"" + employeeNetId + "\"}")
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        result.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void getFacultyIdNormalFlow() throws Exception {
+        String facultyNetId = "mathAccount";
+        long facId = 5L;
+        when(facultyAccountRepository.findByNetId(facultyNetId)).thenReturn(
+                Optional.of(new FacultyAccount(facultyNetId, facId)));
+
+        when(mockAuthenticationManager.getNetId()).thenReturn(facultyNetId);
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn(facultyNetId);
+
+        ResultActions result = mockMvc.perform(post("/getFacultyIdForManager")
+                .header("Authorization", "Bearer MockedToken")
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        result.andExpect(status().isOk())
+                .andExpect(content().string(String.valueOf(facId)));
+    }
+
+    @Test
+    public void getFacultyIdNoSuchUser() throws Exception {
+        String facultyNetId = "mathAccount";
+        when(mockAuthenticationManager.getNetId()).thenReturn(facultyNetId);
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn(facultyNetId);
+
+        ResultActions result = mockMvc.perform(post("/getFacultyIdForManager")
+                .header("Authorization", "Bearer MockedToken")
+                .contentType(MediaType.APPLICATION_JSON)
+        );
 
         result.andExpect(status().isBadRequest());
     }
