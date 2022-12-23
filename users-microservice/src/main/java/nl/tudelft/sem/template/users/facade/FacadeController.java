@@ -14,6 +14,8 @@ import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
 import nl.tudelft.sem.template.users.models.facade.ManualApprovalModel;
+import nl.tudelft.sem.template.users.models.facade.NodeContributionRequestModel;
+import nl.tudelft.sem.template.users.models.facade.NodeDeletionRequestModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -183,6 +185,47 @@ public class FacadeController {
             requestSenderService.approveRejectRequest(url, authentication.getNetId(), approvalModel, JwtRequestFilter.token);
             String answer = requestSenderService.getRequestAnswer(approved);
             return ResponseEntity.ok(answer);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
+        }
+    }
+
+    /**
+     * Contributes a node to a faculty.
+     * Only accessible for an EMPLOYEE.
+     *
+     * @return 200 OK if the contribution was successful
+     */
+    @PostMapping("/contributeNode")
+    public ResponseEntity<String> contributeNode(@RequestBody NodeContributionRequestModel nodeInfo) {
+        try {
+            String url = "http://localhost:8083/contributeNode";
+            long nodeId = requestSenderService.contributeNodeRequest(
+                    url, authentication.getNetId(), JwtRequestFilter.token, nodeInfo);
+            return ResponseEntity.ok("The node with the name \"" + nodeInfo.getName()
+                                    + "\" has been contributed. The ID of the node is: " + nodeId + '.');
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
+        }
+    }
+
+    /**
+     * Deletes a node from a faculty.
+     * Only accessible for an EMPLOYEE.
+     *
+     * @return 200 OK if the deletion was successful
+     */
+    @PostMapping("/deleteNode")
+    public ResponseEntity<String> deleteNode(@RequestBody NodeDeletionRequestModel nodeId) {
+        try {
+            String url = "http://localhost:8083/deleteNode";
+            String nodeName = requestSenderService.deleteNodeRequest(
+                    url, authentication.getNetId(), JwtRequestFilter.token, nodeId.getNodeId());
+            return ResponseEntity.ok("The node with the name \"" + nodeName + "\" has been successfully deleted.");
+        } catch (UnauthorizedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
         }
