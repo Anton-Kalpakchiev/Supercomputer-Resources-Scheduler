@@ -12,10 +12,13 @@ import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
+import nl.tudelft.sem.template.users.models.ResourcesDto;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
 import nl.tudelft.sem.template.users.models.facade.ManualApprovalModel;
 import nl.tudelft.sem.template.users.models.facade.NodeContributionRequestModel;
 import nl.tudelft.sem.template.users.models.facade.NodeDeletionRequestModel;
+import nl.tudelft.sem.template.users.models.facade.ReleaseResourcesRequestModel;
+import nl.tudelft.sem.template.users.models.facade.RequestTomorrowResourcesRequestModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -269,6 +272,52 @@ public class FacadeController {
     }
 
     /**
+     * Release resources for a particular faculty on a particular day.
+     *
+     * @param request the request body containing the faculty id and day
+     * @return a string which indicates whether the request was successful
+     */
+    @PostMapping("/releaseResources")
+    public ResponseEntity<String> releaseResources(@RequestBody ReleaseResourcesRequestModel request) {
+        try {
+            String url = "http://localhost:8085/releaseResources";
+            String facultyName = requestSenderService.releaseResourcesRequest(
+                    url, authentication.getNetId(), JwtRequestFilter.token, request);
+            return ResponseEntity.ok("The resources for " + facultyName
+                    + " have successfully been released to the free resource pool of that day");
+        } catch (UnauthorizedException e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
+     * Request the available resources for the next day for a particular faculty.
+     *
+     * @param request the request body containing the facultyId
+     * @return a String of the available resources for tomorrow.
+     */
+    @PostMapping("/availableResourcesForTomorrow")
+    public ResponseEntity<String> getResourcesForTomorrow(@RequestBody RequestTomorrowResourcesRequestModel request) {
+        try {
+            String url = "http://localhost:8085/availableFacultyResources";
+
+            ResourcesDto resourcesTomorrow = requestSenderService.getResourcesTomorrow(
+                    url, authentication.getNetId(), JwtRequestFilter.token, request.getResourcePoolId());
+            return ResponseEntity.ok("The resources for tomorrow for resource pool id " + request.getResourcePoolId()
+                    + " are: <CPU: "
+                    + resourcesTomorrow.getCpu() + ", GPU: "
+                    + resourcesTomorrow.getGpu() + ", Memory: "
+                    + resourcesTomorrow.getMemory() + ">");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    /**
      * Returns a string with the pending requests for that faculty.
      * Only accessible for a Faculty account.
      *
@@ -277,7 +326,7 @@ public class FacadeController {
     @GetMapping("/pendingRequests")
     public ResponseEntity<String> getPendingRequests() {
         try {
-            String url = "http://localhost:8084/pending-requests";
+            String url = "http://localhost:8084/pendingRequests";
             String result = requestSenderService.getRequestFromFacultyAccount(url,
                     authentication.getNetId(), JwtRequestFilter.token);
             return ResponseEntity.ok(result);
@@ -288,5 +337,4 @@ public class FacadeController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
-
 }

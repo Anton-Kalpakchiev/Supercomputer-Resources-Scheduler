@@ -1,23 +1,31 @@
 package nl.tudelft.sem.template.users.facade;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
 import nl.tudelft.sem.template.users.domain.AccountType;
 import nl.tudelft.sem.template.users.domain.EmployeeRepository;
 import nl.tudelft.sem.template.users.domain.EmployeeService;
+import nl.tudelft.sem.template.users.domain.EmploymentException;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
 import nl.tudelft.sem.template.users.domain.FacultyAccountService;
+import nl.tudelft.sem.template.users.domain.FacultyException;
+import nl.tudelft.sem.template.users.domain.FacultyVerificationService;
 import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.SysadminRepository;
+import nl.tudelft.sem.template.users.models.ResourcesDto;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
 import nl.tudelft.sem.template.users.models.facade.ManualApprovalModel;
 import nl.tudelft.sem.template.users.models.facade.NodeContributionRequestModel;
+import nl.tudelft.sem.template.users.models.facade.ReleaseResourcesRequestModel;
+import nl.tudelft.sem.template.users.models.facade.RequestTomorrowResourcesRequestModel;
 import nl.tudelft.sem.template.users.models.facade.ScheduleRequestModel;
 import nl.tudelft.sem.template.users.models.facade.ScheduleResponseModel;
 import org.springframework.http.HttpEntity;
@@ -27,14 +35,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-
 /**
  * A DDD for sending requests to other microservice.
  */
 @Service
+@AllArgsConstructor
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class RequestSenderService {
     private final transient FacultyAccountService facultyAccountService;
+    private final transient FacultyVerificationService facultyVerificationService;
     private final transient SysadminRepository sysadminRepository;
     private final transient EmployeeRepository employeeRepository;
     private final transient FacultyAccountRepository facultyAccountRepository;
@@ -45,32 +54,6 @@ public class RequestSenderService {
 
     private final transient RestTemplate restTemplate;
 
-    /**
-     * Constructor for the request sender service.
-     *
-     * @param sysadminRepository       the injected sysadmin repository
-     * @param employeeRepository       the injected employee repository.
-     * @param facultyAccountRepository the injected faculty account repo.
-     * @param registrationService the injected registration service
-     * @param authorization the authorization manager
-     * @param restTemplate the provided rest template.
-     * @param employeeService the provided employee service
-     */
-    public RequestSenderService(SysadminRepository sysadminRepository, EmployeeRepository employeeRepository,
-                                FacultyAccountRepository facultyAccountRepository,
-                                RegistrationService registrationService,
-                                AuthorizationManager authorization,
-                                RestTemplate restTemplate,
-                                FacultyAccountService facultyAccountService, EmployeeService employeeService) {
-        this.sysadminRepository = sysadminRepository;
-        this.employeeRepository = employeeRepository;
-        this.facultyAccountRepository = facultyAccountRepository;
-        this.registrationService = registrationService;
-        this.authorization = authorization;
-        this.restTemplate = restTemplate;
-        this.facultyAccountService = facultyAccountService;
-        this.employeeService = employeeService;
-    }
 
     /**
      * Sends a request to the specified url in the Resource pool microservice.
@@ -475,6 +458,129 @@ public class RequestSenderService {
             }
         } else {
             throw new UnauthorizedException("(" + authorNetId + ") is not an Employee");
+        }
+    }
+
+    /**
+     * Releases the resources of a faculty for a given day.
+     *
+     * @param url the url to route the request to
+     * @param authorNetId the netId of the user making the request
+     * @param token the authentication token
+     * @param request the requestBody
+     * @return a response from the resource-pool microservice
+     * @throws NoSuchUserException when the user does not exist
+     * @throws InnerRequestFailedException when the request could not be processed correctly
+     * @throws UnauthorizedException when the user is not authorized
+     * @throws FacultyException when the faculty does not exist
+     */
+    public String releaseResourcesRequest(String url, String authorNetId, String token, ReleaseResourcesRequestModel request)
+            throws NoSuchUserException, InnerRequestFailedException, UnauthorizedException, FacultyException {
+        if (authenticateFacultyManager(authorNetId, request.getFacultyId(), token)) {
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setBearerAuth(token);
+
+                HttpEntity<ReleaseResourcesRequestModel> entity = new HttpEntity<>(request, headers);
+                ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+
+                return response.getBody();
+            } catch (Exception e) {
+                throw new InnerRequestFailedException(innerRequestFailedExceptionString(url));
+            }
+        } else {
+            throw new UnauthorizedException("(" + authorNetId + ") is not an faculty manager");
+        }
+    }
+
+    /**
+     * Authenticate a faculty manager.
+     *
+     * @param netId the netId of the user
+     * @param providedFacultyId the provided faculty id
+     * @return whether the faculty manager is validated.
+     * @throws NoSuchUserException when no user is found
+     * @throws FacultyException when the faculty doesn't exist
+     */
+    public boolean authenticateFacultyManager(String netId, long providedFacultyId, String token)
+            throws NoSuchUserException, FacultyException {
+        if (authorization.isOfType(netId, AccountType.FAC_ACCOUNT)) {
+            if (facultyAccountService.getFacultyAssignedId(netId) == providedFacultyId) {
+                return facultyVerificationService.verifyFaculty(providedFacultyId, token);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Request to get the available resources for the next day.
+     *
+     * @param url the provided url
+     * @param authorNetId the netId of the user
+     * @param token the authentication token
+     * @param facultyId the provided faculty id
+     * @return the available resources for tomorrow
+     * @throws InnerRequestFailedException thrown when the request is not processed correctly.
+     */
+    public ResourcesDto getResourcesTomorrow(String url, String authorNetId, String token, long facultyId)
+            throws InnerRequestFailedException {
+        Calendar tomorrow = Calendar.getInstance();
+        tomorrow.add(Calendar.DATE, 1);
+        tomorrow.setTime(tomorrow.getTime());
+
+        try {
+            authenticateGetResourcesRequest(authorNetId, token, facultyId);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+
+            RequestTomorrowResourcesRequestModel model = new RequestTomorrowResourcesRequestModel(facultyId);
+            HttpEntity<RequestTomorrowResourcesRequestModel> entity = new HttpEntity<>(model, headers);
+
+            ResponseEntity<ResourcesDto> response = restTemplate.postForEntity(url, entity, ResourcesDto.class);
+            if (response.hasBody()) {
+                return response.getBody();
+            } else {
+                throw new InnerRequestFailedException("No schedule was found");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new InnerRequestFailedException(innerRequestFailedExceptionString(url));
+        }
+    }
+
+    /**
+     * Authenticates a request to view the available resources for tomorrow.
+     *
+     * @param authorNetId the netId of the author of the request
+     * @param token the authentication token
+     * @param facultyId the provided faculty id
+     * @return whether the user is authenticated
+     * @throws FacultyException the faculty could not be found
+     * @throws NoSuchUserException the user could not be found
+     * @throws UnauthorizedException the user was not authorized
+     * @throws EmploymentException the user was not employed at the relevant faculty
+     */
+    public boolean authenticateGetResourcesRequest(String authorNetId, String token, long facultyId)
+            throws FacultyException, NoSuchUserException, UnauthorizedException, EmploymentException {
+        try {
+            facultyVerificationService.verifyFaculty(facultyId, token);
+        } catch (FacultyException e) {
+            throw new FacultyException("The faculty does not exist!");
+        }
+        if (authorization.isOfType(authorNetId, AccountType.SYSADMIN)) {
+            return true;
+        } else if (authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) {
+            return facultyAccountService.getFacultyAssignedId(authorNetId) == facultyId;
+        } else if (authorization.isOfType(authorNetId, AccountType.EMPLOYEE)) {
+            if (employeeRepository.findByNetId(authorNetId).isPresent()) {
+                Set<Long> faculties = employeeRepository.findByNetId(authorNetId).get().getParentFacultyIds();
+                return faculties.contains(facultyId);
+            } else {
+                throw new EmploymentException("Employee was not employed at this faculty");
+            }
+        } else {
+            throw new UnauthorizedException("Request to view schedules failed.");
         }
     }
 }

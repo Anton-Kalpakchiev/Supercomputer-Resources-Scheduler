@@ -9,6 +9,7 @@ import nl.tudelft.sem.template.resourcepool.models.FacultyCreationModel;
 import nl.tudelft.sem.template.resourcepool.models.FacultyCreationResponseModel;
 import nl.tudelft.sem.template.resourcepool.models.NodeInteractionRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.NodeInteractionResponseModel;
+import nl.tudelft.sem.template.resourcepool.models.RequestTomorrowResourcesRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.VerifyFacultyRequestModel;
 import nl.tudelft.sem.template.resourcepool.models.VerifyFacultyResponseModel;
 import org.springframework.beans.factory.annotation.Autowired;
