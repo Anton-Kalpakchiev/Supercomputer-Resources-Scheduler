@@ -358,7 +358,7 @@ public class RequestSenderService {
      */
     public String releaseResourcesRequest(String url, String authorNetId, String token, ReleaseResourcesRequestModel request)
             throws NoSuchUserException, InnerRequestFailedException, UnauthorizedException, FacultyException {
-        if (authenticateFacultyManager(authorNetId, request.getFacultyId())) {
+        if (authenticateFacultyManager(authorNetId, request.getFacultyId(), token)) {
             try {
                 HttpHeaders headers = new HttpHeaders();
                 headers.setBearerAuth(token);
@@ -384,11 +384,11 @@ public class RequestSenderService {
      * @throws NoSuchUserException when no user is found
      * @throws FacultyException when the faculty doesn't exist
      */
-    public boolean authenticateFacultyManager(String netId, long providedFacultyId)
+    public boolean authenticateFacultyManager(String netId, long providedFacultyId, String token)
             throws NoSuchUserException, FacultyException {
         if (authorization.isOfType(netId, AccountType.FAC_ACCOUNT)) {
             if (facultyAccountService.getFacultyAssignedId(netId) == providedFacultyId) {
-                return facultyVerificationService.verifyFaculty(providedFacultyId, netId);
+                return facultyVerificationService.verifyFaculty(providedFacultyId, token);
             }
         }
         return false;
