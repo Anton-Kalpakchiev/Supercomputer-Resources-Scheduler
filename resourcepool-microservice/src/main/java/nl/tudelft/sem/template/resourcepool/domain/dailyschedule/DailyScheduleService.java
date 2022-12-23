@@ -240,7 +240,6 @@ public class DailyScheduleService {
         Resources leftOverResources = dailySchedule.getAvailableResources();
         dailySchedule.setAvailableResources(new Resources(0, 0, 0));
         scheduleRepository.save(dailySchedule);
-
         // Add the leftover resources in the faculty to the free resource pool
         Resources availableInFreePool = freePoolSchedule.getAvailableResources();
         Resources totalInFreePool = freePoolSchedule.getAvailableResources();
