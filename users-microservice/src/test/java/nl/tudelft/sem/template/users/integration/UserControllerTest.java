@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -17,14 +18,21 @@ import java.util.Set;
 import nl.tudelft.sem.template.users.authentication.AuthManager;
 import nl.tudelft.sem.template.users.authentication.JwtTokenVerifier;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
+import nl.tudelft.sem.template.users.domain.AccountType;
 import nl.tudelft.sem.template.users.domain.Employee;
 import nl.tudelft.sem.template.users.domain.EmployeeRepository;
+import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
 import nl.tudelft.sem.template.users.domain.FacultyVerificationService;
-import nl.tudelft.sem.template.users.models.EmployeeResponseModel;
+import nl.tudelft.sem.template.users.domain.NoSuchUserException;
+import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
+import nl.tudelft.sem.template.users.domain.Sysadmin;
+import nl.tudelft.sem.template.users.domain.SysadminRepository;
 import nl.tudelft.sem.template.users.models.FacultyAssignmentRequestModel;
+import nl.tudelft.sem.template.users.models.PromotionRequestModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -51,32 +59,44 @@ public class UserControllerTest {
     private transient JwtTokenVerifier mockJwtTokenVerifier;
     @Autowired
     private ObjectMapper objectMapper;
+
     @MockBean
     private FacultyVerificationService facultyVerificationService;
 
     @MockBean
-    private AuthorizationManager mockAuthorizationManager;
+    private AuthorizationManager authorization;
 
     @MockBean
     private EmployeeRepository employeeRepository;
 
-    private String netId;
+    @MockBean
+    private SysadminRepository sysadminRepository;
 
+    @MockBean
+    private FacultyAccountRepository facultyAccountRepository;
+
+    private String employeeNetId;
+    private final String adminNetId = "admin";
     private long facultyId;
+    private Sysadmin admin;
+    private Employee employee;
+
 
     @BeforeEach
     void setup() {
-        netId = "mayte";
+        employeeNetId = "mayte";
         facultyId = 6L;
+        admin = new Sysadmin(adminNetId);
+        employee = new Employee(employeeNetId);
     }
 
 
     @Test
     public void newAdminTest() throws Exception {
         //Arrange
-        when(mockAuthenticationManager.getNetId()).thenReturn("admin");
+        when(mockAuthenticationManager.getNetId()).thenReturn(adminNetId);
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn("admin");
+        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn(adminNetId);
         //Act
         ResultActions result = mockMvc.perform(get("/newUser")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -84,6 +104,9 @@ public class UserControllerTest {
 
         //Assert
         result.andExpect(status().isOk());
+
+        verify(sysadminRepository).save(admin);
+        verifyNoInteractions(employeeRepository);
 
         String response = result.andReturn().getResponse().getContentAsString();
         assertThat(response).isEqualTo("User (admin) was added as a Sysadmin.");
@@ -92,9 +115,9 @@ public class UserControllerTest {
     @Test
     public void newEmployeeTest() throws Exception {
         //Arrange
-        when(mockAuthenticationManager.getNetId()).thenReturn("employee");
+        when(mockAuthenticationManager.getNetId()).thenReturn(employeeNetId);
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn("employee");
+        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn(employeeNetId);
         //Act
         ResultActions result = mockMvc.perform(get("/newUser")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -103,8 +126,11 @@ public class UserControllerTest {
         //Assert
         result.andExpect(status().isOk());
 
+        verify(employeeRepository).save(employee);
+        verifyNoInteractions(sysadminRepository);
+
         String response = result.andReturn().getResponse().getContentAsString();
-        assertThat(response).isEqualTo("User (employee) was added as an Employee.");
+        assertThat(response).isEqualTo("User (" + employeeNetId + ") was added as an Employee.");
     }
 
     @Test
@@ -114,20 +140,20 @@ public class UserControllerTest {
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
         when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn("admin");
         when(facultyVerificationService.verifyFaculty(anyLong(), anyString())).thenReturn(true);
-        when(mockAuthorizationManager.isOfType(anyString(), any())).thenReturn(true);
-        when(employeeRepository.findByNetId(netId)).thenReturn(Optional.of(new Employee(netId)));
+        when(authorization.isOfType(anyString(), any())).thenReturn(true);
+        when(employeeRepository.findByNetId(employeeNetId)).thenReturn(Optional.of(new Employee(employeeNetId)));
 
         //Act
         ResultActions result = mockMvc.perform(post("/hireEmployee")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer MockedToken")
                 .content(objectMapper.writeValueAsString(
-                        new FacultyAssignmentRequestModel(netId, String.valueOf(facultyId)))));
+                        new FacultyAssignmentRequestModel(employeeNetId, String.valueOf(facultyId)))));
 
         //Assert
         result.andExpect(status().isOk());
 
-        verify(employeeRepository).saveAndFlush(new Employee(netId, Set.of(6L)));
+        verify(employeeRepository).saveAndFlush(new Employee(employeeNetId, Set.of(6L)));
         String response = result.andReturn().getResponse().getContentAsString();
         assertThat(response).isEqualTo("User (mayte) was assigned to faculty: [6]");
     }
@@ -139,20 +165,20 @@ public class UserControllerTest {
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
         when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn("admin");
         when(facultyVerificationService.verifyFaculty(anyLong(), anyString())).thenReturn(true);
-        when(mockAuthorizationManager.isOfType(anyString(), any())).thenReturn(true);
-        when(employeeRepository.findByNetId(netId)).thenReturn(Optional.of(new Employee(netId)));
+        when(authorization.isOfType(anyString(), any())).thenReturn(true);
+        when(employeeRepository.findByNetId(employeeNetId)).thenReturn(Optional.of(new Employee(employeeNetId)));
 
         //Act
         ResultActions result = mockMvc.perform(post("/hireEmployee")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer MockedToken")
                 .content(objectMapper.writeValueAsString(
-                        new FacultyAssignmentRequestModel(netId, facultyId + ", " + String.valueOf(7L)))));
+                        new FacultyAssignmentRequestModel(employeeNetId, facultyId + ", " + String.valueOf(7L)))));
 
         //Assert
         result.andExpect(status().isOk());
 
-        verify(employeeRepository, times(2)).saveAndFlush(new Employee(netId, Set.of(6L, 7L)));
+        verify(employeeRepository, times(2)).saveAndFlush(new Employee(employeeNetId, Set.of(6L, 7L)));
         String response = result.andReturn().getResponse().getContentAsString();
         assertThat(response).isEqualTo("User (mayte) was assigned to the following faculties: [6, 7]");
     }
@@ -164,21 +190,85 @@ public class UserControllerTest {
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
         when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn("admin");
         when(facultyVerificationService.verifyFaculty(anyLong(), anyString())).thenReturn(true);
-        when(mockAuthorizationManager.isOfType(anyString(), any())).thenReturn(true);
-        when(employeeRepository.findByNetId(netId)).thenReturn(Optional.of(new Employee(netId, Set.of(facultyId))));
+        when(authorization.isOfType(anyString(), any())).thenReturn(true);
+        when(employeeRepository.findByNetId(employeeNetId))
+                .thenReturn(Optional.of(new Employee(employeeNetId, Set.of(facultyId))));
 
         //Act
         ResultActions result = mockMvc.perform(post("/terminateEmployee")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer MockedToken")
                 .content(objectMapper.writeValueAsString(
-                        new FacultyAssignmentRequestModel(netId, String.valueOf(facultyId)))));
+                        new FacultyAssignmentRequestModel(employeeNetId, String.valueOf(facultyId)))));
 
         //Assert
         result.andExpect(status().isOk());
 
-        verify(employeeRepository).saveAndFlush(new Employee(netId, Set.of()));
+        verify(employeeRepository).saveAndFlush(new Employee(employeeNetId, Set.of()));
         String response = result.andReturn().getResponse().getContentAsString();
         assertThat(response).isEqualTo("User (mayte) was removed from faculty: [6]");
+    }
+
+    @Test
+    public void checkAccessAdminNormalFlow() throws Exception {
+        when(mockAuthenticationManager.getNetId()).thenReturn(adminNetId);
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn(adminNetId);
+
+        when(sysadminRepository.existsByNetId(adminNetId)).thenReturn(true);
+        when(employeeRepository.existsByNetId(adminNetId)).thenReturn(false);
+        when(facultyAccountRepository.existsByNetId(adminNetId)).thenReturn(false);
+
+        when(authorization.checkAccess(adminNetId)).thenReturn(AccountType.SYSADMIN);
+
+        ResultActions result = mockMvc.perform(get("/checkAccess")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer MockedToken"));
+
+        result.andExpect(status().isOk());
+
+        String response = result.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo("{\"access\":\"Sysadmin\"}");
+    }
+
+    @Test
+    public void checkAccessEmployeeNormalFlow() throws Exception {
+        when(mockAuthenticationManager.getNetId()).thenReturn(employeeNetId);
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn(employeeNetId);
+
+        when(sysadminRepository.existsByNetId(employeeNetId)).thenReturn(false);
+        when(employeeRepository.existsByNetId(employeeNetId)).thenReturn(true);
+        when(facultyAccountRepository.existsByNetId(employeeNetId)).thenReturn(false);
+
+        when(authorization.checkAccess(employeeNetId)).thenReturn(AccountType.EMPLOYEE);
+
+        ResultActions result = mockMvc.perform(get("/checkAccess")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer MockedToken"));
+
+        result.andExpect(status().isOk());
+
+        String response = result.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo("{\"access\":\"Employee\"}");
+    }
+
+    @Test
+    public void checkAccessNonExistent() throws Exception {
+        when(mockAuthenticationManager.getNetId()).thenReturn(employeeNetId);
+        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+        when(mockJwtTokenVerifier.getNetIdFromToken(anyString())).thenReturn(employeeNetId);
+
+        when(sysadminRepository.existsByNetId(employeeNetId)).thenReturn(false);
+        when(employeeRepository.existsByNetId(employeeNetId)).thenReturn(false);
+        when(facultyAccountRepository.existsByNetId(employeeNetId)).thenReturn(false);
+
+        when(authorization.checkAccess(employeeNetId)).thenThrow(new NoSuchUserException(""));
+
+        ResultActions result = mockMvc.perform(get("/checkAccess")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer MockedToken"));
+
+        result.andExpect(status().isBadRequest());
     }
 }

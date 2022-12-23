@@ -81,47 +81,7 @@ public class PromotionAndEmploymentService {
         }
     }
 
-    /**
-     * Method for creating a faculty by calling the microservice Resource Pool.
-     *
-     * @param authorNetId the netId of the author of the request.
-     * @param managerNetId the netid of the manager of the request.
-     * @param facultyName the new faculty name.
-     * @param token the token of the request.
-     * @return the id of the new faculty
-     * @throws Exception if a user is unauthorized or does not exist
-     */
-    public long createFaculty(String authorNetId, String managerNetId, String facultyName, String token)
-            throws FacultyException, NoSuchUserException, UnauthorizedException {
-        if (authorization.isOfType(authorNetId, AccountType.SYSADMIN)) {
-            if (authorization.isOfType(managerNetId, AccountType.EMPLOYEE)) {
-                String url = "http://localhost:8085/createFaculty";
 
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-                headers.setBearerAuth(token);
-                HttpEntity<TemporaryRequestModel> entity = new HttpEntity<>(
-                        //TODO: change to string
-                        new TemporaryRequestModel(facultyName, managerNetId.hashCode()), headers);
-
-                ResponseEntity<FacultyCreationResponseModel> result = restTemplate.postForEntity(url, entity,
-                        FacultyCreationResponseModel.class);
-
-                if (result.getStatusCode().is2xxSuccessful()) {
-                    registrationService.dropEmployee(managerNetId);
-                    registrationService.addFacultyAccount(managerNetId, (int) result.getBody().getFacultyId());
-
-                    return result.getBody().getFacultyId();
-                } else {
-                    throw new FacultyException(result.getStatusCode().getReasonPhrase());
-                }
-            } else {
-                throw new NoSuchUserException("No such employee: " + managerNetId);
-            }
-        } else {
-            throw new UnauthorizedException("User (" + authorNetId + ") is not a Sysadmin => can not create a faculty");
-        }
-    }
 
 
 
