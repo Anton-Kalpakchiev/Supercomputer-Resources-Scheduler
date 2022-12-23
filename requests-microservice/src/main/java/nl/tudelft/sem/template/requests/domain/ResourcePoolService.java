@@ -53,14 +53,14 @@ public class ResourcePoolService {
             facultyName = requestRepo.findById(requestId).get().getFacultyName();
         }
         String requestBody = "{\"day\": \"" + dayString + "\",\"requestId\": \"" + requestId
-                                + "\",\"facultyName\": \"" + facultyName + "\"}";
+                + "\",\"facultyName\": \"" + facultyName + "\"}";
 
         HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
         RestTemplate restTemplate = new RestTemplate();
 
         ResponseEntity<Boolean> response =
-            restTemplate.postForEntity("http://localhost:8085/automaticApproval", request, Boolean.class);
+                restTemplate.postForEntity("http://localhost:8085/automaticApproval", request, Boolean.class);
 
         return response;
     }
@@ -78,7 +78,7 @@ public class ResourcePoolService {
 
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response =
-            restTemplate.postForEntity("http://localhost:8085/getFacultyName", request, String.class);
+                restTemplate.postForEntity("http://localhost:8085/getFacultyName", request, String.class);
         if (response.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
@@ -112,8 +112,8 @@ public class ResourcePoolService {
         HttpEntity<Long> request = new HttpEntity<>(facultyId, headers);
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response =
-            restTemplate.postForEntity("http://localhost:8085/availableFacultyResources",
-                request, String.class);
+                restTemplate.postForEntity("http://localhost:8085/availableFacultyResources",
+                        request, String.class);
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             ResourcesDto availableResources = objectMapper.readValue(response.getBody(), ResourcesDto.class);

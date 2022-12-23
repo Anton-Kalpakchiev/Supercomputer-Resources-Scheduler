@@ -136,13 +136,11 @@ public class DailyScheduleController {
     @PostMapping("/releaseResources")
     public ResponseEntity<String> releaseResources(@RequestBody ReleaseResourcesRequestModel request) {
         try {
-            String dayStr = request.getDay(); //convert to Calendar immediately
-            Calendar day = Calendar.getInstance();
-            day.set(Calendar.YEAR, Integer.parseInt(dayStr.split("-")[2]));
-            day.set(Calendar.MONTH, Integer.parseInt(dayStr.split("-")[1]) - 1);
-            day.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dayStr.split("-")[0]));
-            dailyScheduleService.releaseResources(day, request.getFacultyId());
+            System.out.println("we got to the other side!");
+            dailyScheduleService.releaseResources(request.getDay(), request.getFacultyId());
+            System.out.println("we managed to release the resources");
             String facultyName = dailyScheduleService.getFacultyName(request.getFacultyId());
+            System.out.println("we returned the faculty name");
             return ResponseEntity.ok(facultyName);
         } catch (Exception e) {
             e.printStackTrace();
