@@ -20,6 +20,7 @@ import nl.tudelft.sem.template.users.models.facade.ManualApprovalModel;
 import nl.tudelft.sem.template.users.models.facade.NodeContributionRequestModel;
 import nl.tudelft.sem.template.users.models.facade.NodeDeletionRequestModel;
 import nl.tudelft.sem.template.users.models.facade.ReleaseResourcesRequestModel;
+import nl.tudelft.sem.template.users.models.facade.RequestStatusModel;
 import nl.tudelft.sem.template.users.models.facade.RequestTomorrowResourcesRequestModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -203,10 +204,10 @@ public class FacadeController {
      * @return the status of the request found in the database with the given id
      */
     @GetMapping("/request/status")
-    public ResponseEntity<String> getStatus(@RequestBody NodeDeletionRequestModel idModel) {
+    public ResponseEntity<String> getStatus(@RequestBody RequestStatusModel idModel) {
         try {
             String url = "http://localhost:8084/getStatus";
-            long requestId = idModel.getNodeId();
+            long requestId = idModel.getRequestId();
             String answer = requestSenderService.getStatusOfRequest(
                     url, authentication.getNetId(), requestId, JwtRequestFilter.token);
             return ResponseEntity.ok(answer);
