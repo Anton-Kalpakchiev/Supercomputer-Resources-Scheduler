@@ -48,31 +48,31 @@ public class StatusTests {
     @Autowired
     private transient RequestRepository requestRepository;
 
-    //    @Test
-    //    public void getStatus_withValidData_worksCorrectly() throws Exception {
-    //        // Arrange
-    //        final String description = "give me resources";
-    //        final Resources resources = new Resources(50, 30, 50);
-    //        final String owner = "User";
-    //        final String facultyName = "CSE";
-    //        final Calendar deadline = Calendar.getInstance();
-    //
-    //        AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 1);
-    //        AppRequest savedRequest = requestRepository.save(appRequest);
-    //        final long requestId = savedRequest.getId();
-    //
-    //        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-    //
-    //        // Act
-    //        ResultActions resultActions = mockMvc.perform(get("/status")
-    //                .contentType(MediaType.APPLICATION_JSON)
-    //                .header("Authorization", "Bearer MockedToken")
-    //                .content(JsonUtil.serialize(requestId)));
-    //
-    //        // Assert
-    //        resultActions.andExpect(status().isOk());
-    //        assertThat(requestRepository.findById(requestId).get().getStatus() == 0);
-    //    }
+//    @Test
+//    public void getStatus_withValidData_worksCorrectly() throws Exception {
+//        // Arrange
+//        final String description = "give me resources";
+//        final Resources resources = new Resources(50, 30, 50);
+//        final String owner = "User";
+//        final String facultyName = "CSE";
+//        final Calendar deadline = Calendar.getInstance();
+//
+//        AppRequest appRequest = new AppRequest(description, resources, owner, facultyName, deadline, 1);
+//        AppRequest savedRequest = requestRepository.save(appRequest);
+//        final long requestId = savedRequest.getId();
+//
+//        when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
+//
+//        // Act
+//        ResultActions resultActions = mockMvc.perform(post("/status")
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .header("Authorization", "Bearer MockedToken")
+//                .content(JsonUtil.serialize(requestId)));
+//
+//        // Assert
+//        resultActions.andExpect(status().isOk());
+//        assertThat(requestRepository.findById(requestId).get().getStatus() == 0);
+//    }
 
     //    @Test
     //    public void getStatus_withInvalidData_throwsException() throws Exception {
