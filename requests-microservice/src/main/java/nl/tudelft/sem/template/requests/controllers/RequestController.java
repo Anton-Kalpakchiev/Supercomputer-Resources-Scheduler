@@ -9,6 +9,7 @@ import nl.tudelft.sem.template.requests.authentication.AuthManager;
 import nl.tudelft.sem.template.requests.domain.AppRequest;
 import nl.tudelft.sem.template.requests.domain.InvalidResourcesException;
 import nl.tudelft.sem.template.requests.domain.RegistrationService;
+import nl.tudelft.sem.template.requests.domain.RequestHandler;
 import nl.tudelft.sem.template.requests.domain.ResourcePoolService;
 import nl.tudelft.sem.template.requests.domain.Resources;
 import nl.tudelft.sem.template.requests.domain.StatusService;
@@ -37,22 +38,25 @@ public class RequestController {
     private final transient StatusService statusService;
     private final transient ResourcePoolService resourcePoolService;
     private final transient UserService userService;
+    private final transient RequestHandler requestHandler;
 
     /**
      * Instantiates a new controller.
      *
      * @param authManager         Spring Security component used to authenticate and authorize the user
      * @param registrationService The service that will allow requests to be saved to the database
+     * @param requestHandler the injected request handler
      */
     @Autowired
     public RequestController(AuthManager authManager, RegistrationService registrationService,
                              StatusService statusService, ResourcePoolService resourcePoolService,
-                             UserService userService) {
+                             UserService userService, RequestHandler requestHandler) {
         this.authManager = authManager;
         this.registrationService = registrationService;
         this.statusService = statusService;
         this.resourcePoolService = resourcePoolService;
         this.userService = userService;
+        this.requestHandler = requestHandler;
     }
 
     /**
@@ -140,7 +144,7 @@ public class RequestController {
         String token = authorizationHeader.split(" ")[1];
         Long facultyId = userService.getFacultyIdForManager(token);
         String facultyName = resourcePoolService.getFacultyNameForFacultyId(facultyId, token);
-        return ResponseEntity.ok(registrationService.getPendingRequestsForFacultyName(facultyName));
+        return ResponseEntity.ok(requestHandler.getPendingRequestsForFacultyName(facultyName));
     }
 
     /**
@@ -192,7 +196,7 @@ public class RequestController {
      */
     @PostMapping("/getRequestIds")
     public ResponseEntity<String> getRequestIdsByNetId(@RequestBody String netId) {
-        return ResponseEntity.ok(registrationService.getRequestIdsByNetId(netId));
+        return ResponseEntity.ok(requestHandler.getRequestIdsByNetId(netId));
     }
 
 
@@ -205,6 +209,6 @@ public class RequestController {
      */
     @PostMapping("/resourcesById")
     public ResponseEntity<Resources> getResourcesById(@RequestBody long requestId) {
-        return ResponseEntity.ok(registrationService.getResourcesForId(requestId));
+        return ResponseEntity.ok(requestHandler.getResourcesForId(requestId));
     }
 }
