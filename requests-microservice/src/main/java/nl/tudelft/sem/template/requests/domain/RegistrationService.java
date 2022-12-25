@@ -134,36 +134,44 @@ public class RegistrationService {
         Calendar deadline = request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
         final Resources freePoolResources = resourcePoolService.getFacultyResourcesById(1L, token);
-
-        boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
-                || freePoolResources.getCpu() < resources.getCpu()
-                || freePoolResources.getMemory() < resources.getMemory());
-        int timePeriod = 1;
-        boolean isForTomorrow = isForTomorrow(deadline);
-        boolean facHasEnoughResources = false;
-        int status = decideStatusOfRequest(timePeriod, isForTomorrow, frpHasEnoughResources, facHasEnoughResources);
-
-        if (status == 0) {
-            //set for manual review
-            //find request in Repo, update its status
-            request.setStatus(0);
-            requestRepository.save(request);
-        } else if (status == 1) {
-            //approval for tomorrow
-            request.setStatus(1);
-            //find request in Repo, update its status
-            requestRepository.save(request);
+        int status = getStatus(deadline, resources, freePoolResources);
+        request.setStatus(status);
+        requestRepository.save(request);
+        if (status == 1) {
             //update RP/Schedule MS so that it can update the schedule for the corresponding faculty for tomorrow
             Calendar tomorrow = Calendar.getInstance();
             tomorrow.add(Calendar.DAY_OF_MONTH, 1);
             resourcePoolService.approval(tomorrow, request.getId(), true, token);
-        } else {
-            //rejection
-            //find request in Repo, update its status
-            request.setStatus(2);
-            requestRepository.save(request);
         }
         return request;
+    }
+
+    /**
+     * Helper method for finding the status of a request.
+     *
+     * @param deadline the deadline of the request
+     * @param resources the resources of the request
+     * @param freePoolResources the resources of the free pool
+     * @return the status of a request
+     */
+    private int getStatus(Calendar deadline, Resources resources, Resources freePoolResources) {
+        boolean frpHasEnoughResources = doesFreePoolHaveResources(resources, freePoolResources);
+        int timePeriod = 1;
+        boolean isForTomorrow = isForTomorrow(deadline);
+        boolean facHasEnoughResources = false;
+        return decideStatusOfRequest(timePeriod, isForTomorrow, frpHasEnoughResources, facHasEnoughResources);
+    }
+
+    /**
+     * Helper method that returns whether the free pool has enough resources.
+     *
+     * @param resources the reseources of the request
+     * @param freePoolResources the resources of the free pool
+     * @return whether the free pool can fit the request
+     */
+    private static boolean doesFreePoolHaveResources(Resources resources, Resources freePoolResources) {
+        return !(freePoolResources.getGpu() < resources.getGpu() || freePoolResources.getCpu() < resources.getCpu()
+                || freePoolResources.getMemory() < resources.getMemory());
     }
 
 
