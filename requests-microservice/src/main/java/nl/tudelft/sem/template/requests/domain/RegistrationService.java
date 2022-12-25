@@ -15,6 +15,7 @@ public class RegistrationService {
     private final transient RequestRepository requestRepository;
     private final transient ResourcePoolService resourcePoolService;
     private final transient RequestHandler requestHandler;
+    private final transient RequestChecker requestChecker;
 
     private transient String initialToken = null;
     //when tokens are not needed anymore, delete this and rework a bit the functions
@@ -24,14 +25,16 @@ public class RegistrationService {
      *
      * @param requestRepository   the request repository
      * @param resourcePoolService the service that communicates with the resource pool
-     * @param requestHandler the request handler service
+     * @param requestHandler      the request handler service
+     * @param requestChecker the request checker helper service
      */
     public RegistrationService(RequestRepository requestRepository,
                                ResourcePoolService resourcePoolService,
-                               RequestHandler requestHandler) {
+                               RequestHandler requestHandler, RequestChecker requestChecker) {
         this.requestRepository = requestRepository;
         this.resourcePoolService = resourcePoolService;
         this.requestHandler = requestHandler;
+        this.requestChecker = requestChecker;
     }
 
     /**
@@ -58,7 +61,8 @@ public class RegistrationService {
         final boolean facultyHasEnoughResources = hasEnoughResources(availableResources, resources);
         final boolean frpHasEnoughResources = hasEnoughResources(freePoolResources, resources);
         final boolean isForTomorrow = isForTomorrow(deadline);
-        int status = decideStatusOfRequest(timePeriod, isForTomorrow, frpHasEnoughResources, facultyHasEnoughResources);
+        int status = requestChecker.decideStatusOfRequest(timePeriod,
+                isForTomorrow, frpHasEnoughResources, facultyHasEnoughResources);
 
         requestHandler.registerRequestOnceStatusDecided(status, request, token);
         return request;
@@ -113,7 +117,8 @@ public class RegistrationService {
         int timePeriod = 1;
         boolean isForTomorrow = isForTomorrow(deadline);
         boolean facHasEnoughResources = false;
-        return decideStatusOfRequest(timePeriod, isForTomorrow, frpHasEnoughResources, facHasEnoughResources);
+        return requestChecker.decideStatusOfRequest(timePeriod,
+                isForTomorrow, frpHasEnoughResources, facHasEnoughResources);
     }
 
 
@@ -199,80 +204,5 @@ public class RegistrationService {
         deadlineFiveMinutesBeforeEnd.set(Calendar.SECOND, 0);
         return deadlineFiveMinutesBeforeEnd;
     }
-
-
-    /**
-     * Decides what happens with a request when it arrives - it can be approved, rejected,
-     * left pending for manual review, or left pending until the FRP gets more resources at 18PM.
-     *
-     * @param timePeriod                the time period at which the request is submitted
-     * @param isForTomorrow             whether the request is for tomorrow
-     * @param frpHasEnoughResources     whether the FRP has enough resources for this request
-     * @param facultyHasEnoughResources whether the faculty the request is scheduled to has enough resources for this request
-     * @return the status of the request
-     */
-    public int decideStatusOfRequest(int timePeriod, boolean isForTomorrow, boolean frpHasEnoughResources,
-                                     boolean facultyHasEnoughResources) {
-        // 0 for pending manual approval,
-        // 1 for approved,
-        // 2 for rejected,
-        // 3 pending and waiting for the free RP to get resources at the 6h before end of day deadline
-        if (isRequestRejected(timePeriod, isForTomorrow, frpHasEnoughResources)) {
-            //auto reject
-            return 2;
-        }
-        if (isRequestAutoApproved(timePeriod, isForTomorrow, frpHasEnoughResources, facultyHasEnoughResources)) {
-            //auto approve
-            return 1;
-        }
-        if (isRequestDelayedUntilSix(timePeriod, frpHasEnoughResources, facultyHasEnoughResources)) {
-            //wait for the FRP to get more resources at 6h before end of day and then automatically check again
-            return 3;
-        }
-        //set for manual review
-        return 0;
-    }
-
-    /**
-     * Decides whether a request is rejected given the following variables.
-     *
-     * @param timePeriod            the current time period
-     * @param isForTomorrow         whether the request is for tomorrow
-     * @param frpHasEnoughResources whether the free resource pool has enough resources to take this request
-     * @return true iff the request is rejected
-     */
-    public boolean isRequestRejected(int timePeriod, boolean isForTomorrow, boolean frpHasEnoughResources) {
-        return (timePeriod == 2 && isForTomorrow) || (!frpHasEnoughResources && timePeriod == 1 && isForTomorrow);
-    }
-
-    /**
-     * Decides whether a request is automatically approved given the following variables.
-     *
-     * @param timePeriod                the current time period
-     * @param isForTomorrow             whether the request is for tomorrow
-     * @param frpHasEnoughResources     whether the free resource pool has enough resources to take this request
-     * @param facultyHasEnoughResources whether the respective faculty has enough resources to take this request
-     * @return true iff the request is rejected
-     */
-    public boolean isRequestAutoApproved(int timePeriod, boolean isForTomorrow, boolean frpHasEnoughResources,
-                                         boolean facultyHasEnoughResources) {
-        return (timePeriod == 1 && frpHasEnoughResources) || (isForTomorrow && timePeriod == 0
-                && !facultyHasEnoughResources && frpHasEnoughResources);
-    }
-
-
-    /**
-     * Decides whether a request is left pending until the 6H deadline given the following variables.
-     *
-     * @param timePeriod                the current time period
-     * @param frpHasEnoughResources     whether the free resource pool has enough resources to take this request
-     * @param facultyHasEnoughResources whether the respective faculty has enough resources to take this request
-     * @return true iff the request is rejected
-     */
-    public boolean isRequestDelayedUntilSix(int timePeriod, boolean frpHasEnoughResources,
-                                            boolean facultyHasEnoughResources) {
-        return timePeriod == 0 && !facultyHasEnoughResources && !frpHasEnoughResources;
-    }
-
 }
 

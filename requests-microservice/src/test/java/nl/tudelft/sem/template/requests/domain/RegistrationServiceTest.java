@@ -207,66 +207,7 @@ class RegistrationServiceTest {
         assertFalse(registrationService.isForTomorrow(afterTomorrow));
     }
 
-    @Test
-    void decideStatusZero() {
-        timePeriod = 0;
-        isForTomorrow = new Random().nextInt(2) == 1;
-        frpHasEnoughResources = false;
-        facHasEnoughResources = true;
 
-        assertEquals(0, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
-                frpHasEnoughResources, facHasEnoughResources));
-
-    }
-
-    @Test
-    void decideStatusOne() {
-        timePeriod = 1;
-        isForTomorrow = new Random().nextInt(2) == 1;
-        frpHasEnoughResources = true;
-        facHasEnoughResources = new Random().nextInt(2) == 1;
-
-        assertEquals(1, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
-                frpHasEnoughResources, facHasEnoughResources));
-
-        timePeriod = 0;
-        isForTomorrow = true;
-        frpHasEnoughResources = true;
-        facHasEnoughResources = false;
-
-        assertEquals(1, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
-                frpHasEnoughResources, facHasEnoughResources));
-    }
-
-    @Test
-    void decideStatusTwo() {
-        timePeriod = 2;
-        isForTomorrow = true;
-        frpHasEnoughResources = true;
-        facHasEnoughResources = true;
-
-        assertEquals(2, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
-                frpHasEnoughResources, facHasEnoughResources));
-
-        timePeriod = 1;
-        isForTomorrow = true;
-        frpHasEnoughResources = false;
-        facHasEnoughResources = true;
-
-        assertEquals(2, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
-                frpHasEnoughResources, facHasEnoughResources));
-    }
-
-    @Test
-    void decideStatusThree() {
-        timePeriod = 0;
-        isForTomorrow = new Random().nextInt(2) == 1;
-        frpHasEnoughResources = false;
-        facHasEnoughResources = false;
-
-        assertEquals(3, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
-                frpHasEnoughResources, facHasEnoughResources));
-    }
 
     @Test
     void getResourcesForId() throws InvalidResourcesException {
