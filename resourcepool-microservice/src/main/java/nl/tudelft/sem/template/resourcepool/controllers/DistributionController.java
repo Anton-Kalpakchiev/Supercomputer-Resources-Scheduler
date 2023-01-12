@@ -42,7 +42,7 @@ public class DistributionController {
     @GetMapping("/distribution/current")
     public ResponseEntity<String> getCurrentDistribution() {
         return ResponseEntity.ok("This is the current distribution of the resources: \n"
-                                    + distributionService.getCurrentDistribution());
+                + distributionService.getCurrentDistribution());
     }
 
     /**
@@ -70,7 +70,7 @@ public class DistributionController {
     @GetMapping("/distribution/status")
     public ResponseEntity<String> statusDistribution() {
         return ResponseEntity.ok("These are the currently submitted distributions: \n"
-                                    + distributionService.statusDistribution());
+                + distributionService.statusDistribution());
     }
 
     /**

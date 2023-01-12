@@ -127,7 +127,7 @@ public class NodeManagementService {
         headers.setBearerAuth(JwtRequestFilter.token);
 
         HttpEntity<FacultyInteractionRequestModel> entity = new HttpEntity<>(new FacultyInteractionRequestModel(facultyId,
-                                    resources.getCpu(), resources.getGpu(), resources.getMemory()), headers);
+                resources.getCpu(), resources.getGpu(), resources.getMemory()), headers);
 
         try {
             restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);

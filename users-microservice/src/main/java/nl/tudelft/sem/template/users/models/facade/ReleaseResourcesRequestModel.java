@@ -11,7 +11,5 @@ import lombok.NoArgsConstructor;
 @Data
 public class ReleaseResourcesRequestModel {
     private long facultyId;
-
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private Calendar day;
+    private String day;
 }
