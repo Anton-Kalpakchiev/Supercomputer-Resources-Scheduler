@@ -25,14 +25,16 @@ import nl.tudelft.sem.template.users.domain.FacultyVerificationService;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.Sysadmin;
 import nl.tudelft.sem.template.users.domain.SysadminRepository;
+import nl.tudelft.sem.template.users.facade.NodesRequestService;
 import nl.tudelft.sem.template.users.facade.RequestSenderService;
+import nl.tudelft.sem.template.users.facade.RequestsRequestService;
+import nl.tudelft.sem.template.users.facade.ResourcePoolRequestService;
 import nl.tudelft.sem.template.users.models.FacultyCreationRequestModel;
 import nl.tudelft.sem.template.users.models.FacultyCreationResponseModel;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -68,10 +70,15 @@ public class FacadeControllerTest {
     private ObjectMapper objectMapper;
     @Autowired
     private RequestSenderService requestSenderService;
+    @Autowired
+    private RequestsRequestService rqSender;
+    @Autowired
+    private NodesRequestService nodesSender;
+    @Autowired
+    private ResourcePoolRequestService rpSender;
 
     @MockBean
     private FacultyVerificationService facultyVerificationService;
-
     @MockBean
     private EmployeeRepository employeeRepository;
 
