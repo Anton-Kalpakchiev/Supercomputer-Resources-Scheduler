@@ -37,6 +37,7 @@ public class FacadeController {
     private final transient NodesRequestService nodesRequestService;
     private final transient ResourcePoolRequestService resourcePoolRequestService;
     private final transient RequestsRequestService requestsRequestService;
+    private final transient SchedulingRequestsService schedulingRequestsService;
 
     /**
      * Returns a string with the current distribution of the resources in the system.
@@ -150,7 +151,7 @@ public class FacadeController {
     @GetMapping("/schedules/viewSchedules")
     public ResponseEntity<String> viewSchedule() {
         try {
-            String response = resourcePoolRequestService.getScheduleRequestRouter(
+            String response = schedulingRequestsService.getScheduleRequestRouter(
                     authentication.getNetId(), JwtRequestFilter.token);
             return ResponseEntity.ok(response);
         } catch (InnerRequestFailedException | NoSuchUserException e) {
@@ -280,7 +281,7 @@ public class FacadeController {
     public ResponseEntity<String> releaseResources(@RequestBody ReleaseResourcesRequestModel request) {
         try {
             String url = "http://localhost:8085/releaseResources";
-            String facultyName = resourcePoolRequestService.releaseResourcesRequest(
+            String facultyName = schedulingRequestsService.releaseResourcesRequest(
                     url, authentication.getNetId(), JwtRequestFilter.token, request);
             return ResponseEntity.ok("The resources for " + facultyName
                     + " have successfully been released to the free resource pool of that day");
@@ -304,7 +305,7 @@ public class FacadeController {
         try {
             String url = "http://localhost:8085/availableFacultyResources";
 
-            ResourcesDto resourcesTomorrow = resourcePoolRequestService.getResourcesTomorrow(
+            ResourcesDto resourcesTomorrow = schedulingRequestsService.getResourcesTomorrow(
                     url, authentication.getNetId(), JwtRequestFilter.token, request.getResourcePoolId());
             return ResponseEntity.ok("The resources for tomorrow for resource pool id " + request.getResourcePoolId()
                     + " are: <CPU: "

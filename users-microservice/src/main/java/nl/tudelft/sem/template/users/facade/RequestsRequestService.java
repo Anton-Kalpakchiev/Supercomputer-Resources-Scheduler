@@ -123,7 +123,6 @@ public class RequestsRequestService extends RequestSenderService {
         }
     }
 
-
     /** Returns the correct message to show the user when a request is successfully approved/rejected.
      *
      * @param approved whether the request is approved
