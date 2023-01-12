@@ -4,15 +4,10 @@ import java.util.Calendar;
 import lombok.AllArgsConstructor;
 import nl.tudelft.sem.template.users.authentication.AuthManager;
 import nl.tudelft.sem.template.users.authentication.JwtRequestFilter;
-import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
-import nl.tudelft.sem.template.users.domain.EmployeeService;
-import nl.tudelft.sem.template.users.domain.FacultyAccountService;
 import nl.tudelft.sem.template.users.domain.FacultyException;
 import nl.tudelft.sem.template.users.domain.InnerRequestFailedException;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
-import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
-import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.models.FacultyCreationRequestModel;
 import nl.tudelft.sem.template.users.models.ResourcesDto;
 import nl.tudelft.sem.template.users.models.facade.DistributionModel;
@@ -38,12 +33,10 @@ import org.springframework.web.server.ResponseStatusException;
 @AllArgsConstructor
 public class FacadeController {
     private final transient AuthManager authentication;
-    private final transient AuthorizationManager authorization;
-    private final transient PromotionAndEmploymentService promotionAndEmploymentService;
-    private final transient RegistrationService registrationService;
-    private final transient EmployeeService employeeService;
-    private final transient FacultyAccountService facultyAccountService;
     private final transient RequestSenderService requestSenderService;
+    private final transient NodesRequestService nodesRequestService;
+    private final transient ResourcePoolRequestService resourcePoolRequestService;
+    private final transient RequestsRequestService requestsRequestService;
 
     /**
      * Returns a string with the current distribution of the resources in the system.
@@ -76,7 +69,7 @@ public class FacadeController {
     public ResponseEntity<String> addDistribution(@RequestBody DistributionModel distribution) {
         try {
             String url = "http://localhost:8085/distribution/add";
-            requestSenderService.addDistributionRequest(url, authentication.getNetId(), JwtRequestFilter.token,
+            resourcePoolRequestService.addDistributionRequest(url, authentication.getNetId(), JwtRequestFilter.token,
                     distribution);
             return ResponseEntity.ok("Distribution was added.");
         } catch (UnauthorizedException e) {
@@ -157,7 +150,7 @@ public class FacadeController {
     @GetMapping("/schedules/viewSchedules")
     public ResponseEntity<String> viewSchedule() {
         try {
-            String response = requestSenderService.getScheduleRequestRouter(
+            String response = resourcePoolRequestService.getScheduleRequestRouter(
                     authentication.getNetId(), JwtRequestFilter.token);
             return ResponseEntity.ok(response);
         } catch (InnerRequestFailedException | NoSuchUserException e) {
@@ -190,8 +183,9 @@ public class FacadeController {
             }
 
             String url = "http://localhost:8084/manualSchedule";
-            requestSenderService.approveRejectRequest(url, authentication.getNetId(), approvalModel, JwtRequestFilter.token);
-            String answer = requestSenderService.getRequestAnswer(approved);
+            requestsRequestService.approveRejectRequest(url, authentication.getNetId(),
+                    approvalModel, JwtRequestFilter.token);
+            String answer = requestsRequestService.getRequestAnswer(approved);
             return ResponseEntity.ok(answer);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
@@ -208,7 +202,7 @@ public class FacadeController {
         try {
             String url = "http://localhost:8084/getStatus";
             long requestId = idModel.getRequestId();
-            String answer = requestSenderService.getStatusOfRequest(
+            String answer = requestsRequestService.getStatusOfRequest(
                     url, authentication.getNetId(), requestId, JwtRequestFilter.token);
             return ResponseEntity.ok(answer);
         } catch (Exception e) {
@@ -226,9 +220,9 @@ public class FacadeController {
     public ResponseEntity<String> register(@RequestBody RegistrationRequestModel request) {
         try {
             String url = "http://localhost:8084/register";
-            long requestId = requestSenderService.registerRequest(
+            long requestId = requestsRequestService.registerRequest(
                     url, authentication.getNetId(), request, JwtRequestFilter.token);
-            String answer = requestSenderService.registerRequestMessage(requestId);
+            String answer = requestsRequestService.registerRequestMessage(requestId);
             return ResponseEntity.ok(answer);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getCause().toString());
@@ -245,7 +239,7 @@ public class FacadeController {
     public ResponseEntity<String> contributeNode(@RequestBody NodeContributionRequestModel nodeInfo) {
         try {
             String url = "http://localhost:8083/contributeNode";
-            long nodeId = requestSenderService.contributeNodeRequest(
+            long nodeId = nodesRequestService.contributeNodeRequest(
                     url, authentication.getNetId(), JwtRequestFilter.token, nodeInfo);
             return ResponseEntity.ok("The node with the name \"" + nodeInfo.getName()
                                     + "\" has been contributed. The ID of the node is: " + nodeId + '.');
@@ -266,7 +260,7 @@ public class FacadeController {
     public ResponseEntity<String> deleteNode(@RequestBody NodeDeletionRequestModel nodeId) {
         try {
             String url = "http://localhost:8083/deleteNode";
-            String nodeName = requestSenderService.deleteNodeRequest(
+            String nodeName = nodesRequestService.deleteNodeRequest(
                     url, authentication.getNetId(), JwtRequestFilter.token, nodeId.getNodeId());
             return ResponseEntity.ok("The node with the name \"" + nodeName + "\" has been successfully deleted.");
         } catch (UnauthorizedException e) {
@@ -286,7 +280,7 @@ public class FacadeController {
     public ResponseEntity<String> releaseResources(@RequestBody ReleaseResourcesRequestModel request) {
         try {
             String url = "http://localhost:8085/releaseResources";
-            String facultyName = requestSenderService.releaseResourcesRequest(
+            String facultyName = resourcePoolRequestService.releaseResourcesRequest(
                     url, authentication.getNetId(), JwtRequestFilter.token, request);
             return ResponseEntity.ok("The resources for " + facultyName
                     + " have successfully been released to the free resource pool of that day");
@@ -310,7 +304,7 @@ public class FacadeController {
         try {
             String url = "http://localhost:8085/availableFacultyResources";
 
-            ResourcesDto resourcesTomorrow = requestSenderService.getResourcesTomorrow(
+            ResourcesDto resourcesTomorrow = resourcePoolRequestService.getResourcesTomorrow(
                     url, authentication.getNetId(), JwtRequestFilter.token, request.getResourcePoolId());
             return ResponseEntity.ok("The resources for tomorrow for resource pool id " + request.getResourcePoolId()
                     + " are: <CPU: "
@@ -356,7 +350,7 @@ public class FacadeController {
         String facultyName = request.getName();
         String token = JwtRequestFilter.token;
         try {
-            long facId = requestSenderService.createFaculty(authorNetId, managerNetId, facultyName, token);
+            long facId = resourcePoolRequestService.createFaculty(authorNetId, managerNetId, facultyName, token);
             System.out.println("Faculty \"" + facultyName + "\" with id " + facId + " was created. "
                     + "Managed by: (" + managerNetId + ").");
             return ResponseEntity.ok("Faculty \"" + facultyName
