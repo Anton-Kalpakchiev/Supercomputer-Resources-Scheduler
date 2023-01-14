@@ -57,8 +57,7 @@ public class RegistrationService {
      */
     public AppRequest registerRequest(String description, Resources resources, String owner, String facultyName,
                                       Resources availableResources, Calendar deadline, Resources freePoolResources,
-                                      String token)
-            throws InvalidResourcesException {
+                                      String token) throws InvalidResourcesException {
         if (resources.getMemory() < 0 || resources.getCpu() < 0 || resources.getGpu() < 0) {
             throw new InvalidResourcesException("Resource object cannot be created with negative inputs");
         }
@@ -74,11 +73,6 @@ public class RegistrationService {
         final boolean facultyHasEnoughResources = hasEnoughResources(availableResources, resources);
         final boolean frpHasEnoughResources = hasEnoughResources(freePoolResources, resources);
         final boolean isForTomorrow = isForTomorrow(deadline);
-        /*
-        0 when before the 6h deadline
-        1 when after the 6h deadline and before the 5min deadline,
-        2 when after the 5 min deadline
-         */
         int status = decideStatusOfRequest(timePeriod, isForTomorrow, frpHasEnoughResources, facultyHasEnoughResources);
 
         registerRequestOnceStatusDecided(status, request, token);
@@ -273,7 +267,6 @@ public class RegistrationService {
         // 1 for approved,
         // 2 for rejected,
         // 3 pending and waiting for the free RP to get resources at the 6h before end of day deadline
-
         if (isRequestRejected(timePeriod, isForTomorrow, frpHasEnoughResources)) {
             //auto reject
             return 2;
