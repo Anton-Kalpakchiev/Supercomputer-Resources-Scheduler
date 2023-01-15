@@ -100,7 +100,7 @@ public class VerificationService {
      * @throws NoSuchUserException if the NetId does not belong to an existing user
      */
     private boolean checkFacultyAccount(String authorNetId, long facultyId) throws NoSuchUserException {
-        if(!authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) {
+        if (!authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) {
             return false;
         }
         return facultyAccountService.getFacultyAssignedId(authorNetId) == facultyId;
@@ -116,7 +116,7 @@ public class VerificationService {
      * @throws NoSuchUserException if the NetId does not belong to an existing user
      */
     private boolean checkEmployee(String authorNetId, long facultyId) throws NoSuchUserException, EmploymentException {
-        if(!authorization.isOfType(authorNetId, AccountType.EMPLOYEE)) {
+        if (!authorization.isOfType(authorNetId, AccountType.EMPLOYEE)) {
             return false;
         }
         if (employeeRepository.findByNetId(authorNetId).isPresent()) {
