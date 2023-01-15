@@ -32,10 +32,8 @@ public class VerificationService {
      */
     public boolean authenticateFacultyManager(String netId, long providedFacultyId, String token)
             throws NoSuchUserException, FacultyException {
-        if (authorization.isOfType(netId, AccountType.FAC_ACCOUNT)) {
-            if (facultyAccountService.getFacultyAssignedId(netId) == providedFacultyId) {
-                return facultyVerificationService.verifyFaculty(providedFacultyId, token);
-            }
+        if (checkFacultyAccount(netId, providedFacultyId)) {
+            return facultyVerificationService.verifyFaculty(providedFacultyId, token);
         }
         return false;
     }
@@ -53,25 +51,79 @@ public class VerificationService {
      * @throws EmploymentException the user was not employed at the relevant faculty
      */
     public boolean authenticateFacultyRequest(String authorNetId, String token, long facultyId)
-            throws FacultyException, NoSuchUserException, UnauthorizedException, EmploymentException {
+        throws NoSuchUserException, UnauthorizedException, EmploymentException, FacultyException {
+        checkFacultyExists(token, facultyId);
+        if (checkSysAdmin(authorNetId)) {
+            return true;
+        } else if (checkFacultyAccount(authorNetId, facultyId)) {
+            return true;
+        } else if (checkEmployee(authorNetId, facultyId)) {
+            return true;
+        } else {
+            throw new UnauthorizedException("Request to view schedules failed.");
+        }
+    }
+
+    /**
+     * Checks whether the given facultyId has an existing matching faculty.
+     *
+     * @param token the jwtToken
+     * @param facultyId the id of the faculty to check
+     * @throws FacultyException if the given faculty does not exist
+     */
+    private void checkFacultyExists(String token, long facultyId) throws FacultyException {
         try {
             facultyVerificationService.verifyFaculty(facultyId, token);
         } catch (FacultyException e) {
             throw new FacultyException("The faculty does not exist!");
         }
-        if (authorization.isOfType(authorNetId, AccountType.SYSADMIN)) {
-            return true;
-        } else if (authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) {
-            return facultyAccountService.getFacultyAssignedId(authorNetId) == facultyId;
-        } else if (authorization.isOfType(authorNetId, AccountType.EMPLOYEE)) {
-            if (employeeRepository.findByNetId(authorNetId).isPresent()) {
-                Set<Long> faculties = employeeRepository.findByNetId(authorNetId).get().getParentFacultyIds();
-                return faculties.contains(facultyId);
-            } else {
-                throw new EmploymentException("Employee was not employed at this faculty");
-            }
+    }
+
+    /**
+     * Checks whether the netId belongs to a SysAdmin.
+     *
+     * @param authorNetId the NetId to check the access for
+     * @return whether the authorNetId belongs to a SysAdmin
+     * @throws NoSuchUserException if the NetId does not belong to an existing user
+     */
+    private boolean checkSysAdmin(String authorNetId) throws NoSuchUserException {
+        return authorization.isOfType(authorNetId, AccountType.SYSADMIN);
+    }
+
+    /**
+     * Checks whether the netId belongs to a FacultyAccount and whether the Faculty the FacultyAccount belongs to is that
+     * of the given facultyId.
+     *
+     * @param authorNetId the NetId to check for
+     * @param facultyId the FacultyId to check for
+     * @return the NetId belongs to a FacultyAccount and is the manager of the faculty of the given facultyId
+     * @throws NoSuchUserException if the NetId does not belong to an existing user
+     */
+    private boolean checkFacultyAccount(String authorNetId, long facultyId) throws NoSuchUserException {
+        if(!authorization.isOfType(authorNetId, AccountType.FAC_ACCOUNT)) {
+            return false;
+        }
+        return facultyAccountService.getFacultyAssignedId(authorNetId) == facultyId;
+    }
+
+    /**
+     * Checks whether the netId belongs to an Employee and whether the Employee is employed at the Faculty of the given
+     * facultyId.
+     *
+     * @param authorNetId the NetId to check for
+     * @param facultyId the FacultyId to check for
+     * @return the NetId belongs to an Employee and is employed at the faculty of the given facultyId
+     * @throws NoSuchUserException if the NetId does not belong to an existing user
+     */
+    private boolean checkEmployee(String authorNetId, long facultyId) throws NoSuchUserException, EmploymentException {
+        if(!authorization.isOfType(authorNetId, AccountType.EMPLOYEE)) {
+            return false;
+        }
+        if (employeeRepository.findByNetId(authorNetId).isPresent()) {
+            Set<Long> faculties = employeeRepository.findByNetId(authorNetId).get().getParentFacultyIds();
+            return faculties.contains(facultyId);
         } else {
-            throw new UnauthorizedException("Request to view schedules failed.");
+            throw new EmploymentException("Employee was not employed at this faculty.");
         }
     }
 
