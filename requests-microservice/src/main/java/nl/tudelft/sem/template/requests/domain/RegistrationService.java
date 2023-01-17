@@ -57,8 +57,7 @@ public class RegistrationService {
      */
     public AppRequest registerRequest(String description, Resources resources, String owner, String facultyName,
                                       Resources availableResources, Calendar deadline, Resources freePoolResources,
-                                      String token)
-        throws InvalidResourcesException {
+                                      String token) throws InvalidResourcesException {
         if (resources.getMemory() < 0 || resources.getCpu() < 0 || resources.getGpu() < 0) {
             throw new InvalidResourcesException("Resource object cannot be created with negative inputs");
         }
@@ -70,23 +69,25 @@ public class RegistrationService {
         }
 
         AppRequest request = new AppRequest(description, resources, owner, facultyName, deadline, -1);
-
-        final boolean facultyHasEnoughResources = !(availableResources.getGpu() < resources.getGpu()
-            || availableResources.getCpu() < resources.getCpu()
-            || availableResources.getMemory() < resources.getMemory());
-        final boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
-            || freePoolResources.getCpu() < resources.getCpu()
-            || freePoolResources.getMemory() < resources.getMemory());
-        final boolean isForTomorrow = isForTomorrow(deadline);
-        /*
-        0 when before the 6h deadline
-        1 when after the 6h deadline and before the 5min deadline,
-        2 when after the 5 min deadline
-         */
         int timePeriod = getTimePeriod(Calendar.getInstance());
-
+        final boolean facultyHasEnoughResources = hasEnoughResources(availableResources, resources);
+        final boolean frpHasEnoughResources = hasEnoughResources(freePoolResources, resources);
+        final boolean isForTomorrow = isForTomorrow(deadline);
         int status = decideStatusOfRequest(timePeriod, isForTomorrow, frpHasEnoughResources, facultyHasEnoughResources);
 
+        registerRequestOnceStatusDecided(status, request, token);
+        return request;
+    }
+
+    /**
+     * Once the status is decided in the registerRequest method, the actual registering of the request
+     * and all communication happens here.
+     *
+     * @param status  the status of the request
+     * @param request the request
+     * @param token   the JWT token
+     */
+    public void registerRequestOnceStatusDecided(int status, AppRequest request, String token) {
         if (status == 0) {
             //pending for manual review
             request.setStatus(0);
@@ -107,8 +108,19 @@ public class RegistrationService {
             request.setStatus(3);
             requestRepository.save(request);
         }
+    }
 
-        return request;
+    /**
+     * Checks whether the available resources provided are enough to satisfy the requested resources.
+     *
+     * @param availableResources the available resources
+     * @param requestResources   the resources being requested
+     * @return true iff they are enough
+     */
+    public boolean hasEnoughResources(Resources availableResources, Resources requestResources) {
+        return !(availableResources.getGpu() < requestResources.getGpu()
+                || availableResources.getCpu() < requestResources.getCpu()
+                || availableResources.getMemory() < requestResources.getMemory());
     }
 
     /**
@@ -124,8 +136,8 @@ public class RegistrationService {
         final Resources freePoolResources = resourcePoolService.getFacultyResourcesById(1L, token);
 
         boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
-            || freePoolResources.getCpu() < resources.getCpu()
-            || freePoolResources.getMemory() < resources.getMemory());
+                || freePoolResources.getCpu() < resources.getCpu()
+                || freePoolResources.getMemory() < resources.getMemory());
         int timePeriod = 1;
         boolean isForTomorrow = isForTomorrow(deadline);
         boolean facHasEnoughResources = false;
@@ -163,7 +175,7 @@ public class RegistrationService {
     @Scheduled(cron = "0 5 18 * * *")
     public void processAllPendingRequests() {
         List<AppRequest> allRequests = requestRepository.findAll().stream()
-            .filter(x -> x.getStatus() == 3).collect(Collectors.toList());
+                .filter(x -> x.getStatus() == 3).collect(Collectors.toList());
         for (AppRequest thisRequest : allRequests) {
             processRequestInPeriodOne(thisRequest, initialToken);
         }
@@ -255,21 +267,63 @@ public class RegistrationService {
         // 1 for approved,
         // 2 for rejected,
         // 3 pending and waiting for the free RP to get resources at the 6h before end of day deadline
-        if ((timePeriod == 2 && isForTomorrow) || (!frpHasEnoughResources && timePeriod == 1 && isForTomorrow)) {
+        if (isRequestRejected(timePeriod, isForTomorrow, frpHasEnoughResources)) {
             //auto reject
             return 2;
-        } else if ((timePeriod == 1 && frpHasEnoughResources) || (isForTomorrow && timePeriod == 0
-            && !facultyHasEnoughResources && frpHasEnoughResources)) {
+        }
+        if (isRequestAutoApproved(timePeriod, isForTomorrow, frpHasEnoughResources, facultyHasEnoughResources)) {
             //auto approve
             return 1;
-        } else if (timePeriod == 0 && !facultyHasEnoughResources && !frpHasEnoughResources) {
+        }
+        if (isRequestDelayedUntilSix(timePeriod, frpHasEnoughResources, facultyHasEnoughResources)) {
             //wait for the FRP to get more resources at 6h before end of day and then automatically check again
             return 3;
-        } else {
-            //set for manual review
-            return 0;
         }
+        //set for manual review
+        return 0;
     }
+
+    /**
+     * Decides whether a request is rejected given the following variables.
+     *
+     * @param timePeriod            the current time period
+     * @param isForTomorrow         whether the request is for tomorrow
+     * @param frpHasEnoughResources whether the free resource pool has enough resources to take this request
+     * @return true iff the request is rejected
+     */
+    public boolean isRequestRejected(int timePeriod, boolean isForTomorrow, boolean frpHasEnoughResources) {
+        return (timePeriod == 2 && isForTomorrow) || (!frpHasEnoughResources && timePeriod == 1 && isForTomorrow);
+    }
+
+    /**
+     * Decides whether a request is automatically approved given the following variables.
+     *
+     * @param timePeriod                the current time period
+     * @param isForTomorrow             whether the request is for tomorrow
+     * @param frpHasEnoughResources     whether the free resource pool has enough resources to take this request
+     * @param facultyHasEnoughResources whether the respective faculty has enough resources to take this request
+     * @return true iff the request is rejected
+     */
+    public boolean isRequestAutoApproved(int timePeriod, boolean isForTomorrow, boolean frpHasEnoughResources,
+                                         boolean facultyHasEnoughResources) {
+        return (timePeriod == 1 && frpHasEnoughResources) || (isForTomorrow && timePeriod == 0
+                && !facultyHasEnoughResources && frpHasEnoughResources);
+    }
+
+
+    /**
+     * Decides whether a request is left pending until the 6H deadline given the following variables.
+     *
+     * @param timePeriod                the current time period
+     * @param frpHasEnoughResources     whether the free resource pool has enough resources to take this request
+     * @param facultyHasEnoughResources whether the respective faculty has enough resources to take this request
+     * @return true iff the request is rejected
+     */
+    public boolean isRequestDelayedUntilSix(int timePeriod, boolean frpHasEnoughResources,
+                                            boolean facultyHasEnoughResources) {
+        return timePeriod == 0 && !facultyHasEnoughResources && !frpHasEnoughResources;
+    }
+
 
     /**
      * Gets the pending requests for the facultyName.
@@ -279,7 +333,7 @@ public class RegistrationService {
      */
     public List<AppRequest> getPendingRequestsForFacultyName(String facultyName) {
         return requestRepository.findAll().stream().filter(x -> x.getFacultyName().equals(facultyName) && x.getStatus() == 0)
-            .collect(Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     /**
