@@ -47,7 +47,9 @@ public class NodeManagementServiceTests {
         final Resources resources = new Resources(420, 400, 400);
         Node node = new Node(name, url, ownerNetId, facultyId, token, resources);
         when(nodeRepository.save(node)).thenReturn(node);
-        Node createdNode = nodeManagementService.registerNode(name, url, ownerNetId, facultyId, token, resources);
+        NodeVerifier nodeVerifier = new NodeVerifier(name, url, token, resources);
+        nodeVerifier.setRepo(nodeRepository);
+        Node createdNode = nodeManagementService.registerNode(nodeVerifier, ownerNetId, facultyId);
 
         assertThat(createdNode.getNodeName()).isEqualTo(name);
         assertThat(createdNode.getResource()).isEqualTo(resources);
@@ -65,8 +67,11 @@ public class NodeManagementServiceTests {
         final Token token = new Token("Token");
         final Resources resources = new Resources(420, 500, 400);
 
+        NodeVerifier nodeVerifier = new NodeVerifier(name, url, token, resources);
+        nodeVerifier.setRepo(nodeRepository);
+
         assertThrows(ResourcesInvalidException.class, () ->
-                nodeManagementService.registerNode(name, url, ownerNetId, facultyId, token, resources));
+                nodeManagementService.registerNode(nodeVerifier, ownerNetId, facultyId));
     }
 
     @Test
@@ -78,12 +83,17 @@ public class NodeManagementServiceTests {
         final long facultyId = 1L;
         final Token token = new Token("Token");
         final Resources resources = new Resources(420, 400, 400);
-        nodeManagementService.registerNode(name, url, ownerNetId, facultyId, token, resources);
+
+        NodeVerifier nodeVerifier = new NodeVerifier(name, url, token, resources);
+        NodeVerifier sameName = new NodeVerifier(name, new NodeUrl("url2"),
+                new Token("token2"), resources);
+        nodeVerifier.setRepo(nodeRepository);
+        sameName.setRepo(nodeRepository);
+        nodeManagementService.registerNode(nodeVerifier, ownerNetId, facultyId);
         when(nodeRepository.existsByName(name)).thenReturn(true);
 
         assertThrows(NameAlreadyInUseException.class, () ->
-                nodeManagementService.registerNode(name, new NodeUrl("url2"), ownerNetId,
-                                    facultyId, new Token("token2"), resources));
+                nodeManagementService.registerNode(sameName, ownerNetId, facultyId));
     }
 
     @Test
@@ -95,12 +105,17 @@ public class NodeManagementServiceTests {
         final long facultyId = 1L;
         final Token token = new Token("token");
         final Resources resources = new Resources(420, 400, 400);
-        nodeManagementService.registerNode(name, url, ownerNetId, facultyId, token, resources);
+
+        NodeVerifier nodeVerifier = new NodeVerifier(name, url, token, resources);
+        NodeVerifier sameUrl = new NodeVerifier(new Name("name2"), url,
+                new Token("token2"), resources);
+        nodeVerifier.setRepo(nodeRepository);
+        sameUrl.setRepo(nodeRepository);
+        nodeManagementService.registerNode(nodeVerifier, ownerNetId, facultyId);
         when(nodeRepository.existsByUrl(url)).thenReturn(true);
 
         assertThrows(UrlAlreadyInUseException.class, () ->
-                nodeManagementService.registerNode(new Name("Ivo"), url, ownerNetId, facultyId,
-                                                    new Token("token2"), resources));
+                nodeManagementService.registerNode(sameUrl, ownerNetId, facultyId));
     }
 
     @Test
@@ -112,11 +127,16 @@ public class NodeManagementServiceTests {
         final long facultyId = 1L;
         final Token token = new Token("Token");
         final Resources resources = new Resources(420, 400, 400);
-        nodeManagementService.registerNode(name, url, ownerNetId, facultyId, token, resources);
+
+        NodeVerifier nodeVerifier = new NodeVerifier(name, url, token, resources);
+        NodeVerifier sameToken = new NodeVerifier(new Name("name2"), new NodeUrl("url2"),
+                token, resources);
+        nodeVerifier.setRepo(nodeRepository);
+        sameToken.setRepo(nodeRepository);
+        nodeManagementService.registerNode(nodeVerifier, ownerNetId, facultyId);
         when(nodeRepository.existsByToken(token)).thenReturn(true);
 
         assertThrows(TokenAlreadyInUseException.class, () ->
-                nodeManagementService.registerNode(new Name("Ivo"), new NodeUrl("url2"),
-                                                    ownerNetId, facultyId, token, resources));
+                nodeManagementService.registerNode(sameToken, ownerNetId, facultyId));
     }
 }

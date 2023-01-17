@@ -42,31 +42,16 @@ public class NodeManagementService {
     /**
      * Register a node in the repository.
      *
-     * @param name     the name of the node
-     * @param url      the url of the node
+     * @param nv the group of attributes that need to be verified before registering a node
      * @param ownerNetId the netId of the owner of the node
      * @param facultyId the id of the faculty the node should be contributed to
-     * @param token    the token of the node
-     * @param resources the resources of the node
      * @return the node that has been registered
      * @throws Exception an exception
      */
-    public Node registerNode(Name name, NodeUrl url, String ownerNetId,
-                             long facultyId, Token token, Resources resources) throws Exception {
-        if (repo.existsByName(name)) {
-            throw new NameAlreadyInUseException(name);
-        }
-        if (repo.existsByUrl(url)) {
-            throw new UrlAlreadyInUseException(url);
-        }
-        if (repo.existsByToken(token)) {
-            throw new TokenAlreadyInUseException(token);
-        }
-        if (!checkResourceRequirements(resources)) {
-            throw new ResourcesInvalidException(resources);
-        }
-        interactWithFaculty("contributeNode", facultyId, resources);
-        Node node = new Node(name, url, ownerNetId, facultyId, token, resources);
+    public Node registerNode(NodeVerifier nv, String ownerNetId, long facultyId) throws Exception {
+        nv.verify();
+        interactWithFaculty("contributeNode", facultyId, nv.getResources());
+        Node node = new Node(nv.getName(), nv.getUrl(), ownerNetId, facultyId, nv.getToken(), nv.getResources());
         repo.save(node);
         return node;
     }
@@ -96,19 +81,6 @@ public class NodeManagementService {
         interactWithFaculty("deleteNode", node.getFacultyId(), node.getResource());
         repo.deleteById(nodeId);
         return node.getNodeName().toString();
-    }
-
-    /**
-     * Check resource requirements boolean.
-     *
-     * @param resource the resource
-     * @return the boolean
-     */
-    public boolean checkResourceRequirements(Resources resource) {
-        int cpu = resource.getCpu();
-        int gpu = resource.getGpu();
-        int memory = resource.getMemory();
-        return gpu >= 0 && memory >= 0  && cpu >= gpu && cpu >= memory;
     }
 
     /**
