@@ -3,7 +3,7 @@ package nl.tudelft.sem.template.users.domain;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public class UserServices {
+public final class UserServices {
 
     private final transient FacultyAccountService facultyAccountService;
     private final transient FacultyVerificationService facultyVerificationService;
