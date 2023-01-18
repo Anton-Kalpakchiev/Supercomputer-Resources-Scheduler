@@ -1,8 +1,11 @@
 package nl.tudelft.sem.template.resourcepool.domain.resourcepool;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,5 +75,17 @@ class RpManagementServiceTest {
         assertThrows(ManagerNetIdAlreadyAssignedException.class, () -> {
             rpManagementService.createFaculty(differentName, managerNetId);
         });
+    }
+
+    @Test
+    public void checkEnoughResourcesRemainingTestTrue() {
+        Resources resources = new Resources(100, 1, 0);
+        assertTrue(rpManagementService.checkEnoughResourcesRemaining(resources));
+    }
+
+    @Test
+    public void checkEnoughResourcesRemainingTestFalse() {
+        Resources resources = new Resources(-1, 1, 0);
+        assertFalse(rpManagementService.checkEnoughResourcesRemaining(resources));
     }
 }

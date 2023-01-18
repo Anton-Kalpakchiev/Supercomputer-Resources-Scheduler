@@ -47,7 +47,6 @@ public class RpManagementService {
      *
      * @param facultyId the id
      * @return the resources pool if found
-     * @throws Exception when the resource pool could not be found
      */
     public boolean verifyFaculty(long facultyId) {
         return repo.existsById(facultyId);
@@ -58,19 +57,13 @@ public class RpManagementService {
      *
      * @param nodeInfo The information needed to contribute the resources of the node
      * @return true if the contribution succeeded
-     * @throws Exception if a faculty with the given id can't be found
+     * @throws FacultyIdNotFoundException if a faculty with the given id can't be found
      */
-    public boolean contributeNode(NodeInteractionRequestModel nodeInfo) throws Exception {
-        long facultyId = nodeInfo.getFacultyId();
-        if (!repo.existsById(facultyId)) {
-            throw new FacultyIdNotFoundException(facultyId);
-        }
-        ResourcePool faculty = repo.findById(facultyId).get();
+    public boolean contributeNode(NodeInteractionRequestModel nodeInfo) throws FacultyIdNotFoundException {
+        ResourcePool faculty = getFacultyById(nodeInfo.getFacultyId());
         Resources currentNodeResources = faculty.getNodeResources();
-        int cpu = currentNodeResources.getCpu() + nodeInfo.getCpu();
-        int gpu = currentNodeResources.getGpu() + nodeInfo.getGpu();
-        int memory = currentNodeResources.getMemory() + nodeInfo.getMemory();
-        faculty.setNodeResources(new Resources(cpu, gpu, memory));
+        Resources node = new Resources(nodeInfo.getCpu(), nodeInfo.getGpu(), nodeInfo.getMemory());
+        faculty.setNodeResources(Resources.add(currentNodeResources, node));
         repo.save(faculty);
         return true;
     }
@@ -83,21 +76,41 @@ public class RpManagementService {
      * @throws Exception if a faculty with the given id can't be found or doesn't have enough resources
      */
     public boolean deleteNode(NodeInteractionRequestModel nodeInfo) throws Exception {
-        long facultyId = nodeInfo.getFacultyId();
+        ResourcePool faculty = getFacultyById(nodeInfo.getFacultyId());
+        Resources currentNodeResources = faculty.getNodeResources();
+        Resources node = new Resources(nodeInfo.getCpu(), nodeInfo.getGpu(), nodeInfo.getMemory());
+        Resources newNodeResources = Resources.subtract(currentNodeResources, node);
+        if (!checkEnoughResourcesRemaining(newNodeResources)) {
+            throw new RemainingResourcesInsufficientException(nodeInfo.getFacultyId());
+        }
+        faculty.setNodeResources(newNodeResources);
+        repo.save(faculty);
+        return true;
+    }
+
+    /**
+     * Returns the Faculty object if the ID can be found in the database.
+     *
+     * @param facultyId the ID of the wanted faculty
+     * @return the Faculty object related with the ID
+     * @throws FacultyIdNotFoundException if the ID couldn't be found in the database
+     */
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public ResourcePool getFacultyById(long facultyId) throws FacultyIdNotFoundException {
         if (!repo.existsById(facultyId)) {
             throw new FacultyIdNotFoundException(facultyId);
         }
-        ResourcePool faculty = repo.findById(facultyId).get();
-        Resources currentNodeResources = faculty.getNodeResources();
-        int cpu = currentNodeResources.getCpu() - nodeInfo.getCpu();
-        int gpu = currentNodeResources.getGpu() - nodeInfo.getGpu();
-        int memory = currentNodeResources.getMemory() - nodeInfo.getMemory();
-        if (cpu < 0 || gpu < 0 || memory < 0) {
-            throw new RemainingResourcesInsufficientException(facultyId);
-        }
-        faculty.setNodeResources(new Resources(cpu, gpu, memory));
-        repo.save(faculty);
-        return true;
+        return repo.findById(facultyId).get();
+    }
+
+    /**
+     * Checks if all resource fields stay above 0.
+     *
+     * @param nodeResources the Resources object to be checked
+     * @return whether the fields are bigger than 0
+     */
+    public boolean checkEnoughResourcesRemaining(Resources nodeResources) {
+        return nodeResources.getCpu() >= 0 && nodeResources.getGpu() >= 0 && nodeResources.getMemory() >= 0;
     }
 
     /**
