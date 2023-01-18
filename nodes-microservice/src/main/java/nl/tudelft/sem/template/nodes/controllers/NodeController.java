@@ -5,6 +5,7 @@ import nl.tudelft.sem.template.nodes.domain.node.Name;
 import nl.tudelft.sem.template.nodes.domain.node.Node;
 import nl.tudelft.sem.template.nodes.domain.node.NodeManagementService;
 import nl.tudelft.sem.template.nodes.domain.node.NodeUrl;
+import nl.tudelft.sem.template.nodes.domain.node.NodeVerifier;
 import nl.tudelft.sem.template.nodes.domain.node.Token;
 import nl.tudelft.sem.template.nodes.domain.resources.Resources;
 import nl.tudelft.sem.template.nodes.models.NodeContributionRequestModel;
@@ -53,7 +54,8 @@ public class NodeController {
             long facultyId = nodeInfo.getFacultyId();
             Token token = new Token(nodeInfo.getToken());
             Resources resources = new Resources(nodeInfo.getCpu(), nodeInfo.getGpu(), nodeInfo.getMemory());
-            Node node = nodeManagementService.registerNode(name, url, ownerNetId, facultyId, token, resources);
+            NodeVerifier nodeVerifier = new NodeVerifier(name, url, token, resources);
+            Node node = nodeManagementService.registerNode(nodeVerifier, ownerNetId, facultyId);
             return ResponseEntity.ok(node.getId());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
