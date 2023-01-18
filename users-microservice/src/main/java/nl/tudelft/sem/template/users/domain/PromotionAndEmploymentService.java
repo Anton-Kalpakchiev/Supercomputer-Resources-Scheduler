@@ -6,15 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import nl.tudelft.sem.template.users.authorization.AuthorizationManager;
 import nl.tudelft.sem.template.users.authorization.UnauthorizedException;
-import nl.tudelft.sem.template.users.models.FacultyCreationResponseModel;
-import nl.tudelft.sem.template.users.models.TemporaryRequestModel;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 
 /**
@@ -54,8 +46,8 @@ public class PromotionAndEmploymentService {
     public void promoteEmployeeToSysadmin(String authorNetId, String toBePromotedNetId) throws Exception {
         if (authorization.isOfType(authorNetId, AccountType.SYSADMIN)) {
             if (authorization.isOfType(toBePromotedNetId, AccountType.EMPLOYEE)) {
-                userServices.registrationService().dropEmployee(toBePromotedNetId);
-                userServices.registrationService().addSysadmin(toBePromotedNetId);
+                userServices.getRegistrationService().dropEmployee(toBePromotedNetId);
+                userServices.getRegistrationService().addSysadmin(toBePromotedNetId);
             } else {
                 throw new NoSuchUserException("No such employee: " + toBePromotedNetId);
             }
@@ -81,7 +73,7 @@ public class PromotionAndEmploymentService {
                 throws EmploymentException, NoSuchUserException, UnauthorizedException {
         for (long facultyId : facultyIds) {
             try {
-                userServices.facultyVerificationService().verifyFaculty(facultyId, token);
+                userServices.getFacultyVerificationService().verifyFaculty(facultyId, token);
             } catch (FacultyException e) {
                 throw new RuntimeException(e);
             }
@@ -92,7 +84,7 @@ public class PromotionAndEmploymentService {
             }
             return facultyIds;
         } else if (authorization.isOfType(employerNetId, AccountType.FAC_ACCOUNT)) {
-            long employerFacultyId = userServices.facultyAccountService().getFacultyAssignedId(employerNetId);
+            long employerFacultyId = userServices.getFacultyAccountService().getFacultyAssignedId(employerNetId);
             if (facultyIds.contains(employerFacultyId)) {
                 assignFacultyToEmployee(employeeNetId, employerFacultyId);
                 return Set.of(employerFacultyId);
@@ -124,7 +116,7 @@ public class PromotionAndEmploymentService {
                 throws EmploymentException, UnauthorizedException, NoSuchUserException {
         for (long facultyId : facultyIds) {
             try {
-                userServices.facultyVerificationService().verifyFaculty(facultyId, token);
+                userServices.getFacultyVerificationService().verifyFaculty(facultyId, token);
             } catch (FacultyException e) {
                 throw new RuntimeException(e);
             }
@@ -135,7 +127,7 @@ public class PromotionAndEmploymentService {
             }
             return facultyIds;
         } else if (authorization.isOfType(employerNetId, AccountType.FAC_ACCOUNT)) {
-            long employerFacultyId = userServices.facultyAccountService().getFacultyAssignedId(employerNetId);
+            long employerFacultyId = userServices.getFacultyAccountService().getFacultyAssignedId(employerNetId);
             if (facultyIds.contains(employerFacultyId)) {
                 removeEmployeeFromFaculty(employeeNetId, employerFacultyId);
                 return Set.of(employerFacultyId);
