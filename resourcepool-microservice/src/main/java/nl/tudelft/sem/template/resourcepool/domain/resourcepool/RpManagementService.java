@@ -57,9 +57,9 @@ public class RpManagementService {
      *
      * @param nodeInfo The information needed to contribute the resources of the node
      * @return true if the contribution succeeded
-     * @throws Exception if a faculty with the given id can't be found
+     * @throws FacultyIdNotFoundException if a faculty with the given id can't be found
      */
-    public boolean contributeNode(NodeInteractionRequestModel nodeInfo) throws Exception {
+    public boolean contributeNode(NodeInteractionRequestModel nodeInfo) throws FacultyIdNotFoundException {
         ResourcePool faculty = getFacultyById(nodeInfo.getFacultyId());
         Resources currentNodeResources = faculty.getNodeResources();
         Resources node = new Resources(nodeInfo.getCpu(), nodeInfo.getGpu(), nodeInfo.getMemory());

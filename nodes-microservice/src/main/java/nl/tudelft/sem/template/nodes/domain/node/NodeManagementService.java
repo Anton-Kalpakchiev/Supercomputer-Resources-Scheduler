@@ -49,6 +49,7 @@ public class NodeManagementService {
      * @throws Exception an exception
      */
     public Node registerNode(NodeVerifier nv, String ownerNetId, long facultyId) throws Exception {
+        nv.setRepo(repo);
         nv.verify();
         interactWithFaculty("contributeNode", facultyId, nv.getResources());
         Node node = new Node(nv.getName(), nv.getUrl(), ownerNetId, facultyId, nv.getToken(), nv.getResources());

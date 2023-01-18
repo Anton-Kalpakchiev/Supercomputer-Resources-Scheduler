@@ -10,7 +10,6 @@ public class NodeVerifier {
     private final transient Token token;
     private final transient Resources resources;
 
-    @Autowired
     public void setRepo(NodeRepository repo) {
         this.repo = repo;
     }
