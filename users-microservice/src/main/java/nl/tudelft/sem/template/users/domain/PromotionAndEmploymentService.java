@@ -22,42 +22,25 @@ import org.springframework.web.client.RestTemplate;
  */
 @Service
 public class PromotionAndEmploymentService {
-    private final transient SysadminRepository sysadminRepository;
     private final transient EmployeeRepository employeeRepository;
-    private final transient FacultyAccountRepository facultyAccountRepository;
 
-    private final transient RegistrationService registrationService;
+    private final transient UserServices userServices;
 
-    private final transient FacultyAccountService facultyAccountService;
     private final transient AuthorizationManager authorization;
 
-    private final transient FacultyVerificationService facultyVerificationService;
-
-    private transient RestTemplate restTemplate;
 
     /**
-     * Constructor for the Promotions and Employment Service.
+     * Constructor for promotion and employment service.
      *
-     * @param sysadminRepository the sysadmin repository
-     * @param employeeRepository the employee repository
-     * @param facultyAccountRepository the faculty account repository
+     * @param employeeRepository employee repository
+     * @param userServices the user services parameter object
+     * @param authorization the authorization manager
      */
-    public PromotionAndEmploymentService(SysadminRepository sysadminRepository,
-                                         EmployeeRepository employeeRepository,
-                                         FacultyAccountRepository facultyAccountRepository,
-                                         RegistrationService registrationService,
-                                         AuthorizationManager authorization,
-                                         FacultyAccountService facultyAccountService,
-                                         FacultyVerificationService facultyVerificationService,
-                                         RestTemplate restTemplate) {
-        this.sysadminRepository = sysadminRepository;
+    public PromotionAndEmploymentService(EmployeeRepository employeeRepository,
+                                         UserServices userServices, AuthorizationManager authorization) {
         this.employeeRepository = employeeRepository;
-        this.facultyAccountRepository = facultyAccountRepository;
-        this.registrationService = registrationService;
+        this.userServices = userServices;
         this.authorization = authorization;
-        this.facultyAccountService = facultyAccountService;
-        this.facultyVerificationService = facultyVerificationService;
-        this.restTemplate = restTemplate;
     }
 
     /**
@@ -71,8 +54,8 @@ public class PromotionAndEmploymentService {
     public void promoteEmployeeToSysadmin(String authorNetId, String toBePromotedNetId) throws Exception {
         if (authorization.isOfType(authorNetId, AccountType.SYSADMIN)) {
             if (authorization.isOfType(toBePromotedNetId, AccountType.EMPLOYEE)) {
-                registrationService.dropEmployee(toBePromotedNetId);
-                registrationService.addSysadmin(toBePromotedNetId);
+                userServices.registrationService().dropEmployee(toBePromotedNetId);
+                userServices.registrationService().addSysadmin(toBePromotedNetId);
             } else {
                 throw new NoSuchUserException("No such employee: " + toBePromotedNetId);
             }
@@ -98,7 +81,7 @@ public class PromotionAndEmploymentService {
                 throws EmploymentException, NoSuchUserException, UnauthorizedException {
         for (long facultyId : facultyIds) {
             try {
-                facultyVerificationService.verifyFaculty(facultyId, token);
+                userServices.facultyVerificationService().verifyFaculty(facultyId, token);
             } catch (FacultyException e) {
                 throw new RuntimeException(e);
             }
@@ -109,7 +92,7 @@ public class PromotionAndEmploymentService {
             }
             return facultyIds;
         } else if (authorization.isOfType(employerNetId, AccountType.FAC_ACCOUNT)) {
-            long employerFacultyId = facultyAccountService.getFacultyAssignedId(employerNetId);
+            long employerFacultyId = userServices.facultyAccountService().getFacultyAssignedId(employerNetId);
             if (facultyIds.contains(employerFacultyId)) {
                 assignFacultyToEmployee(employeeNetId, employerFacultyId);
                 return Set.of(employerFacultyId);
@@ -141,7 +124,7 @@ public class PromotionAndEmploymentService {
                 throws EmploymentException, UnauthorizedException, NoSuchUserException {
         for (long facultyId : facultyIds) {
             try {
-                facultyVerificationService.verifyFaculty(facultyId, token);
+                userServices.facultyVerificationService().verifyFaculty(facultyId, token);
             } catch (FacultyException e) {
                 throw new RuntimeException(e);
             }
@@ -152,7 +135,7 @@ public class PromotionAndEmploymentService {
             }
             return facultyIds;
         } else if (authorization.isOfType(employerNetId, AccountType.FAC_ACCOUNT)) {
-            long employerFacultyId = facultyAccountService.getFacultyAssignedId(employerNetId);
+            long employerFacultyId = userServices.facultyAccountService().getFacultyAssignedId(employerNetId);
             if (facultyIds.contains(employerFacultyId)) {
                 removeEmployeeFromFaculty(employeeNetId, employerFacultyId);
                 return Set.of(employerFacultyId);

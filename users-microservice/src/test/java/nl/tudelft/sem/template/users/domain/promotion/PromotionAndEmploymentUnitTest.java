@@ -7,9 +7,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.util.Optional;
 import java.util.Set;
@@ -28,12 +25,12 @@ import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
 import nl.tudelft.sem.template.users.domain.RegistrationService;
 import nl.tudelft.sem.template.users.domain.Sysadmin;
 import nl.tudelft.sem.template.users.domain.SysadminRepository;
+import nl.tudelft.sem.template.users.domain.UserServices;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
@@ -76,9 +73,8 @@ public class PromotionAndEmploymentUnitTest {
         authorization = mock(AuthorizationManager.class);
         mockRestServiceServer = MockRestServiceServer.createServer(restTemplate);
 
-        sut = new PromotionAndEmploymentService(sysadminRepository, employeeRepository,
-                facultyAccountRepository, registrationService, authorization,
-                facultyAccountService, facultyVerificationService, restTemplate);
+        sut = new PromotionAndEmploymentService(employeeRepository,
+                new UserServices(facultyAccountService, facultyVerificationService, registrationService), authorization);
 
         admin = new Sysadmin(adminNetId);
         employee = new Employee(employeeNetId);
