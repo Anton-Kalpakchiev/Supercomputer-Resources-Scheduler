@@ -39,6 +39,9 @@ class RegistrationServiceTest {
     @MockBean
     private transient ResourcePoolService mockResourcePoolService;
 
+    @Autowired
+    private transient RequestHandler requestHandler;
+
     String description;
     Resources resources;
     String owner;
@@ -204,66 +207,7 @@ class RegistrationServiceTest {
         assertFalse(registrationService.isForTomorrow(afterTomorrow));
     }
 
-    @Test
-    void decideStatusZero() {
-        timePeriod = 0;
-        isForTomorrow = new Random().nextInt(2) == 1;
-        frpHasEnoughResources = false;
-        facHasEnoughResources = true;
 
-        assertEquals(0, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
-                frpHasEnoughResources, facHasEnoughResources));
-
-    }
-
-    @Test
-    void decideStatusOne() {
-        timePeriod = 1;
-        isForTomorrow = new Random().nextInt(2) == 1;
-        frpHasEnoughResources = true;
-        facHasEnoughResources = new Random().nextInt(2) == 1;
-
-        assertEquals(1, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
-                frpHasEnoughResources, facHasEnoughResources));
-
-        timePeriod = 0;
-        isForTomorrow = true;
-        frpHasEnoughResources = true;
-        facHasEnoughResources = false;
-
-        assertEquals(1, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
-                frpHasEnoughResources, facHasEnoughResources));
-    }
-
-    @Test
-    void decideStatusTwo() {
-        timePeriod = 2;
-        isForTomorrow = true;
-        frpHasEnoughResources = true;
-        facHasEnoughResources = true;
-
-        assertEquals(2, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
-                frpHasEnoughResources, facHasEnoughResources));
-
-        timePeriod = 1;
-        isForTomorrow = true;
-        frpHasEnoughResources = false;
-        facHasEnoughResources = true;
-
-        assertEquals(2, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
-                frpHasEnoughResources, facHasEnoughResources));
-    }
-
-    @Test
-    void decideStatusThree() {
-        timePeriod = 0;
-        isForTomorrow = new Random().nextInt(2) == 1;
-        frpHasEnoughResources = false;
-        facHasEnoughResources = false;
-
-        assertEquals(3, registrationService.decideStatusOfRequest(timePeriod, isForTomorrow,
-                frpHasEnoughResources, facHasEnoughResources));
-    }
 
     @Test
     void getResourcesForId() throws InvalidResourcesException {
@@ -272,32 +216,10 @@ class RegistrationServiceTest {
             facultyName, availableResources, deadline, freePoolResources, token);
 
         // Assert
-        assertEquals(resources, registrationService.getResourcesForId(returnedRequest.getId()));
+        assertEquals(resources, requestHandler.getResourcesForId(returnedRequest.getId()));
     }
 
-    @Test
-    void getPendingResources() throws InvalidResourcesException {
-        // Act
-        AppRequest returnedRequest = registrationService.registerRequest(description, resources, owner,
-            facultyName, availableResources, deadline, freePoolResources, token);
-        returnedRequest.setStatus(0);
-        requestRepository.save(returnedRequest);
-        AppRequest notReturnedRequest1 = registrationService.registerRequest("don't return because of status",
-            resources, owner, facultyName, availableResources, deadline, freePoolResources, token);
-        notReturnedRequest1.setStatus(1);
-        requestRepository.save(notReturnedRequest1);
-        AppRequest notReturnedRequest2 = registrationService.registerRequest("don't return because of facultyName",
-            resources, owner, "other", availableResources, deadline, freePoolResources, token);
-        notReturnedRequest2.setStatus(0);
-        requestRepository.save(notReturnedRequest2);
-        ArrayList<AppRequest> expected = new ArrayList<>();
-        expected.add(returnedRequest);
 
-        // Assert
-        assertEquals(expected, registrationService.getPendingRequestsForFacultyName(facultyName));
-        assertFalse(registrationService.getPendingRequestsForFacultyName(facultyName).contains(notReturnedRequest1));
-        assertFalse(registrationService.getPendingRequestsForFacultyName(facultyName).contains(notReturnedRequest2));
-    }
 
 
 }

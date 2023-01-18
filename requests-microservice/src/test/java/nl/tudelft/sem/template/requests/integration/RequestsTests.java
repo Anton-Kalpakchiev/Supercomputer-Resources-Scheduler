@@ -17,6 +17,7 @@ import nl.tudelft.sem.template.requests.controllers.RequestController;
 import nl.tudelft.sem.template.requests.domain.AppRequest;
 import nl.tudelft.sem.template.requests.domain.InvalidResourcesException;
 import nl.tudelft.sem.template.requests.domain.RegistrationService;
+import nl.tudelft.sem.template.requests.domain.RequestHandler;
 import nl.tudelft.sem.template.requests.domain.RequestRepository;
 import nl.tudelft.sem.template.requests.domain.Resources;
 import nl.tudelft.sem.template.requests.integration.utils.JsonUtil;
@@ -58,6 +59,9 @@ public class RequestsTests {
     @Mock
     private transient RegistrationService mockRegistrationService;
 
+    @Mock
+    private transient RequestHandler mockRequestHandler;
+
     @MockBean
     private transient RequestController mockRequestController;
 
@@ -75,7 +79,7 @@ public class RequestsTests {
                 facultyName, Calendar.getInstance(), -1);
 
         when(mockJwtTokenVerifier.validateToken(anyString())).thenReturn(true);
-        when(mockRegistrationService.getResourcesForId(anyLong())).thenReturn(facultyResources);
+        when(mockRequestHandler.getResourcesForId(anyLong())).thenReturn(facultyResources);
         when(requestRepository.findById(0L)).thenReturn(Optional.of(expected));
 
         RegistrationRequestModel model = new RegistrationRequestModel();

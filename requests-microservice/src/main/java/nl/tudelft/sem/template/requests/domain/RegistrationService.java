@@ -2,12 +2,9 @@ package nl.tudelft.sem.template.requests.domain;
 
 import java.util.Calendar;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
-import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 
 @Service
@@ -17,6 +14,8 @@ import org.springframework.web.server.ResponseStatusException;
 public class RegistrationService {
     private final transient RequestRepository requestRepository;
     private final transient ResourcePoolService resourcePoolService;
+    private final transient RequestHandler requestHandler;
+    private final transient RequestChecker requestChecker;
 
     private transient String initialToken = null;
     //when tokens are not needed anymore, delete this and rework a bit the functions
@@ -26,27 +25,16 @@ public class RegistrationService {
      *
      * @param requestRepository   the request repository
      * @param resourcePoolService the service that communicates with the resource pool
+     * @param requestHandler      the request handler service
+     * @param requestChecker the request checker helper service
      */
-    public RegistrationService(RequestRepository requestRepository, ResourcePoolService resourcePoolService) {
+    public RegistrationService(RequestRepository requestRepository,
+                               ResourcePoolService resourcePoolService,
+                               RequestHandler requestHandler, RequestChecker requestChecker) {
         this.requestRepository = requestRepository;
         this.resourcePoolService = resourcePoolService;
-    }
-
-    /**
-     * Gets the requested resources.
-     *
-     * @param requestId the id of the requested
-     * @return the requested resources
-     */
-    public Resources getResourcesForId(long requestId) {
-        Optional<AppRequest> optional = requestRepository.findById(requestId);
-        if (optional.isPresent()) {
-            AppRequest request = optional.get();
-            Resources resources = new Resources(request.getCpu(), request.getGpu(), request.getMem());
-            return resources;
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+        this.requestHandler = requestHandler;
+        this.requestChecker = requestChecker;
     }
 
     /**
@@ -73,41 +61,11 @@ public class RegistrationService {
         final boolean facultyHasEnoughResources = hasEnoughResources(availableResources, resources);
         final boolean frpHasEnoughResources = hasEnoughResources(freePoolResources, resources);
         final boolean isForTomorrow = isForTomorrow(deadline);
-        int status = decideStatusOfRequest(timePeriod, isForTomorrow, frpHasEnoughResources, facultyHasEnoughResources);
+        int status = requestChecker.decideStatusOfRequest(timePeriod,
+                isForTomorrow, frpHasEnoughResources, facultyHasEnoughResources);
 
-        registerRequestOnceStatusDecided(status, request, token);
+        requestHandler.registerRequestOnceStatusDecided(status, request, token);
         return request;
-    }
-
-    /**
-     * Once the status is decided in the registerRequest method, the actual registering of the request
-     * and all communication happens here.
-     *
-     * @param status  the status of the request
-     * @param request the request
-     * @param token   the JWT token
-     */
-    public void registerRequestOnceStatusDecided(int status, AppRequest request, String token) {
-        if (status == 0) {
-            //pending for manual review
-            request.setStatus(0);
-            requestRepository.save(request);
-        } else if (status == 1) {
-            //auto approve
-            request.setStatus(1);
-            requestRepository.save(request);
-            Calendar tomorrow = Calendar.getInstance();
-            tomorrow.add(Calendar.DAY_OF_MONTH, 1);
-            resourcePoolService.approval(tomorrow, request.getId(), true, token);
-        } else if (status == 2) {
-            //auto reject
-            request.setStatus(2);
-            requestRepository.save(request);
-        } else {
-            //pending for the FRP to get more resources at 6h before end of day
-            request.setStatus(3);
-            requestRepository.save(request);
-        }
     }
 
     /**
@@ -134,36 +92,33 @@ public class RegistrationService {
         Calendar deadline = request.getDeadline();
         Resources resources = new Resources(request.getMem(), request.getCpu(), request.getGpu());
         final Resources freePoolResources = resourcePoolService.getFacultyResourcesById(1L, token);
-
-        boolean frpHasEnoughResources = !(freePoolResources.getGpu() < resources.getGpu()
-                || freePoolResources.getCpu() < resources.getCpu()
-                || freePoolResources.getMemory() < resources.getMemory());
-        int timePeriod = 1;
-        boolean isForTomorrow = isForTomorrow(deadline);
-        boolean facHasEnoughResources = false;
-        int status = decideStatusOfRequest(timePeriod, isForTomorrow, frpHasEnoughResources, facHasEnoughResources);
-
-        if (status == 0) {
-            //set for manual review
-            //find request in Repo, update its status
-            request.setStatus(0);
-            requestRepository.save(request);
-        } else if (status == 1) {
-            //approval for tomorrow
-            request.setStatus(1);
-            //find request in Repo, update its status
-            requestRepository.save(request);
+        int status = getStatus(deadline, resources, freePoolResources);
+        request.setStatus(status);
+        requestRepository.save(request);
+        if (status == 1) {
             //update RP/Schedule MS so that it can update the schedule for the corresponding faculty for tomorrow
             Calendar tomorrow = Calendar.getInstance();
             tomorrow.add(Calendar.DAY_OF_MONTH, 1);
             resourcePoolService.approval(tomorrow, request.getId(), true, token);
-        } else {
-            //rejection
-            //find request in Repo, update its status
-            request.setStatus(2);
-            requestRepository.save(request);
         }
         return request;
+    }
+
+    /**
+     * Helper method for finding the status of a request.
+     *
+     * @param deadline the deadline of the request
+     * @param resources the resources of the request
+     * @param freePoolResources the resources of the free pool
+     * @return the status of a request
+     */
+    private int getStatus(Calendar deadline, Resources resources, Resources freePoolResources) {
+        boolean frpHasEnoughResources = hasEnoughResources(freePoolResources, resources);
+        int timePeriod = 1;
+        boolean isForTomorrow = isForTomorrow(deadline);
+        boolean facHasEnoughResources = false;
+        return requestChecker.decideStatusOfRequest(timePeriod,
+                isForTomorrow, frpHasEnoughResources, facHasEnoughResources);
     }
 
 
@@ -249,112 +204,5 @@ public class RegistrationService {
         deadlineFiveMinutesBeforeEnd.set(Calendar.SECOND, 0);
         return deadlineFiveMinutesBeforeEnd;
     }
-
-
-    /**
-     * Decides what happens with a request when it arrives - it can be approved, rejected,
-     * left pending for manual review, or left pending until the FRP gets more resources at 18PM.
-     *
-     * @param timePeriod                the time period at which the request is submitted
-     * @param isForTomorrow             whether the request is for tomorrow
-     * @param frpHasEnoughResources     whether the FRP has enough resources for this request
-     * @param facultyHasEnoughResources whether the faculty the request is scheduled to has enough resources for this request
-     * @return the status of the request
-     */
-    public int decideStatusOfRequest(int timePeriod, boolean isForTomorrow, boolean frpHasEnoughResources,
-                                     boolean facultyHasEnoughResources) {
-        // 0 for pending manual approval,
-        // 1 for approved,
-        // 2 for rejected,
-        // 3 pending and waiting for the free RP to get resources at the 6h before end of day deadline
-        if (isRequestRejected(timePeriod, isForTomorrow, frpHasEnoughResources)) {
-            //auto reject
-            return 2;
-        }
-        if (isRequestAutoApproved(timePeriod, isForTomorrow, frpHasEnoughResources, facultyHasEnoughResources)) {
-            //auto approve
-            return 1;
-        }
-        if (isRequestDelayedUntilSix(timePeriod, frpHasEnoughResources, facultyHasEnoughResources)) {
-            //wait for the FRP to get more resources at 6h before end of day and then automatically check again
-            return 3;
-        }
-        //set for manual review
-        return 0;
-    }
-
-    /**
-     * Decides whether a request is rejected given the following variables.
-     *
-     * @param timePeriod            the current time period
-     * @param isForTomorrow         whether the request is for tomorrow
-     * @param frpHasEnoughResources whether the free resource pool has enough resources to take this request
-     * @return true iff the request is rejected
-     */
-    public boolean isRequestRejected(int timePeriod, boolean isForTomorrow, boolean frpHasEnoughResources) {
-        return (timePeriod == 2 && isForTomorrow) || (!frpHasEnoughResources && timePeriod == 1 && isForTomorrow);
-    }
-
-    /**
-     * Decides whether a request is automatically approved given the following variables.
-     *
-     * @param timePeriod                the current time period
-     * @param isForTomorrow             whether the request is for tomorrow
-     * @param frpHasEnoughResources     whether the free resource pool has enough resources to take this request
-     * @param facultyHasEnoughResources whether the respective faculty has enough resources to take this request
-     * @return true iff the request is rejected
-     */
-    public boolean isRequestAutoApproved(int timePeriod, boolean isForTomorrow, boolean frpHasEnoughResources,
-                                         boolean facultyHasEnoughResources) {
-        return (timePeriod == 1 && frpHasEnoughResources) || (isForTomorrow && timePeriod == 0
-                && !facultyHasEnoughResources && frpHasEnoughResources);
-    }
-
-
-    /**
-     * Decides whether a request is left pending until the 6H deadline given the following variables.
-     *
-     * @param timePeriod                the current time period
-     * @param frpHasEnoughResources     whether the free resource pool has enough resources to take this request
-     * @param facultyHasEnoughResources whether the respective faculty has enough resources to take this request
-     * @return true iff the request is rejected
-     */
-    public boolean isRequestDelayedUntilSix(int timePeriod, boolean frpHasEnoughResources,
-                                            boolean facultyHasEnoughResources) {
-        return timePeriod == 0 && !facultyHasEnoughResources && !frpHasEnoughResources;
-    }
-
-
-    /**
-     * Gets the pending requests for the facultyName.
-     *
-     * @param facultyName the facultyName for which the pending requests need to be retrieved
-     * @return the list of pending requests
-     */
-    public List<AppRequest> getPendingRequestsForFacultyName(String facultyName) {
-        return requestRepository.findAll().stream().filter(x -> x.getFacultyName().equals(facultyName) && x.getStatus() == 0)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Gets the set of all IDs of resource requests made by a given user.
-     *
-     * @param netId the netid of the user
-     * @return a String that has the encoded IDs
-     */
-    public String getRequestIdsByNetId(String netId) {
-        List<Long> ids = requestRepository.findAll().stream().filter(x -> x.getOwner().equals(netId))
-                .map(x -> x.getId()).collect(Collectors.toList());
-        StringBuilder answer = new StringBuilder();
-        for (int i = 0; i < ids.size(); i++) {
-            long id = ids.get(i);
-            answer.append(id);
-            if (i != ids.size() - 1) {
-                answer.append("/");
-            }
-        }
-        return answer.toString();
-    }
-
 }
 
