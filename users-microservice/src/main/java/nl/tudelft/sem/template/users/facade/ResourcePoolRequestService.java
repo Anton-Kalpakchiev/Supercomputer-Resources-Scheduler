@@ -38,42 +38,63 @@ public class ResourcePoolRequestService extends RequestSenderService {
      * Method for creating a faculty by calling the microservice Resource Pool.
      *
      * @param authorNetId the netId of the author of the request.
-     * @param managerNetId the netid of the manager of the request.
+     * @param managerNetId the netId of the manager of the request.
      * @param facultyName the new faculty name.
      * @param token the token of the request.
      * @return the id of the new faculty
      * @throws Exception if a user is unauthorized or does not exist
      */
     public long createFaculty(String authorNetId, String managerNetId, String facultyName, String token)
-            throws FacultyException, NoSuchUserException, UnauthorizedException {
+        throws FacultyException, NoSuchUserException, UnauthorizedException {
         if (authorization.isOfType(authorNetId, AccountType.SYSADMIN)) {
-            if (authorization.isOfType(managerNetId, AccountType.EMPLOYEE)) {
-                String url = "http://localhost:8085/createFaculty";
-
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-                headers.setBearerAuth(token);
-                HttpEntity<TemporaryRequestModel> entity = new HttpEntity<>(
-                        new TemporaryRequestModel(facultyName, managerNetId), headers);
-
-                ResponseEntity<FacultyCreationResponseModel> result = restTemplate.postForEntity(url, entity,
-                        FacultyCreationResponseModel.class);
-
-                if (result.getStatusCode().is2xxSuccessful()) {
-                    registrationService.dropEmployee(managerNetId);
-                    registrationService.addFacultyAccount(managerNetId, (int) result.getBody().getFacultyId());
-
-                    return result.getBody().getFacultyId();
-                } else {
-                    throw new FacultyException(result.getStatusCode().getReasonPhrase());
-                }
-            } else {
-                throw new NoSuchUserException("No such employee: " + managerNetId);
-            }
+            checkEmployee(managerNetId);
+            return sendCreateFacultyRequest(managerNetId, facultyName, token);
         } else {
             throw new UnauthorizedException("User (" + authorNetId + ") is not a Sysadmin => can not create a faculty");
         }
     }
+
+    /**
+     * Checks whether the given netId belongs to an employee.
+     *
+     * @param managerNetId the netId to check for
+     * @throws NoSuchUserException if the netId does not belong to an employee
+     */
+    private void checkEmployee(String managerNetId) throws NoSuchUserException {
+        if (!authorization.isOfType(managerNetId, AccountType.EMPLOYEE)) {
+            throw new NoSuchUserException("No such employee: " + managerNetId);
+        }
+    }
+
+    /**
+     * Sends a request to the Resource Pool microservice to create a faculty.
+     *
+     * @param managerNetId the netId of the account that is going to be the faculty manager
+     * @param facultyName the name that the faculty is going to have
+     * @param token the token of the request
+     * @return the facultyId of the created faculty
+     * @throws FacultyException if the faculty could not be created
+     */
+    private long sendCreateFacultyRequest(String managerNetId, String facultyName, String token)
+        throws FacultyException {
+        String url = "http://localhost:8085/createFaculty";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(token);
+        HttpEntity<TemporaryRequestModel> entity = new HttpEntity<>(
+            new TemporaryRequestModel(facultyName, managerNetId), headers);
+        ResponseEntity<FacultyCreationResponseModel> result = restTemplate.postForEntity(url, entity,
+            FacultyCreationResponseModel.class);
+
+        if (result.getStatusCode().is2xxSuccessful()) {
+            registrationService.dropEmployee(managerNetId);
+            registrationService.addFacultyAccount(managerNetId, (int) result.getBody().getFacultyId());
+            return result.getBody().getFacultyId();
+        } else {
+            throw new FacultyException(result.getStatusCode().getReasonPhrase());
+        }
+    }
+
 
     /**
      * Sends a request to the specified url in the Resource pool microservice.
