@@ -1,8 +1,7 @@
 package nl.tudelft.sem.template.users.models.facade;
 
-import lombok.Data;
-
 import java.util.Objects;
+import lombok.Data;
 
 /**
  * Model representing a node contribution request.
@@ -35,5 +34,10 @@ public class NodeContributionRequestModel {
         }
         NodeContributionRequestModel that = (NodeContributionRequestModel) o;
         return getName().equals(that.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName());
     }
 }

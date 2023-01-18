@@ -34,4 +34,9 @@ public class NodeContributionRequestModel {
         NodeContributionRequestModel that = (NodeContributionRequestModel) o;
         return getName().equals(that.getName());
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName());
+    }
 }
