@@ -253,9 +253,9 @@ public class DailyScheduleServiceTest {
         assertThat(expectedDailySchedule7.getAvailableResources()).isEqualTo(new Resources(0, 0, 0));
         assertThat(expectedDailySchedule7.getTotalResources()).isEqualTo(new Resources(100, 100, 100));
 
-            ReleaseResourcesException exc = assertThrows(ReleaseResourcesException.class,
-                () -> dailyScheduleService.releaseAllResourcesToFreePoolMutated());
-            assertThat(exc.getMessage()).isEqualTo("The free resource pool cannot release resources!");
+        ReleaseResourcesException exc = assertThrows(ReleaseResourcesException.class,
+            () -> dailyScheduleService.releaseAllResourcesToFreePoolMutated());
+        assertThat(exc.getMessage()).isEqualTo("The free resource pool cannot release resources!");
 
     }
 }
