@@ -6,8 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import nl.tudelft.sem.template.resourcepool.domain.resources.Resources;
+import nl.tudelft.sem.template.resourcepool.models.NodeInteractionRequestModel;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -87,5 +89,22 @@ class RpManagementServiceTest {
     public void checkEnoughResourcesRemainingTestFalse() {
         Resources resources = new Resources(-1, 1, 0);
         assertFalse(rpManagementService.checkEnoughResourcesRemaining(resources));
+    }
+
+    @Test
+    public void killContributeNodeMutant() throws Exception {
+        Faculty faculty = rpManagementService.createFaculty("test", "id");
+        Resources before = faculty.getNodeResources();
+        assertEquals(new Resources(0, 0, 0), before);
+
+        NodeInteractionRequestModel model = new NodeInteractionRequestModel(
+                faculty.getId(), 100, 100, 100
+        );
+
+        rpManagementService.contributeNodeMutated(model);
+        final Resources after = faculty.getNodeResources();
+        assertThrows(AssertionFailedError.class, () -> {
+            assertEquals(new Resources(100, 100, 100), after);
+        });
     }
 }
