@@ -281,4 +281,14 @@ public class DailyScheduleService {
             }
         }
     }
+
+    public void releaseAllResourcesToFreePoolMutated() throws Exception {
+        List<Long> allIds = resourcePoolRepo.findAll().stream().map(ResourcePool::getId).collect(Collectors.toList());
+        for (long thisId : allIds) {
+            if (thisId == 1L) {
+                Calendar day = Calendar.getInstance();
+                releaseResources(day, thisId);
+            }
+        }
+    }
 }
