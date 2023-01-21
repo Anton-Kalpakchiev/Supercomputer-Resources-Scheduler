@@ -67,7 +67,7 @@ public class PromotionAndEmploymentService {
      * @throws UnauthorizedException user is not authorized.
      */
 
-    @SuppressWarnings({"PMD.AvoidLiteralsInIfCondition"})
+    @SuppressWarnings({"PMD.AvoidLiteralsInIfCondition", "PMD.DataflowAnomalyAnalysis"})
     public Set<Long> authorizeEmploymentAssignmentRequest(
             String employerNetId, String employeeNetId, Set<Long> facultyIds, String token)
             throws EmploymentException, NoSuchUserException, UnauthorizedException, FacultyException {
