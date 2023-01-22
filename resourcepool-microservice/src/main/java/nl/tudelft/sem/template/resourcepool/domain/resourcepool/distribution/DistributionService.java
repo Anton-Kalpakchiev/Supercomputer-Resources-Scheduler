@@ -187,4 +187,30 @@ public class DistributionService {
         }
         return new Resources(totalCpu, totalGpu, totalMemory);
     }
+
+    /**
+     * Mutation of the regular saveDistribution method which fails to validate the created distribution.
+     *
+     * @throws Exception if there is a wrong amount of distributions or if the percentages don't add up
+     */
+    public void saveDistributionMutated() throws Exception {
+        // Mutation: created distribution is no longer validated before being saved
+        List<ResourcePool> rps = repo.findAll();
+        for (ResourceDistribution distribution : distributions) {
+            String name = distribution.getName();
+            ResourcePool resourcePool;
+            Optional<ResourcePool> tempResourcePool = repo.findByName(name);
+            if (tempResourcePool.isEmpty()) {
+                break;
+            }
+            resourcePool = tempResourcePool.get();
+            double cpu = distribution.getPercentageCpu() / 100.0 * systemResources.getCpu();
+            double gpu = distribution.getPercentageGpu() / 100.0 * systemResources.getGpu();
+            double memory = distribution.getPercentageMemory() / 100.0 * systemResources.getMemory();
+            Resources resources = new Resources((int) cpu, (int) gpu, (int) memory);
+            resourcePool.setBaseResources(resources);
+            repo.save(resourcePool);
+        }
+        distributions.clear();
+    }
 }
