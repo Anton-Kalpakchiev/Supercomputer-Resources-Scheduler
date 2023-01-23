@@ -58,11 +58,10 @@ public class EmployeeService {
      * @return the Resources for tomorrow
      * @throws NoSuchUserException thrown if the employee cannot be found.
      */
-    public ResourcesDto getResourcesForTomorrow(String netId, String token) throws NoSuchUserException,
-                                                                                JsonProcessingException {
+    public ResourcesDto getResourcesForTomorrow(String netId, String token, RestTemplate restTemplate)
+            throws NoSuchUserException, JsonProcessingException {
         Set<Long> facultyIds = this.getParentFacultyId(netId);
 
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Type", "application/json");
         headers.add("Authorization", "Bearer " + token);
