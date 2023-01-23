@@ -291,6 +291,7 @@ public class DailyScheduleService {
     public void releaseAllResourcesToFreePoolMutated() throws Exception {
         List<Long> allIds = resourcePoolRepo.findAll().stream().map(ResourcePool::getId).collect(Collectors.toList());
         for (long thisId : allIds) {
+            // mutation: changed thisId != 1L to thisId == 1L
             if (thisId == 1L) {
                 Calendar day = Calendar.getInstance();
                 releaseResources(day, thisId);
