@@ -119,7 +119,7 @@ public class UsersController {
             }
         } catch (UnauthorizedException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        } catch (EmploymentException | NoSuchUserException e) {
+        } catch (EmploymentException | NoSuchUserException | FacultyException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }

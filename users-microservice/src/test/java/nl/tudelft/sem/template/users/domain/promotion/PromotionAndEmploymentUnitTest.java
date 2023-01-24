@@ -19,6 +19,7 @@ import nl.tudelft.sem.template.users.domain.EmploymentException;
 import nl.tudelft.sem.template.users.domain.FacultyAccount;
 import nl.tudelft.sem.template.users.domain.FacultyAccountRepository;
 import nl.tudelft.sem.template.users.domain.FacultyAccountService;
+import nl.tudelft.sem.template.users.domain.FacultyException;
 import nl.tudelft.sem.template.users.domain.FacultyVerificationService;
 import nl.tudelft.sem.template.users.domain.NoSuchUserException;
 import nl.tudelft.sem.template.users.domain.PromotionAndEmploymentService;
@@ -35,16 +36,18 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 public class PromotionAndEmploymentUnitTest {
-    private SysadminRepository sysadminRepository;
-    private EmployeeRepository employeeRepository;
-    private FacultyAccountRepository facultyAccountRepository;
-    private RestTemplate restTemplate;
-    private RegistrationService registrationService;
+    private transient SysadminRepository sysadminRepository;
+    private transient EmployeeRepository employeeRepository;
+    private transient FacultyAccountRepository facultyAccountRepository;
+    private transient RestTemplate restTemplate;
+    private transient RegistrationService registrationService;
 
-    private FacultyAccountService facultyAccountService;
-    private AuthorizationManager authorization;
-    private MockRestServiceServer mockRestServiceServer;
-    private PromotionAndEmploymentService sut;
+    private transient FacultyAccountService facultyAccountService;
+    private transient AuthorizationManager authorization;
+    private transient MockRestServiceServer mockRestServiceServer;
+
+    private transient UserServices userServices;
+    private transient PromotionAndEmploymentService sut;
 
     private Sysadmin admin;
     private Employee employee;
@@ -70,11 +73,13 @@ public class PromotionAndEmploymentUnitTest {
         facultyAccountRepository = mock(FacultyAccountRepository.class);
         restTemplate = new RestTemplate();
         registrationService = mock(RegistrationService.class);
+        facultyAccountService = mock(FacultyAccountService.class);
+        facultyVerificationService = mock(FacultyVerificationService.class);
         authorization = mock(AuthorizationManager.class);
         mockRestServiceServer = MockRestServiceServer.createServer(restTemplate);
 
-        sut = new PromotionAndEmploymentService(employeeRepository,
-                new UserServices(facultyAccountService, facultyVerificationService, registrationService), authorization);
+        userServices = new UserServices(facultyAccountService, facultyVerificationService, registrationService);
+        sut = new PromotionAndEmploymentService(employeeRepository, userServices, authorization);
 
         admin = new Sysadmin(adminNetId);
         employee = new Employee(employeeNetId);
@@ -167,10 +172,112 @@ public class PromotionAndEmploymentUnitTest {
     }
 
     @Test
+    void removeFacultyFromEmployeeNotEmployed() {
+        when(employeeRepository.findByNetId(employeeNetId)).thenReturn(Optional.of(employee));
+        assertThrows(EmploymentException.class, () -> sut.removeEmployeeFromFaculty(employeeNetId, facultyId));
+    }
+
+    @Test
     void assignFacultyToEmployeeDuplicate() throws NoSuchUserException, EmploymentException {
         when(employeeRepository.findByNetId(employeeNetId)).thenReturn(Optional.of(employee));
-        Set<Long> result = Set.of(6L);
         sut.assignFacultyToEmployee(employeeNetId, facultyId);
         assertThrows(EmploymentException.class, () -> sut.assignFacultyToEmployee(employeeNetId, facultyId));
     }
+
+    @Test
+    void authorizeEmploymentRequestFacultyNotFound() throws FacultyException {
+        when(userServices.getFacultyVerificationService().verifyFaculty(facultyId, sampleToken))
+                .thenThrow(FacultyException.class);
+        assertThrows(FacultyException.class,
+                () -> sut.authorizeEmploymentAssignmentRequest(facultyNetId, employeeNetId, Set.of(facultyId), sampleToken));
+    }
+
+    @Test
+    void authorizeTerminationRequestFacultyNotFound() throws FacultyException {
+        when(userServices.getFacultyVerificationService().verifyFaculty(facultyId, sampleToken))
+                .thenThrow(FacultyException.class);
+        assertThrows(FacultyException.class,
+                () -> sut.authorizeEmploymentRemovalRequest(facultyNetId, employeeNetId, Set.of(facultyId), sampleToken));
+    }
+
+    @Test
+    void authorizationHiringEmployeesSuccessful() throws FacultyException,
+            NoSuchUserException, UnauthorizedException, EmploymentException {
+        when(userServices.getFacultyVerificationService().verifyFaculty(facultyId, sampleToken)).thenReturn(true);
+        when(employeeRepository.findByNetId(employeeNetId)).thenReturn(Optional.of(employee));
+        when(userServices.getFacultyAccountService().getFacultyAssignedId(facultyNetId)).thenReturn(facultyId);
+        Set<Long> expectedResult = Set.of(facultyId);
+        Set<Long> result = sut.authorizeEmploymentAssignmentRequest(
+                facultyNetId, employeeNetId, Set.of(facultyId), sampleToken);
+        assertThat(result).isEqualTo(expectedResult);
+        verify(employeeRepository).saveAndFlush(employeeArgumentCaptor.capture());
+        assertThat(employeeArgumentCaptor.getValue().getParentFacultyIds()).isEqualTo(result);
+    }
+
+    @Test
+    void authorizationFiringEmployeesSuccessful() throws FacultyException,
+            NoSuchUserException, UnauthorizedException, EmploymentException {
+        when(userServices.getFacultyVerificationService().verifyFaculty(facultyId, sampleToken)).thenReturn(true);
+        Employee employedEmployee = new Employee(employeeNetId, Set.of(facultyId));
+        when(employeeRepository.findByNetId(employeeNetId)).thenReturn(Optional.of(employedEmployee));
+        when(userServices.getFacultyAccountService().getFacultyAssignedId(facultyNetId)).thenReturn(facultyId);
+
+        Set<Long> result = sut.authorizeEmploymentRemovalRequest(
+                facultyNetId, employeeNetId, Set.of(facultyId), sampleToken);
+
+        verify(employeeRepository).saveAndFlush(employeeArgumentCaptor.capture());
+        assertThat(employeeArgumentCaptor.getValue().getParentFacultyIds()).isEqualTo(Set.of());
+        assertThat(result).isEqualTo(Set.of(facultyId));
+    }
+
+    @Test
+    void authorizationHiringEmployeesWrongFacManager() throws FacultyException, NoSuchUserException {
+        when(userServices.getFacultyVerificationService().verifyFaculty(facultyId, sampleToken)).thenReturn(true);
+        when(userServices.getFacultyAccountService().getFacultyAssignedId(facultyNetId)).thenReturn(3L);
+        assertThrows(EmploymentException.class,
+                () -> sut.authorizeEmploymentAssignmentRequest(facultyNetId, employeeNetId, Set.of(facultyId), sampleToken));
+    }
+
+    @Test
+    void authorizationFiringEmployeesWrongFacManager() throws FacultyException, NoSuchUserException {
+        when(userServices.getFacultyVerificationService().verifyFaculty(facultyId, sampleToken)).thenReturn(true);
+        when(userServices.getFacultyAccountService().getFacultyAssignedId(facultyNetId)).thenReturn(3L);
+        assertThrows(EmploymentException.class,
+                () -> sut.authorizeEmploymentRemovalRequest(facultyNetId, employeeNetId, Set.of(facultyId), sampleToken));
+    }
+
+    @Test
+    void authorizationHiringEmployeesMultiple() throws NoSuchUserException, FacultyException {
+        when(userServices.getFacultyVerificationService().verifyFaculty(facultyId, sampleToken)).thenReturn(true);
+        when(userServices.getFacultyAccountService().getFacultyAssignedId(facultyNetId)).thenReturn(facultyId);
+        assertThrows(EmploymentException.class,
+                () -> sut.authorizeEmploymentAssignmentRequest(
+                        facultyNetId, employeeNetId, Set.of(facultyId, 1L), sampleToken));
+    }
+
+    @Test
+    void authorizationFiringEmployeesMultiple() throws NoSuchUserException, FacultyException {
+        when(userServices.getFacultyVerificationService().verifyFaculty(facultyId, sampleToken)).thenReturn(true);
+        when(userServices.getFacultyAccountService().getFacultyAssignedId(facultyNetId)).thenReturn(facultyId);
+        assertThrows(EmploymentException.class,
+                () -> sut.authorizeEmploymentRemovalRequest(
+                        facultyNetId, employeeNetId, Set.of(facultyId, 1L), sampleToken));
+    }
+
+    @Test
+    void authorizationHiringEmployeeByEmployee() throws FacultyException {
+        when(userServices.getFacultyVerificationService().verifyFaculty(facultyId, sampleToken)).thenReturn(true);
+        assertThrows(UnauthorizedException.class,
+                () -> sut.authorizeEmploymentAssignmentRequest(
+                        employeeNetId, employeeNetId, Set.of(facultyId, 1L), sampleToken));
+    }
+
+    @Test
+    void authorizationFiringEmployeeByEmployee() throws FacultyException {
+        when(userServices.getFacultyVerificationService().verifyFaculty(facultyId, sampleToken)).thenReturn(true);
+        assertThrows(UnauthorizedException.class,
+                () -> sut.authorizeEmploymentRemovalRequest(
+                        employeeNetId, employeeNetId, Set.of(facultyId, 1L), sampleToken));
+    }
+
 }
