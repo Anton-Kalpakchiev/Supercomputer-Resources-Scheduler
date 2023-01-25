@@ -105,6 +105,15 @@ public class ResourcePool extends HasEvents {
     }
 
     /**
+     * Sets the id.
+     *
+     * @param id the new id
+     */
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    /**
      * Equality is only based on the name.
      *
      * @return whether the resource pools are equal

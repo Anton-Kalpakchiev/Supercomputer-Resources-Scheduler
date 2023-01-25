@@ -281,4 +281,21 @@ public class DailyScheduleService {
             }
         }
     }
+
+    /**
+     * Checks whether mutation on line 274 is killed.
+     *
+     * @throws Exception should happen because of the mutation
+     */
+    @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
+    public void releaseAllResourcesToFreePoolMutated() throws Exception {
+        List<Long> allIds = resourcePoolRepo.findAll().stream().map(ResourcePool::getId).collect(Collectors.toList());
+        for (long thisId : allIds) {
+            // mutation: changed thisId != 1L to thisId == 1L
+            if (thisId == 1L) {
+                Calendar day = Calendar.getInstance();
+                releaseResources(day, thisId);
+            }
+        }
+    }
 }
