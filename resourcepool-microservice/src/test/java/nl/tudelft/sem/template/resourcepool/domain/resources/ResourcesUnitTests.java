@@ -34,6 +34,16 @@ public class ResourcesUnitTests {
     }
 
     @Test
+    public void subtractTest() {
+        Resources left = new Resources(200, 50, 100);
+        Resources right = new Resources(60, 15, 50);
+        Resources expectedResult = new Resources(140, 35, 50);
+        Resources result = Resources.subtract(left, right);
+
+        assertEquals(result, expectedResult);
+    }
+
+    @Test
     public void subtractMutatedTest() {
         Resources left = new Resources(200, 50, 100);
         Resources right = new Resources(60, 15, 50);
