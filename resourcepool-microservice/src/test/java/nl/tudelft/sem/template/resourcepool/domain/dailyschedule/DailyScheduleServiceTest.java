@@ -203,6 +203,7 @@ public class DailyScheduleServiceTest {
 
     @Test
     void releaseAllResourcesToFreePoolTest() {
+        // set up
         DailySchedule dailySchedule6 = new DailySchedule(day, resourcePoolId);
         dailySchedule6.setTotalResources(new Resources(100, 100, 100));
         dailySchedule6.setAvailableResources(new Resources(70, 70, 70));
@@ -224,26 +225,23 @@ public class DailyScheduleServiceTest {
         rp7.setId(7L);
         DailySchedule fpSchedule = new DailySchedule(day, 1L);
 
+        // mock
         when(mockScheduleRepository.existsByDayAndResourcePoolId(day, 1L)).thenReturn(true);
         when(mockScheduleRepository.existsByDayAndResourcePoolId(day, resourcePoolId)).thenReturn(true);
         when(mockScheduleRepository.existsByDayAndResourcePoolId(day, 7L)).thenReturn(true);
         when(mockScheduleRepository.findByDayAndResourcePoolId(day, 1L)).thenReturn(Optional.of(fpSchedule));
         when(mockScheduleRepository.findByDayAndResourcePoolId(day, resourcePoolId)).thenReturn(Optional.of(dailySchedule6));
         when(mockScheduleRepository.findByDayAndResourcePoolId(day, 7L)).thenReturn(Optional.of(dailySchedule7));
-        when(mockResourcePoolRepo.findById(1L)).thenReturn(Optional.of(rp1));
-        when(mockResourcePoolRepo.findById(resourcePoolId)).thenReturn(Optional.of(rp6));
-        when(mockResourcePoolRepo.findById(7L)).thenReturn(Optional.of(rp7));
-        when(rpManagementService.findById(dailySchedule6.getResourcePoolId())).thenReturn(Optional.of(rp6));
-        when(rpManagementService.findById(dailySchedule6.getResourcePoolId())).thenReturn(Optional.of(rp7));
         when(mockResourcePoolRepo.findAll()).thenReturn(List.of(rp1, rp6, rp7));
 
+        // act
         dailyScheduleService.releaseAllResourcesToFreePool();
-
         verify(mockScheduleRepository, times(4)).save(argumentCaptor.capture());
         DailySchedule expectedFpSchedule = argumentCaptor.getAllValues().get(1);
         DailySchedule expectedDailySchedule6 = argumentCaptor.getAllValues().get(0);
         DailySchedule expectedDailySchedule7 = argumentCaptor.getAllValues().get(2);
 
+        // assert
         assertThat(expectedFpSchedule.getAvailableResources()).isEqualTo(new Resources(140, 140, 140));
         assertThat(expectedFpSchedule.getTotalResources()).isEqualTo(new Resources(140, 140, 140));
 
@@ -253,6 +251,7 @@ public class DailyScheduleServiceTest {
         assertThat(expectedDailySchedule7.getAvailableResources()).isEqualTo(new Resources(0, 0, 0));
         assertThat(expectedDailySchedule7.getTotalResources()).isEqualTo(new Resources(100, 100, 100));
 
+        // assert that exception is thrown
         ReleaseResourcesException exc = assertThrows(ReleaseResourcesException.class,
             () -> dailyScheduleService.releaseAllResourcesToFreePoolMutated());
         assertThat(exc.getMessage()).isEqualTo("The free resource pool cannot release resources!");
