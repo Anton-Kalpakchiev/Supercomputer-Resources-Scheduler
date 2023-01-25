@@ -67,16 +67,12 @@ public class PromotionAndEmploymentService {
      * @throws UnauthorizedException user is not authorized.
      */
 
-    @SuppressWarnings({"PMD.AvoidLiteralsInIfCondition"})
+    @SuppressWarnings({"PMD.AvoidLiteralsInIfCondition", "PMD.DataflowAnomalyAnalysis"})
     public Set<Long> authorizeEmploymentAssignmentRequest(
             String employerNetId, String employeeNetId, Set<Long> facultyIds, String token)
-                throws EmploymentException, NoSuchUserException, UnauthorizedException {
+            throws EmploymentException, NoSuchUserException, UnauthorizedException, FacultyException {
         for (long facultyId : facultyIds) {
-            try {
-                userServices.getFacultyVerificationService().verifyFaculty(facultyId, token);
-            } catch (FacultyException e) {
-                throw new RuntimeException(e);
-            }
+            userServices.getFacultyVerificationService().verifyFaculty(facultyId, token);
         }
         if (authorization.isOfType(employerNetId, AccountType.SYSADMIN)) {
             for (Long facultyId : facultyIds) {
@@ -85,13 +81,11 @@ public class PromotionAndEmploymentService {
             return facultyIds;
         } else if (authorization.isOfType(employerNetId, AccountType.FAC_ACCOUNT)) {
             long employerFacultyId = userServices.getFacultyAccountService().getFacultyAssignedId(employerNetId);
-            if (facultyIds.contains(employerFacultyId)) {
+            if (facultyIds.size() > 1) {
+                throw new EmploymentException("A faculty manager cannot authorize employment at other faculties");
+            } else if (facultyIds.contains(employerFacultyId)) {
                 assignFacultyToEmployee(employeeNetId, employerFacultyId);
                 return Set.of(employerFacultyId);
-            } else if (facultyIds.size() > 1) {
-                facultyIds.remove(employerFacultyId);
-                throw new EmploymentException("Faculty manager of faculty " + employerFacultyId
-                        + " cannot authorize employment at other faculties: " + facultyIds);
             } else {
                 throw new EmploymentException("Faculty manager can only employ employees for their own faculty!");
             }
@@ -113,13 +107,9 @@ public class PromotionAndEmploymentService {
     @SuppressWarnings({"PMD.AvoidLiteralsInIfCondition"})
     public Set<Long> authorizeEmploymentRemovalRequest(
             String employerNetId, String employeeNetId, Set<Long> facultyIds, String token)
-                throws EmploymentException, UnauthorizedException, NoSuchUserException {
+            throws EmploymentException, UnauthorizedException, NoSuchUserException, FacultyException {
         for (long facultyId : facultyIds) {
-            try {
-                userServices.getFacultyVerificationService().verifyFaculty(facultyId, token);
-            } catch (FacultyException e) {
-                throw new RuntimeException(e);
-            }
+            userServices.getFacultyVerificationService().verifyFaculty(facultyId, token);
         }
         if (authorization.isOfType(employerNetId, AccountType.SYSADMIN)) {
             for (Long facultyId : facultyIds) {
@@ -128,17 +118,15 @@ public class PromotionAndEmploymentService {
             return facultyIds;
         } else if (authorization.isOfType(employerNetId, AccountType.FAC_ACCOUNT)) {
             long employerFacultyId = userServices.getFacultyAccountService().getFacultyAssignedId(employerNetId);
-            if (facultyIds.contains(employerFacultyId)) {
-                removeEmployeeFromFaculty(employeeNetId, employerFacultyId);
-                return Set.of(employerFacultyId);
-            } else if (facultyIds.size() > 1) {
-                facultyIds.remove(employerFacultyId);
+            if (facultyIds.size() > 1) {
                 throw new EmploymentException("Faculty manager of faculty " + employerFacultyId
                         + " cannot authorize removal of employment at other faculties: " + facultyIds);
+            } else if (facultyIds.contains(employerFacultyId)) {
+                removeEmployeeFromFaculty(employeeNetId, employerFacultyId);
+                return Set.of(employerFacultyId);
             } else {
                 throw new EmploymentException("Faculty manager can only remove employees for their own faculty!");
             }
-
         } else {
             throw new UnauthorizedException("Employees cannot remove other employees");
         }

@@ -69,6 +69,22 @@ public class RpManagementService {
     }
 
     /**
+     * Mutation of the regular contributeNode method which fails to save to repository.
+     *
+     * @param nodeInfo The information needed to contribute the resources of the node
+     * @return true if the contribution succeeded
+     * @throws FacultyIdNotFoundException if a faculty with the given id can't be found
+     */
+    public boolean contributeNodeMutated(NodeInteractionRequestModel nodeInfo) throws FacultyIdNotFoundException {
+        ResourcePool faculty = getFacultyById(nodeInfo.getFacultyId());
+        Resources currentNodeResources = faculty.getNodeResources();
+        Resources node = new Resources(nodeInfo.getCpu(), nodeInfo.getGpu(), nodeInfo.getMemory());
+        faculty.setNodeResources(Resources.add(currentNodeResources, node));
+        // Mutation: updated faculty is no longer re-saved to repo
+        return true;
+    }
+
+    /**
      * Deletes a node from a faculty.
      *
      * @param nodeInfo The information needed to delete the resources of the node

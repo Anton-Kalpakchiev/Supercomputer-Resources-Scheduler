@@ -190,4 +190,42 @@ class DistributionServiceTest {
         verify(mockRepo, times(1)).save(any(ResourcePool.class));
 
     }
+
+    @Test
+    void killSaveDistributionMutant() throws Exception {
+        DistributionModel model1 = new DistributionModel();
+        model1.setName("name1");
+        model1.setCpu(80);
+        model1.setGpu(90);
+        model1.setMemory(60);
+        DistributionModel model2 = new DistributionModel();
+        model2.setName("name2");
+        model2.setCpu(20);
+        model2.setGpu(30);
+        model2.setMemory(40);
+
+        Resources resources = new Resources(100, 100, 100);
+        ResourcePool resourcePool1 = new ResourcePool("name1");
+        resourcePool1.setBaseResources(resources);
+        ResourcePool resourcePool2 = new ResourcePool("name2");
+        resourcePool2.setBaseResources(resources);
+        List<ResourcePool> resourcePools = new ArrayList<>();
+        resourcePools.add(resourcePool1);
+        resourcePools.add(resourcePool2);
+
+        when(mockRepo.existsByName("name1")).thenReturn(true);
+        when(mockRepo.existsByName("name2")).thenReturn(true);
+        when(mockRepo.findAll()).thenReturn(resourcePools);
+
+        distributionService.addDistribution(model1);
+        distributionService.addDistribution(model2);
+
+        ResourceSumNotCorrectException exc = assertThrows(ResourceSumNotCorrectException.class,
+                () -> distributionService.saveDistribution());
+        assertEquals("gpu", exc.getMessage());
+
+        distributionService.saveDistributionMutated();
+        assertEquals("[]", distributionService.statusDistribution());
+        verify(mockRepo, times(1)).save(any(ResourcePool.class));
+    }
 }

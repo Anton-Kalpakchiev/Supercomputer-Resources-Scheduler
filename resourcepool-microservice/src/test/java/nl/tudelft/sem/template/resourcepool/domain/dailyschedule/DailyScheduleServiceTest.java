@@ -8,12 +8,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import nl.tudelft.sem.template.resourcepool.domain.RequestService;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.FacultyNotFoundException;
 import nl.tudelft.sem.template.resourcepool.domain.resourcepool.ResourcePool;
@@ -196,5 +199,62 @@ public class DailyScheduleServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(Exception.class, () -> dailyScheduleService.getAvailableResourcesById(faculty1.getId(), day2));
+    }
+
+    @Test
+    void releaseAllResourcesToFreePoolTest() {
+        // set up
+        DailySchedule dailySchedule6 = new DailySchedule(day, resourcePoolId);
+        dailySchedule6.setTotalResources(new Resources(100, 100, 100));
+        dailySchedule6.setAvailableResources(new Resources(70, 70, 70));
+        DailySchedule dailySchedule7 = new DailySchedule(day, 7L);
+        dailySchedule7.setTotalResources(new Resources(100, 100, 100));
+        dailySchedule7.setAvailableResources(new Resources(70, 70, 70));
+
+        ResourcePool rp1 = new ResourcePool();
+        rp1.setId(1L);
+        rp1.setNodeResources(new Resources(0, 0, 0));
+        rp1.setBaseResources(new Resources(0, 0, 0));
+        ResourcePool rp6 = new ResourcePool();
+        rp6.setId(6L);
+        rp6.setNodeResources(new Resources(0, 0, 0));
+        rp6.setBaseResources(new Resources(0, 0, 0));
+        ResourcePool rp7 = new ResourcePool();
+        rp7.setNodeResources(new Resources(0, 0, 0));
+        rp7.setBaseResources(new Resources(0, 0, 0));
+        rp7.setId(7L);
+        DailySchedule fpSchedule = new DailySchedule(day, 1L);
+
+        // mock
+        when(mockScheduleRepository.existsByDayAndResourcePoolId(day, 1L)).thenReturn(true);
+        when(mockScheduleRepository.existsByDayAndResourcePoolId(day, resourcePoolId)).thenReturn(true);
+        when(mockScheduleRepository.existsByDayAndResourcePoolId(day, 7L)).thenReturn(true);
+        when(mockScheduleRepository.findByDayAndResourcePoolId(day, 1L)).thenReturn(Optional.of(fpSchedule));
+        when(mockScheduleRepository.findByDayAndResourcePoolId(day, resourcePoolId)).thenReturn(Optional.of(dailySchedule6));
+        when(mockScheduleRepository.findByDayAndResourcePoolId(day, 7L)).thenReturn(Optional.of(dailySchedule7));
+        when(mockResourcePoolRepo.findAll()).thenReturn(List.of(rp1, rp6, rp7));
+
+        // act
+        dailyScheduleService.releaseAllResourcesToFreePool();
+        verify(mockScheduleRepository, times(4)).save(argumentCaptor.capture());
+        DailySchedule expectedFpSchedule = argumentCaptor.getAllValues().get(1);
+        DailySchedule expectedDailySchedule6 = argumentCaptor.getAllValues().get(0);
+        DailySchedule expectedDailySchedule7 = argumentCaptor.getAllValues().get(2);
+
+        // assert
+        assertThat(expectedFpSchedule.getAvailableResources()).isEqualTo(new Resources(140, 140, 140));
+        assertThat(expectedFpSchedule.getTotalResources()).isEqualTo(new Resources(140, 140, 140));
+
+        assertThat(expectedDailySchedule6.getAvailableResources()).isEqualTo(new Resources(0, 0, 0));
+        assertThat(expectedDailySchedule6.getTotalResources()).isEqualTo(new Resources(100, 100, 100));
+
+        assertThat(expectedDailySchedule7.getAvailableResources()).isEqualTo(new Resources(0, 0, 0));
+        assertThat(expectedDailySchedule7.getTotalResources()).isEqualTo(new Resources(100, 100, 100));
+
+        // assert that exception is thrown
+        ReleaseResourcesException exc = assertThrows(ReleaseResourcesException.class,
+            () -> dailyScheduleService.releaseAllResourcesToFreePoolMutated());
+        assertThat(exc.getMessage()).isEqualTo("The free resource pool cannot release resources!");
+
     }
 }

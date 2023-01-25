@@ -50,14 +50,46 @@ public class Resources {
         return memory;
     }
 
+
+    /**
+     * Adds 2 Resources classes together.
+     *
+     * @param resources1 the first Resources
+     * @param resources2 the second Resources
+     * @return the combined Resources
+     */
     public static Resources add(Resources resources1, Resources resources2) {
         return new Resources(resources1.getCpu() + resources2.getCpu(),
                 resources1.getGpu() + resources2.getGpu(), resources1.getMemory() + resources2.getMemory());
     }
 
+    /**
+     * Subtracts the resources of one Resources class from the resources of another.
+     *
+     * @param resources1 the original Resources class
+     * @param resources2 the Resources we subtract
+     * @return the result of the operation
+     */
     public static Resources subtract(Resources resources1, Resources resources2) {
-        return new Resources(resources1.getCpu() - resources2.getCpu(),
+        Resources result = new Resources(resources1.getCpu() - resources2.getCpu(),
                 resources1.getGpu() - resources2.getGpu(), resources1.getMemory() - resources2.getMemory());
+        return result;
+    }
+
+    /**
+     * Mutated version of the subtract method used for mutation testing assignment 3.
+     * Flips integer subtraction to integer addition in first line
+     *
+     * @param resources1 the original Resources class
+     * @param resources2 the Resources we subtract
+     * @return the result of the operation
+     */
+    public static Resources subtractMutated(Resources resources1, Resources resources2) {
+        //mutation: CPUs are getting added instead of subtracted.
+        Resources result = new Resources(resources1.getCpu() + resources2.getCpu(),
+                resources1.getGpu() - resources2.getGpu(), resources1.getMemory() - resources2.getMemory());
+
+        return result;
     }
 
     /**
