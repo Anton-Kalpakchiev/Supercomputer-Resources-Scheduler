@@ -130,7 +130,7 @@ public class RequestHandlerTest {
 
         requestHandler.registerRequestOnceStatusDecided(1, r1, token);
 
-        verify(mockResourcePoolService, times(2)).approval(any(),
+        verify(mockResourcePoolService).approval(any(),
                 eq(r1.getId()), eq(true), eq(token));
         verify(requestRepository).save(appRequestArgumentCaptor.capture());
 
