@@ -1,13 +1,16 @@
-# SEM Project Group 14a
+# Supercomputer Resources Scheduler
 
 ## Description of project
 
-The TU Delft has recently acquired a new super computer called DelftBlue. The goal is for all employees of the university to have access to this supercomputer and use it for their research. For this reason the university has asked us to model and develop a system for employees to request and schedule processor time based on their tasks requirements. The person responsible for overseeing this project has summarized what they would like to have developed. The system, as they described it, should be a compute job scheduling system. The goal of this project is to create this compute job scheduling system.
+This is a computer job scheduling system. A university has a new supercomputer that must be available to all employees to use in their research and work for computing and processing. The system has admins (sysadmins), employees and faculty managers. Employees submit resource requests that indicate how many resources they need and the deadline of their request. Different faculties have different amounts of resources. An employee can submit requests only to their faculty. Each faculty has a manager. The system has both automatic and manual approval and rejection of requests. In some cases when an optimal scheduling is available, the request gets scheduled automatically, while in other cases the faculty manager has to decide whether to approve the request or reject it. If employees have computers that they do not use for prolonged periods of time, they can make a request to add their computer to the system as a processing unit. The system can then utilize that node for future requests.
+
+The backend is implemented using a Microservice Architecture. We have 5 microservices including authentication. All users are authenticated and authorized. The Facade and Chain of Responsibility design patterns are utilized.
 
 ## How to run it
-After cloning the repository, all the microservices should be run, by starting the Spring applications. Then, *Postman* can be used to perform the different requests. All requests can be made by calling *localhost:8086/*, followed by the url stated before the explanation of the request.
+After cloning the repository, all the microservices should be run, by starting the Spring applications. Then, since only the backend is implemented, *Postman* can be used to perform the different requests. All requests can be made by calling *localhost:8086/*, followed by the url stated before the explanation of the request.
 
 ## Requests
+Here is the list of all requests that can be made to the system.
 
 ### Faculties and their resources
 
@@ -155,5 +158,3 @@ It expects a request body formatted as follows:
 }
 
 The endpoint returns a string which indicates whether the request was successful.
-
-
